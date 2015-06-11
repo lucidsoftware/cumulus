@@ -1,6 +1,6 @@
 require "conf/Configuration"
-require "models/StatementConfig"
-require "models/RoleConfig"
+require "iam/models/StatementConfig"
+require "iam/models/RoleConfig"
 
 require "json"
 

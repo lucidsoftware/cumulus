@@ -54,7 +54,7 @@ class Diff
     if @type == ChangeType::ADD
       Colors.added_role("Add role #{@role}")
     elsif @type == ChangeType::REMOVE
-      Colors.unmanaged_role("AWS role #{@role} is not managed by IAM Manager")
+      Colors.unmanaged_role("AWS role #{@role} is not managed by Cumulus")
     else
       ret = ["For role #{@role} there are the following differences:"]
       ret << @policies.map do |key, value|

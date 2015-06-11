@@ -19,7 +19,7 @@ module Modules
 
 
     # run the application with the desired command
-    require "Iam"
+    require "iam/Iam"
     iam = Iam.new
     if ARGV[1] == "diff"
       iam.diff

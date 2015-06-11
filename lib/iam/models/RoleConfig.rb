@@ -1,8 +1,8 @@
 require "conf/Configuration"
-require "loader/Loader"
-require "models/Diff"
-require "models/PolicyConfig"
-require "models/StatementConfig"
+require "iam/loader/Loader"
+require "iam/models/Diff"
+require "iam/models/PolicyConfig"
+require "iam/models/StatementConfig"
 require "util/Colors"
 
 require "json"
@@ -137,7 +137,7 @@ class RoleConfig
       if name != generated_policy_name
         differences.add_diff(
           name,
-          Colors.unmanaged_policy("Policy is not managed by the IAM Manager")
+          Colors.unmanaged_policy("Policy is not managed by Cumulus")
         )
       else
         aws_statements = JSON.parse(URI.unescape(aws_policy.policy_document))["Statement"]

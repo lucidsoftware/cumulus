@@ -1,6 +1,6 @@
 require "conf/Configuration"
-require "loader/Loader"
-require "models/Diff"
+require "iam/loader/Loader"
+require "iam/models/Diff"
 require "util/Colors"
 
 require "aws-sdk"
@@ -35,7 +35,7 @@ class Iam
         role = Aws::IAM::Role.new(difference.role, { :client => @iam })
         update_policy(role, difference.config)
       elsif difference.type == ChangeType::REMOVE_POLICY
-        puts Colors.red("#{difference.role} has policies not managed by IAM Manager")
+        puts Colors.red("#{difference.role} has policies not managed by Cumulus")
       else
         puts Colors.blue("updating #{difference.role}...")
         aws_role = aws[difference.role]
