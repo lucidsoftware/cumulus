@@ -1,0 +1,17 @@
+{
+	"colors-enabled": true,
+	"policies": {
+		"static": {
+			"directory": "policies/static"
+		},
+		"suffix": "-generated",
+		"templates": {
+			"directory": "policies/template"
+		},
+		"version": "2012-10-17"
+	},
+	"roles": {
+		"directory": "roles"
+	},
+	"region": "us-east-1"
+}
