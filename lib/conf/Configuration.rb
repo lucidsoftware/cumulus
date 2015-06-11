@@ -33,11 +33,15 @@ class Configuration
   # Public: Take a path relative to the project root and turn it into an
   # absolute path
   #
-  # absolute_path - The String path from `project_root` to the desired file
+  # relative_path - The String path from `project_root` to the desired file
   #
-  # Returns the absolute url as a String
+  # Returns the absolute path as a String
   def absolute_path(relative_path)
-    File.join(@project_root, relative_path)
+    if relative_path.start_with?("/")
+      relative_path
+    else
+      File.join(@project_root, relative_path)
+    end
   end
 
   class << self
