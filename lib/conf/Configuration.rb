@@ -11,6 +11,7 @@ class Configuration
   attr_reader :static_policy_directory
   attr_reader :template_policy_directory
   attr_reader :roles_directory
+  attr_reader :policy_document_directory
 
   # Internal: Constructor. Sets the `instance` variable, which is the access point
   # for the Singleton.
@@ -27,6 +28,7 @@ class Configuration
     @static_policy_directory = absolute_path(json["policies"]["static"]["directory"])
     @template_policy_directory = absolute_path(json["policies"]["templates"]["directory"])
     @roles_directory = absolute_path(json["roles"]["directory"])
+    @policy_document_directory = absolute_path(json["roles"]["policy-document-directory"])
     @region = json["region"]
   end
 

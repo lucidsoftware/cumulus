@@ -11,7 +11,8 @@
 		"version": "2012-10-17"
 	},
 	"roles": {
-		"directory": "roles"
+		"directory": "roles",
+		"policy-document-directory": "roles/policy-documents"
 	},
 	"region": "us-east-1"
 }

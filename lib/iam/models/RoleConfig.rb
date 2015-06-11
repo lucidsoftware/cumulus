@@ -22,7 +22,7 @@ class RoleConfig
   def initialize(json)
     @name = json["name"]
     @path = json["path"]
-    @policy_document = json["policy-document"]
+    @policy_document = Loader.policy_document(json["policy-document"])
     @json = json
   end
 

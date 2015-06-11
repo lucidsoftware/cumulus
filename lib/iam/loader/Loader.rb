@@ -14,8 +14,10 @@ module Loader
   # files.
   def Loader.roles
     roles_dir = Configuration.instance.roles_directory
-    Dir.entries(roles_dir).reject { |file| file == "." or file == ".." }
-      .map do |file|
+    Dir.entries(roles_dir)
+      .reject do |f|
+        f == "." or f == ".." or File.directory?(File.join(roles_dir, f))
+      end.map do |file|
         RoleConfig.new(JSON.parse(File.read(File.join(roles_dir, file))))
       end
   end
@@ -52,6 +54,16 @@ module Loader
       template.gsub!("{{#{key}}}", value)
     end
     StatementConfig.new(JSON.parse(template))
+  end
+
+  # Public: Load the JSON string that is a role's policy document from a file.
+  #
+  # file - the String name of the policy document file to load
+  #
+  # Returns the String contents of the policy document file
+  def Loader.policy_document(file)
+    policy_dir = Configuration.instance.policy_document_directory
+    File.read(File.join(policy_dir, file))
   end
 
 end
