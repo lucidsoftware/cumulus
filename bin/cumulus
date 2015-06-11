@@ -17,14 +17,21 @@ module Modules
       exit
     end
 
-
     # run the application with the desired command
     require "iam/Iam"
     iam = Iam.new
     if ARGV[1] == "diff"
-      iam.diff
+      if ARGV.size < 3
+        iam.diff
+      else
+        iam.diff_one(ARGV[2])
+      end
     elsif ARGV[1] == "sync"
-      iam.sync
+      if ARGV.size < 3
+        iam.sync
+      else
+        iam.sync_one(ARGV[2])
+      end
     end
   end
 end

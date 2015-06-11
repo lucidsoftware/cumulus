@@ -18,8 +18,18 @@ module Loader
       .reject do |f|
         f == "." or f == ".." or File.directory?(File.join(roles_dir, f))
       end.map do |file|
-        RoleConfig.new(JSON.parse(File.read(File.join(roles_dir, file))))
+        Loader.role(file)
       end
+  end
+
+  # Public: Load a role defined in configuration
+  #
+  # file - the name of the role to load
+  #
+  # Returns a RoleConfig object defined by the role configuration files.
+  def Loader.role(file)
+    roles_dir = Configuration.instance.roles_directory
+    RoleConfig.new(JSON.parse(File.read(File.join(roles_dir, file))))
   end
 
   # Public: Load in a static policy as StatementConfig object

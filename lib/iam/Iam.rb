@@ -8,22 +8,43 @@ require "aws-sdk"
 # Public: The main class for the IAM Manager application.
 class Iam
 
-  # Public: Print out the diff for between the local configuration and the IAMS
+  # Public: Print out the diff between the local configuration and the IAMS
   # in AWS
   def diff
     puts differences.join("\n")
+  end
+
+  # Public: Print out the diff between local configuration and AWS for one role
+  #
+  # role - the name of the role to diff
+  def diff_one(role)
+    puts one_difference(role)
   end
 
   # Public: Sync the local configuration with the configuration in AWS. Will
   # not delete roles that are not locally configured, also will not remove
   # inline policies that are not locally configured.
   def sync
+    sync_changes(differences)
+  end
+
+  # Public: Sync the local configuration for one role with AWS
+  #
+  # name - the name of the role to sync
+  def sync_one(name)
+    sync_changes(one_difference(name))
+  end
+
+  # Internal: Sync all the changes passed into the function to AWS
+  #
+  # diffs - the differences to sync
+  def sync_changes(diffs)
     aws = {}
     aws_roles.each do |role|
       aws[role.name] = role
     end
 
-    differences.each do |difference|
+    diffs.each do |difference|
       if difference.type == ChangeType::REMOVE
         puts difference
       elsif difference.type == ChangeType::ADD
@@ -43,6 +64,7 @@ class Iam
       end
     end
   end
+  private :sync_changes
 
   # Internal: Update the generated policy document for an aws role
   #
@@ -66,15 +88,44 @@ class Iam
       local[role.name] = role
     end
 
+    calculate_differences(local, true)
+  end
+  private :differences
+
+  # Internal: Find the differences between local and AWS configuration for one
+  # role.
+  #
+  # name - the name of the role to check
+  #
+  # Returns the differences
+  def one_difference(name)
+    local = {
+      name => Loader.role(name)
+    }
+
+    calculate_differences(local, false)
+  end
+  private :one_difference
+
+  # Internal: Find the differences between the local and AWS configurations.
+  #
+  # local                     - the local roles to check against
+  # include_non_managed_roles - whether to show the roles in AWS that aren't
+  #                             managed by Cumulus
+  #
+  # Returns an array of differences
+  def calculate_differences(local, include_non_managed_roles)
     aws = {}
     aws_roles.each do |role|
       aws[role.name] = role
     end
 
     differences = []
-    aws.each do |name, role|
-      if !local.key?(name)
-        differences << Diff.new(name, ChangeType::REMOVE, nil)
+    if include_non_managed_roles
+      aws.each do |name, role|
+        if !local.key?(name)
+          differences << Diff.new(name, ChangeType::REMOVE, nil)
+        end
       end
     end
 
@@ -95,7 +146,7 @@ class Iam
 
     differences
   end
-  private :differences
+  private :calculate_differences
 
   # Internal: Lazily load all the roles from AWS.
   #
