@@ -58,7 +58,7 @@ class RoleConfig
   #
   # Returns the String name
   def generated_policy_name
-    "#{@name}#{Configuration.instance.policy_suffix}"
+    "#{Configuration.instance.policy_prefix}#{@name}#{Configuration.instance.policy_suffix}"
   end
 
   # Internal: Lazily load the static policies for this RoleConfig

@@ -6,6 +6,7 @@ class Configuration
 
   attr_reader :colors_enabled
   attr_reader :region
+  attr_reader :policy_prefix
   attr_reader :policy_suffix
   attr_reader :policy_version
   attr_reader :static_policy_directory
@@ -23,6 +24,7 @@ class Configuration
     @project_root = project_root;
     json = JSON.parse(File.read(absolute_path(file_path)))
     @colors_enabled = json["colors-enabled"]
+    @policy_prefix = json["policies"]["prefix"]
     @policy_suffix = json["policies"]["suffix"]
     @policy_version = json["policies"]["version"]
     @static_policy_directory = absolute_path(json["policies"]["static"]["directory"])

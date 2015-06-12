@@ -4,6 +4,7 @@
 		"static": {
 			"directory": "policies/static"
 		},
+		"prefix": "",
 		"suffix": "-generated",
 		"templates": {
 			"directory": "policies/template"
