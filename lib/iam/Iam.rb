@@ -79,10 +79,14 @@ class Iam
   # role    - the Aws::IAM::Role to update the policy for
   # config  - the RoleConfig to use to generate the policy
   def update_policy(role, config)
-      role = role.policy(config.generated_policy_name)
-      role.put({
-        :policy_document => config.policy.as_pretty_json
-      })
+      if !config.policy.empty?
+        role = role.policy(config.generated_policy_name)
+        role.put({
+          :policy_document => config.policy.as_pretty_json
+        })
+      else
+        puts Colors.red("Policy is empty. Not uploaded")
+      end
   end
   private :update_policy
 

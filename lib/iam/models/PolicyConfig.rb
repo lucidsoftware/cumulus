@@ -19,6 +19,14 @@ class PolicyConfig
     @statements.push(statement)
   end
 
+  # Public: Determine if this policy is empty. It is considered empty if there
+  # are no statements.
+  #
+  # Returns true if empty, false if not
+  def empty?
+    @statements.empty?
+  end
+
   # Public: Create a JSON string representing this PolicyConfig which can be
   # used by AWS IAMs.
   #
