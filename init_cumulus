@@ -11,7 +11,7 @@ function _cumulus {
 
   case "$twoprev" in
     iam)
-      if [[ "$prev" -eq "diff" || "$prev" -eq "sync" ]]; then
+      if [ "$prev" == "diff" ] || [ "$prev" == "sync" ]; then
         roles=$($CUMULUS_DIR/bin/cumulus.rb iam roles)
         COMPREPLY=( $(compgen -W "$roles" -- $cur ) )
       fi
@@ -21,7 +21,7 @@ function _cumulus {
         iam)
           COMPREPLY=( $(compgen -W "diff help roles sync" -- $cur) )
           ;;
-        *)
+        cumulus)
           COMPREPLY=( $(compgen -W "help iam" -- $cur) )
           ;;
       esac
