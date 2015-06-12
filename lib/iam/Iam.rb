@@ -21,6 +21,14 @@ class Iam
     puts one_difference(role)
   end
 
+  # Public: Print out a list of the roles defined by local configuration.
+  def roles
+    names = Loader.roles.map do |role|
+      role.name
+    end
+    puts names.join(" ")
+  end
+
   # Public: Sync the local configuration with the configuration in AWS. Will
   # not delete roles that are not locally configured, also will not remove
   # inline policies that are not locally configured.

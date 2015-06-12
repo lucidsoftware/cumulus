@@ -2,8 +2,8 @@
 module Modules
   # Public: Run the IAM module
   def self.iam
-    if ARGV.size < 2 or (ARGV[1] != "diff" and ARGV[1] != "sync" and ARGV[1] != "help")
-      puts "Usage: cumulus iam [diff|help|sync]"
+    if ARGV.size < 2 or (ARGV[1] != "diff" and ARGV[1] != "sync" and ARGV[1] != "roles" and ARGV[1] != "help")
+      puts "Usage: cumulus iam [diff|help|roles|sync]"
       exit
     end
 
@@ -13,6 +13,7 @@ module Modules
       puts
       puts "Commands"
       puts "\tdiff\t- get a list of roles that have different definitions locally than in AWS"
+      puts "\troles\t- list the roles defined in configuration"
       puts "\tsync\t- sync the local role definition with AWS"
       exit
     end
@@ -26,6 +27,8 @@ module Modules
       else
         iam.diff_one(ARGV[2])
       end
+    elsif ARGV[1] == "roles"
+      iam.roles
     elsif ARGV[1] == "sync"
       if ARGV.size < 3
         iam.sync

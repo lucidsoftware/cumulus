@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+export CUMULUS_DIR=$(pwd)
+function cumulus {
+  $CUMULUS_DIR/bin/cumulus.rb "$@"
+}
+
+function _cumulus {
+  local cur=${COMP_WORDS[COMP_CWORD]}
+  local prev=${COMP_WORDS[COMP_CWORD-1]}
+  local twoprev=${COMP_WORDS[COMP_CWORD-2]}
+
+  case "$twoprev" in
+    iam)
+      if [[ "$prev" -eq "diff" || "$prev" -eq "sync" ]]; then
+        roles=$($CUMULUS_DIR/bin/cumulus.rb iam roles)
+        COMPREPLY=( $(compgen -W "$roles" -- $cur ) )
+      fi
+    ;;
+    *)
+      case "$prev" in
+        iam)
+          COMPREPLY=( $(compgen -W "diff help roles sync" -- $cur) )
+          ;;
+        *)
+          COMPREPLY=( $(compgen -W "help iam" -- $cur) )
+          ;;
+      esac
+      ;;
+  esac
+}
+complete -F _cumulus cumulus
