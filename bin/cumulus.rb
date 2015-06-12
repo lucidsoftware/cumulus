@@ -39,6 +39,14 @@ module Modules
   end
 end
 
+begin
+  require 'aws-sdk'
+rescue LoadError
+  puts "Cumulus requires the gem 'aws-sdk'"
+  puts "Please install 'aws-sdk'"
+  exit
+end
+
 if ARGV.size == 0 or (ARGV[0] != "iam" and ARGV[0] != "help")
   puts "Usage: cumulus [iam|help]"
   exit
