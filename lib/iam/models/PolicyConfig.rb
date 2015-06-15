@@ -8,7 +8,7 @@ class PolicyConfig
 
   # Public: Constructor. Will be created with no statements.
   def initialize
-    @version = Configuration.instance.policy_version
+    @version = Configuration.instance.iam.policy_version
     @statements = []
   end
 

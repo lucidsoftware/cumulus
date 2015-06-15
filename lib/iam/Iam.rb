@@ -8,176 +8,247 @@ require "aws-sdk"
 # Public: The main class for the IAM Manager application.
 class Iam
 
-  # Public: Print out the diff between the local configuration and the IAMS
-  # in AWS
-  def diff
-    puts differences.join("\n")
-  end
+  attr_reader :roles
 
-  # Public: Print out the diff between local configuration and AWS for one role
-  #
-  # role - the name of the role to diff
-  def diff_one(role)
-    puts one_difference(role)
-  end
-
-  # Public: Print out a list of the roles defined by local configuration.
-  def roles
-    names = Loader.roles.map do |role|
-      role.name
-    end
-    puts names.join(" ")
-  end
-
-  # Public: Sync the local configuration with the configuration in AWS. Will
-  # not delete roles that are not locally configured, also will not remove
-  # inline policies that are not locally configured.
-  def sync
-    sync_changes(differences)
-  end
-
-  # Public: Sync the local configuration for one role with AWS
-  #
-  # name - the name of the role to sync
-  def sync_one(name)
-    sync_changes(one_difference(name))
-  end
-
-  # Internal: Sync all the changes passed into the function to AWS
-  #
-  # diffs - the differences to sync
-  def sync_changes(diffs)
-    aws = {}
-    aws_roles.each do |role|
-      aws[role.name] = role
-    end
-
-    diffs.each do |difference|
-      if difference.type == ChangeType::REMOVE
-        puts difference
-      elsif difference.type == ChangeType::ADD
-        puts Colors.blue("creating #{difference.role}")
-        @iam.create_role({
-          :role_name => difference.role,
-          :assume_role_policy_document => difference.config.policy_document
-        })
-        role = Aws::IAM::Role.new(difference.role, { :client => @iam })
-        update_policy(role, difference.config)
-      elsif difference.type == ChangeType::REMOVE_POLICY
-        puts Colors.red("#{difference.role} has policies not managed by Cumulus")
-      else
-        puts Colors.blue("updating #{difference.role}...")
-        aws_role = aws[difference.role]
-        update_policy(aws_role, difference.config)
-      end
-    end
-  end
-  private :sync_changes
-
-  # Internal: Update the generated policy document for an aws role
-  #
-  # role    - the Aws::IAM::Role to update the policy for
-  # config  - the RoleConfig to use to generate the policy
-  def update_policy(role, config)
-      if !config.policy.empty?
-        role = role.policy(config.generated_policy_name)
-        role.put({
-          :policy_document => config.policy.as_pretty_json
-        })
-      else
-        puts Colors.red("Policy is empty. Not uploaded")
-      end
-  end
-  private :update_policy
-
-  # Internal: Get all the differences between the local configuration and the
-  # IAMS in AWS
-  #
-  # Returns and Array of Diff objects that represent the differences
-  def differences
-    local = {}
-    Loader.roles.each do |role|
-      local[role.name] = role
-    end
-
-    calculate_differences(local, true)
-  end
-  private :differences
-
-  # Internal: Find the differences between local and AWS configuration for one
-  # role.
-  #
-  # name - the name of the role to check
-  #
-  # Returns the differences
-  def one_difference(name)
-    local = {
-      name => Loader.role(name)
-    }
-
-    calculate_differences(local, false)
-  end
-  private :one_difference
-
-  # Internal: Find the differences between the local and AWS configurations.
-  #
-  # local                     - the local roles to check against
-  # include_non_managed_roles - whether to show the roles in AWS that aren't
-  #                             managed by Cumulus
-  #
-  # Returns an array of differences
-  def calculate_differences(local, include_non_managed_roles)
-    aws = {}
-    aws_roles.each do |role|
-      aws[role.name] = role
-    end
-
-    differences = []
-    if include_non_managed_roles
-      aws.each do |name, role|
-        if !local.key?(name)
-          differences << Diff.new(name, ChangeType::REMOVE, nil)
-        end
-      end
-    end
-
-    local.each do |name, role|
-      if !aws.key?(name)
-        differences << Diff.new(name, ChangeType::ADD, role)
-      end
-    end
-
-    aws.each do |name, role|
-      if local.key?(name)
-        d = local[name].diff(role)
-        if d.different?
-          differences << d
-        end
-      end
-    end
-
-    differences
-  end
-  private :calculate_differences
-
-  # Internal: Lazily load all the roles from AWS.
-  #
-  # Returns the Array of AWS roles
-  def aws_roles
-    @aws_roles ||= init_aws_roles
-  end
-
-  # Internal: Load all the roles from AWS
-  #
-  # Returns the Array of AWS roles
-  def init_aws_roles
-    @iam ||= Aws::IAM::Client.new(
+  # Public: Constructor
+  def initialize
+    iam = Aws::IAM::Client.new(
       region: Configuration.instance.region
     )
-    @iam.list_roles().roles.map do |role|
-      Aws::IAM::Role.new(role.role_name, { :client => @iam })
-    end
+    @roles = IamRoles.new(iam)
   end
-  private :aws_roles
+
+  class IamResource
+    # =====================================================
+    # Methods to be overridden
+    # =====================================================
+    # Public: Get the local resources
+    #
+    # Returns an array of resources
+    def local_resources
+      nil
+    end
+
+    # Public: Get one local resource
+    #
+    # name - the name of the resource to load
+    #
+    # Returns one local resource
+    def one_local(name)
+      nil
+    end
+
+    # Public: Get resources from AWS
+    #
+    # Returns an array of resources from AWS
+    def aws_resources
+      nil
+    end
+
+    # Public: Create a resource in AWS
+    #
+    # difference - the Diff object that contains the local differences
+    #
+    # Returns the created resource
+    def create(difference)
+      nil
+    end
+
+    # Public: Update a resource in AWS
+    #
+    # resource  - the resource to update
+    # config    - the config object to be used when updating the resource
+    def update(resource, config)
+    end
+
+    # =====================================================
+    # End methods to be overridden
+    # =====================================================
+
+    # Public: Constructor
+    #
+    # iam - the IAM client to use
+    def initialize(iam)
+      @iam = iam
+    end
+
+    # Public: Print out the diff between the local configuration and the IAMS
+    # in AWS
+    def diff
+      puts differences.join("\n")
+    end
+
+    # Public: Print out the diff between local configuration and AWS for one
+    # resource
+    #
+    # name - the name of the resource to diff
+    def diff_one(name)
+      puts one_difference(name)
+    end
+
+    # Public: Print out a list of resources defined by local configuration.
+    def list
+      names = local_resources.map do |name, resource|
+        name
+      end
+      puts names.join(" ")
+    end
+
+    # Public: Sync the local configuration with the configuration in AWS. Will
+    # not delete resources that are not locally configured; also will not remove
+    # inline policies that are not locally configured.
+    def sync
+      sync_changes(differences)
+    end
+
+    # Public: Sync the local configuration for one resource with AWS
+    #
+    # name - the name of the resource to sync
+    def sync_one(name)
+      sync_changes(one_difference(name))
+    end
+
+    # Internal: Sync all the changes passed into the function to AWS
+    #
+    # diffs - the differences to sync
+    def sync_changes(diffs)
+      aws = {}
+      aws_resources.each do |resource|
+        aws[resource.name] = resource
+      end
+
+      diffs.each do |difference|
+        if difference.type == ChangeType::REMOVE
+          puts difference
+        elsif difference.type == ChangeType::ADD
+          puts Colors.blue("creating #{difference.name}")
+          resource = create(difference)
+          update(resource, difference.config)
+        elsif difference.type == ChangeType::REMOVE_POLICY
+          puts Colors.red("#{difference.name} has policies not managed by Cumulus")
+        else
+          puts Colors.blue("updating #{difference.name}...")
+          aws_resource = aws[difference.name]
+          update(aws_resource, difference.config)
+        end
+      end
+    end
+    private :sync_changes
+
+    # Internal: Get all the differences between the local configuration and the
+    # IAMS in AWS
+    #
+    # Returns and Array of Diff objects that represent the differences
+    def differences
+      calculate_differences(local_resources, true)
+    end
+    private :differences
+
+    # Internal: Find the differences between local and AWS configuration for one
+    # resource.
+    #
+    # name - the name of the resource to check
+    #
+    # Returns the differences
+    def one_difference(name)
+      local = {
+        name => one_local(name)
+      }
+
+      calculate_differences(local, false)
+    end
+    private :one_difference
+
+    # Internal: Find the differences between the local and AWS configurations.
+    #
+    # local               - the local resources to check against
+    # include_non_managed - whether to show the resources in AWS that aren't
+    #                             managed by Cumulus
+    #
+    # Returns an array of differences
+    def calculate_differences(local, include_non_managed)
+      aws = {}
+      aws_resources.each do |resource|
+        aws[resource.name] = resource
+      end
+
+      differences = []
+      if include_non_managed
+        aws.each do |name, resource|
+          if !local.key?(name)
+            differences << Diff.new(name, ChangeType::REMOVE, @type, nil)
+          end
+        end
+      end
+
+      local.each do |name, resource|
+        if !aws.key?(name)
+          differences << Diff.new(name, ChangeType::ADD, @type, resource)
+        end
+      end
+
+      aws.each do |name, resource|
+        if local.key?(name)
+          d = local[name].diff(resource)
+          if d.different?
+            differences << d
+          end
+        end
+      end
+
+      differences
+    end
+    private :calculate_differences
+  end
+
+  class IamRoles < IamResource
+    @type = "role"
+
+    def local_resources
+      local = {}
+      Loader.roles.each do |role|
+        local[role.name] = role
+      end
+      local
+    end
+
+    def one_local(name)
+      Loader.role(name)
+    end
+
+    def aws_resources
+      @aws_roles ||= init_aws_roles
+    end
+
+    # Internal: Load all the roles from AWS
+    #
+    # Returns the Array of AWS roles
+    def init_aws_roles
+      @iam.list_roles().roles.map do |role|
+        Aws::IAM::Role.new(role.role_name, { :client => @iam })
+      end
+    end
+    private :init_aws_roles
+
+    def create(difference)
+      @iam.create_role({
+        :role_name => difference.name,
+        :assume_role_policy_document => difference.config.policy_document
+      })
+      Aws::IAM::Role.new(difference.name, { :client => @iam })
+    end
+
+    def update(resource, config)
+        if !config.policy.empty?
+          resource = resource.policy(config.generated_policy_name)
+          resource.put({
+            :policy_document => config.policy.as_pretty_json
+          })
+        else
+          puts Colors.red("Policy is empty. Not uploaded")
+        end
+    end
+
+  end
 
 end

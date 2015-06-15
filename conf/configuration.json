@@ -1,19 +1,24 @@
 {
 	"colors-enabled": true,
-	"policies": {
-		"static": {
-			"directory": "policies/static"
+	"iam": {
+		"policies": {
+			"static": {
+				"directory": "conf/iam/policies/static"
+			},
+			"prefix": "",
+			"suffix": "-generated",
+			"templates": {
+				"directory": "conf/iam/policies/template"
+			},
+			"version": "2012-10-17"
 		},
-		"prefix": "",
-		"suffix": "-generated",
-		"templates": {
-			"directory": "policies/template"
+		"roles": {
+			"directory": "conf/iam/roles",
+			"policy-document-directory": "conf/iam/roles/policy-documents"
 		},
-		"version": "2012-10-17"
-	},
-	"roles": {
-		"directory": "roles",
-		"policy-document-directory": "roles/policy-documents"
+		"users": {
+			"directory": "conf/iam/users"
+		}
 	},
 	"region": "us-east-1"
 }

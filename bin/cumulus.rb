@@ -2,43 +2,57 @@
 module Modules
   # Public: Run the IAM module
   def self.iam
-    if ARGV.size < 2 or (ARGV[1] != "diff" and ARGV[1] != "sync" and ARGV[1] != "roles" and ARGV[1] != "help")
-      puts "Usage: cumulus iam [diff|help|roles|sync]"
+    if ARGV.size < 2 or
+      (ARGV.size == 2 and ARGV[1] != "help") or
+      (ARGV.size >= 3 and ((ARGV[1] != "roles" and ARGV[1] != "users") or (ARGV[2] != "diff" and ARGV[2] != "list" and ARGV[2] != "sync")))
+      puts "Usage: cumulus iam [help|roles|users] [diff|list|sync] <asset>"
       exit
     end
 
     if ARGV[1] == "help"
       puts "iam: Manage IAMs."
-      puts "\tCompiles IAM roles and policies that are defined with configuration files and syncs the resulting IAM roles with AWS."
+      puts "\tCompiles IAM assets and policies that are defined with configuration files and syncs the resulting IAM assets with AWS."
+      puts
+      puts "Usage: cumulus iam [help|roles|users] [diff|list|sync] <asset>"
       puts
       puts "Commands"
-      puts "\tdiff\t- get a list of roles that have different definitions locally than in AWS"
-      puts "\troles\t- list the roles defined in configuration"
-      puts "\tsync\t- sync the local role definition with AWS"
+      puts "\troles - Manage IAM roles"
+      puts "\t\tdiff\t- get a list of roles that have different definitions locally than in AWS (supplying the name of the role will diff only that role)"
+      puts "\t\tlist\t- list the roles defined in configuration"
+      puts "\t\tsync\t- sync the local role definition with AWS (supplying the name of the role will sync only that role)"
+      puts "\tusers - Manager IAM users"
+      puts "\t\tdiff\t- get a list of users that have different definitions locally than in AWS (supplying the name of the user will diff only that user)"
+      puts "\t\tlist\t- list the users defined in configuration"
+      puts "\t\tsync\t- sync the local user definition with AWS (supplying the name of the user will sync only that user)"
       exit
     end
 
     # run the application with the desired command
     require "iam/Iam"
     iam = Iam.new
-    if ARGV[1] == "diff"
-      if ARGV.size < 3
-        iam.diff
+    resource = nil
+    if ARGV[1] == "roles"
+      resource = iam.roles
+    end
+    if ARGV[2] == "diff"
+      if ARGV.size < 4
+        resource.diff
       else
-        iam.diff_one(ARGV[2])
+        resource.diff_one(ARGV[3])
       end
-    elsif ARGV[1] == "roles"
-      iam.roles
-    elsif ARGV[1] == "sync"
-      if ARGV.size < 3
-        iam.sync
+    elsif ARGV[2] == "list"
+      resource.list
+    elsif ARGV[2] == "sync"
+      if ARGV.size < 4
+        resource.sync
       else
-        iam.sync_one(ARGV[2])
+        resource.sync_one(ARGV[3])
       end
     end
   end
 end
 
+# check for the aws ruby gem
 begin
   require 'aws-sdk'
 rescue LoadError

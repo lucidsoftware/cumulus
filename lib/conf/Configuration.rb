@@ -5,17 +5,11 @@ require "json"
 class Configuration
 
   attr_reader :colors_enabled
+  attr_reader :iam
   attr_reader :region
-  attr_reader :policy_prefix
-  attr_reader :policy_suffix
-  attr_reader :policy_version
-  attr_reader :static_policy_directory
-  attr_reader :template_policy_directory
-  attr_reader :roles_directory
-  attr_reader :policy_document_directory
 
-  # Internal: Constructor. Sets the `instance` variable, which is the access point
-  # for the Singleton.
+  # Internal: Constructor. Sets up the `instance` variable, which is the access
+  # point for the Singleton.
   #
   # project_root  - The String path to the directory the project is running in
   # file_path     - The String path from `project_root` to the configuration
@@ -24,14 +18,8 @@ class Configuration
     @project_root = project_root;
     json = JSON.parse(File.read(absolute_path(file_path)))
     @colors_enabled = json["colors-enabled"]
-    @policy_prefix = json["policies"]["prefix"]
-    @policy_suffix = json["policies"]["suffix"]
-    @policy_version = json["policies"]["version"]
-    @static_policy_directory = absolute_path(json["policies"]["static"]["directory"])
-    @template_policy_directory = absolute_path(json["policies"]["templates"]["directory"])
-    @roles_directory = absolute_path(json["roles"]["directory"])
-    @policy_document_directory = absolute_path(json["roles"]["policy-document-directory"])
     @region = json["region"]
+    @iam = IamConfig.new(json["iam"], self)
   end
 
   # Public: Take a path relative to the project root and turn it into an
@@ -68,6 +56,35 @@ class Configuration
     end
 
     private :new
+  end
+
+  # Public: Inner class that contains IAM configuration options
+  class IamConfig
+
+    attr_reader :policy_prefix
+    attr_reader :policy_suffix
+    attr_reader :policy_version
+    attr_reader :static_policy_directory
+    attr_reader :template_policy_directory
+    attr_reader :roles_directory
+    attr_reader :policy_document_directory
+    attr_reader :users_directory
+
+    # Public: Constructor.
+    #
+    # json   - a hash that contains IAM configuration values. IamConfig expects
+    #          to be passed values from the "iam" node of configuration.json
+    # parent - reference to the parent Configuration that spawned this IamConfig
+    def initialize(json, parent)
+      @policy_prefix = json["policies"]["prefix"]
+      @policy_suffix = json["policies"]["suffix"]
+      @policy_version = json["policies"]["version"]
+      @static_policy_directory = parent.absolute_path(json["policies"]["static"]["directory"])
+      @template_policy_directory = parent.absolute_path(json["policies"]["templates"]["directory"])
+      @roles_directory = parent.absolute_path(json["roles"]["directory"])
+      @policy_document_directory = parent.absolute_path(json["roles"]["policy-document-directory"])
+      @users_directory = parent.absolute_path(json["users"]["directory"])
+    end
   end
 
 end

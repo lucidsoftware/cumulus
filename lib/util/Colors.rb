@@ -11,39 +11,21 @@ class Colors
   @@orange = "#{@@color_prefix}1;33m"
   @@blue = "#{@@color_prefix}1;34m"
 
-  # Public: color format a string that describes an added role
+  # Public: color format a string that describes an added resource
   #
   # s - the string to format
   #
   # Returns the formatted string
-  def self.added_role(s)
+  def self.added(s)
     self.green(s)
   end
 
-  # Public: color format a string that describes an added policy
+  # Public: color format a string that describes an unmanaged resource
   #
   # s - the string to format
   #
   # Returns the formatted string
-  def self.added_policy(s)
-    self.green(s)
-  end
-
-  # Public: color format a string that describes an unmanaged role
-  #
-  # s - the string to format
-  #
-  # Returns the formatted string
-  def self.unmanaged_role(s)
-    self.red(s)
-  end
-
-  # Public: color format a string that describes an unmanaged policy
-  #
-  # s - the string to format
-  #
-  # Returns the formatted string
-  def self.unmanaged_policy(s)
+  def self.unmanaged(s)
     self.red(s)
   end
 

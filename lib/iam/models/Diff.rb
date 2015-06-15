@@ -1,6 +1,6 @@
 require "util/Colors"
 
-# Public: Enumeration of the types of changes that can be done to roles
+# Public: Enumeration of the types of changes that can be done to resources
 module ChangeType
   ADD = 0
   REMOVE = 1
@@ -8,28 +8,29 @@ module ChangeType
   REMOVE_POLICY = 3
 end
 
-# Public: Represents the differences between a local role config and an AWS
-# Role
+# Public: Represents the differences between a local resource config and an AWS
+# resource
 class Diff
 
-  attr_reader :role
+  attr_reader :name
   attr_accessor :type
   attr_reader :config
 
   # Public: Constructor
   #
-  # role    - the name of the role this diff is for
+  # name    - the name of the resource this diff is for
   # type    - the type of change this diff is for
-  # config  - the RoleConfig for the for this diff is for
-  def initialize(role, type, config = nil)
-    @role = role
+  # config  - the resource configuration for the resource this diff is for
+  def initialize(name, type, resource_type, config = nil)
+    @name = name
     @policies = {}
     @type = type
     @config = config
+    @resource_type = resource_type
   end
 
-  # Public: Determine if there are differences between the role config and
-  # the AWS role.
+  # Public: Determine if there are differences between the resource config and
+  # the AWS resource.
   #
   # Returns true if there are differences, false if there aren't
   def different?
@@ -49,14 +50,14 @@ class Diff
 
   # Public: to string
   #
-  # Returns the String representation of the role differences
+  # Returns the String representation of the resource differences
   def to_s
     if @type == ChangeType::ADD
-      Colors.added_role("Add role #{@role}")
+      Colors.added("Add #{@resource_type} #{@name}")
     elsif @type == ChangeType::REMOVE
-      Colors.unmanaged_role("AWS role #{@role} is not managed by Cumulus")
+      Colors.unmanaged("AWS #{@resource_type} #{@name} is not managed by Cumulus")
     else
-      ret = ["For role #{@role} there are the following differences:"]
+      ret = ["For #{@resource_type} #{@name} there are the following differences:"]
       ret << @policies.map do |key, value|
         policy_diffs = ["\tIn policy #{key}:"]
         policy_diffs << value.map do |s|
