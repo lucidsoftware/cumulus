@@ -1,4 +1,3 @@
-#!/usr/bin/env bash
 export CUMULUS_DIR=$(pwd)
 function cumulus {
   $CUMULUS_DIR/bin/cumulus.rb "$@"
