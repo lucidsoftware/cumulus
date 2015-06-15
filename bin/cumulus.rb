@@ -1,4 +1,7 @@
 #!/usr/bin/env ruby
+
+require "optparse"
+
 module Modules
   # Public: Run the IAM module
   def self.iam
@@ -74,6 +77,30 @@ if ARGV[0] == "help"
   puts "\tiam\t- Compiles IAM roles and policies that are defined with configuration files and syncs the resulting IAM roles and policies with AWS"
 end
 
+# read in the optional path to the configuration file to use
+options = {
+  :config => "conf/configuration.json",
+  :root => nil
+}
+OptionParser.new do |opts|
+  opts.on("-c", "--config [FILE]", "Specify the configuration file to use") do |c|
+    options[:config] = c
+  end
+
+  opts.on("-r", "--root [DIR]", "Specify the project root to use") do |r|
+    options[:root] = r
+  end
+end.parse!
+
+# config parameters can also be read in from environment variables
+if !ENV["CUMULUS_CONFIG"].nil?
+  options[:config] = ENV["CUMULUS_CONFIG"]
+end
+
+if !ENV["CUMULUS_ROOT"].nil?
+  options[:root] = ENV["CUMULUS_ROOT"]
+end
+
 # set up the application path
 $LOAD_PATH.unshift(File.expand_path(
   File.join(File.dirname(__FILE__), "../lib")
@@ -84,7 +111,10 @@ require "conf/Configuration"
 project_root = File.expand_path(
   File.join(File.dirname(__FILE__), "../")
 )
-Configuration.init(project_root, "conf/configuration.json")
+if !options[:root].nil?
+  project_root = File.expand_path(options[:root])
+end
+Configuration.init(project_root, options[:config])
 
 if ARGV[0] == "iam"
   Modules.iam
