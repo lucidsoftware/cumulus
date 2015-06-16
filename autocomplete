@@ -1,12 +1,3 @@
-<<<<<<< HEAD:autocomplete
-=======
-#!/usr/bin/env bash
-export CUMULUS_DIR=$(pwd)
-function cumulus {
-  $CUMULUS_DIR/bin/cumulus.rb "$@"
-}
-
->>>>>>> parent of 2fe2052... make init_cumulus sourceable from scripts:init_cumulus
 function _cumulus {
   local cur=${COMP_WORDS[COMP_CWORD]}
   local prev=${COMP_WORDS[COMP_CWORD-1]}
