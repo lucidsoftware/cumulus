@@ -1,4 +1,2 @@
 #!/usr/bin/env bash
-function cumulus {
-  ~/.cumulus/bin/cumulus.rb "$@"
-}
+~/.cumulus/bin/cumulus.rb "$@"
