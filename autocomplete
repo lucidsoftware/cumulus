@@ -1,8 +1,12 @@
+<<<<<<< HEAD:autocomplete
+=======
+#!/usr/bin/env bash
 export CUMULUS_DIR=$(pwd)
 function cumulus {
   $CUMULUS_DIR/bin/cumulus.rb "$@"
 }
 
+>>>>>>> parent of 2fe2052... make init_cumulus sourceable from scripts:init_cumulus
 function _cumulus {
   local cur=${COMP_WORDS[COMP_CWORD]}
   local prev=${COMP_WORDS[COMP_CWORD-1]}
@@ -12,7 +16,7 @@ function _cumulus {
   case "$threeprev" in
     iam)
         if [ "$prev" == "diff" ] || [ "$prev" == "sync" ]; then
-          configs=$($CUMULUS_DIR/bin/cumulus.rb iam "$twoprev" list)
+          configs=$(~/.cumulus/bin/cumulus.rb iam "$twoprev" list)
           COMPREPLY=( $(compgen -W "$configs" -- $cur ) )
         fi
     ;;
