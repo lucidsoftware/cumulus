@@ -19,7 +19,7 @@ function _cumulus {
         *)
           case "$prev" in
             iam)
-              COMPREPLY=( $(compgen -W "roles users" -- $cur) )
+              COMPREPLY=( $(compgen -W "groups roles users" -- $cur) )
             ;;
             cumulus)
               COMPREPLY=( $(compgen -W "help iam" -- $cur) )
