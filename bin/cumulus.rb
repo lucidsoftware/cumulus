@@ -36,6 +36,8 @@ module Modules
     resource = nil
     if ARGV[1] == "roles"
       resource = iam.roles
+    elsif ARGV[1] == "users"
+      resource = iam.users
     end
     if ARGV[2] == "diff"
       if ARGV.size < 4

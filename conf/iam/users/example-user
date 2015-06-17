@@ -1,0 +1,24 @@
+{
+  "name": "example-user",
+  "policies": {
+    "static": [
+      "example-static"
+    ],
+    "templates": {
+      "example-template": {
+        "bucket": "example"
+      }
+    },
+    "inlines": [
+      {
+        "Effect": "Deny",
+        "Action": [
+          "ec2:DescribeTags"
+        ],
+        "Resource": [
+          "*"
+        ]
+      }
+    ]
+  }
+}

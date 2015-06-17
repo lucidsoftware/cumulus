@@ -9,6 +9,7 @@ require "aws-sdk"
 class Iam
 
   attr_reader :roles
+  attr_reader :users
 
   # Public: Constructor
   def initialize
@@ -16,6 +17,7 @@ class Iam
       region: Configuration.instance.region
     )
     @roles = IamRoles.new(iam)
+    @users = IamUsers.new(iam)
   end
 
   class IamResource
@@ -52,13 +54,6 @@ class Iam
     # Returns the created resource
     def create(difference)
       nil
-    end
-
-    # Public: Update a resource in AWS
-    #
-    # resource  - the resource to update
-    # config    - the config object to be used when updating the resource
-    def update(resource, config)
     end
 
     # =====================================================
@@ -106,6 +101,21 @@ class Iam
     # name - the name of the resource to sync
     def sync_one(name)
       sync_changes(one_difference(name))
+    end
+
+    # Public: Update a resource in AWS
+    #
+    # resource  - the resource to update
+    # config    - the config object to be used when updating the resource
+    def update(resource, config)
+        if !config.policy.empty?
+          resource = resource.policy(config.generated_policy_name)
+          resource.put({
+            :policy_document => config.policy.as_pretty_json
+          })
+        else
+          puts Colors.red("Policy is empty. Not uploaded")
+        end
     end
 
     # Internal: Sync all the changes passed into the function to AWS
@@ -256,15 +266,39 @@ class Iam
       role
     end
 
-    def update(resource, config)
-        if !config.policy.empty?
-          resource = resource.policy(config.generated_policy_name)
-          resource.put({
-            :policy_document => config.policy.as_pretty_json
-          })
-        else
-          puts Colors.red("Policy is empty. Not uploaded")
-        end
+  end
+
+  class IamUsers < IamResource
+    @type = "user"
+
+    def local_resources
+      local = {}
+      Loader.users.each do |user|
+        local[user.name] = user
+      end
+      local
+    end
+
+    def one_local(name)
+      Loader.user(name)
+    end
+
+    def aws_resources
+      @aws_users ||= init_aws_users
+    end
+
+    def init_aws_users
+      @iam.list_users().users.map do |user|
+        Aws::IAM::User.new(user.user_name, { :client => @iam })
+      end
+    end
+    private :init_aws_users
+
+    def create(difference)
+      @iam.create_user({
+        :user_name => difference.name
+      })
+      Aws::IAM::User.new(difference.name, { :client => @iam })
     end
 
   end

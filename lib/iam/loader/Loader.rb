@@ -1,6 +1,7 @@
 require "conf/Configuration"
 require "iam/models/StatementConfig"
 require "iam/models/RoleConfig"
+require "iam/models/UserConfig"
 
 require "json"
 
@@ -14,12 +15,7 @@ module Loader
   # files.
   def Loader.roles
     roles_dir = Configuration.instance.iam.roles_directory
-    Dir.entries(roles_dir)
-      .reject do |f|
-        f == "." or f == ".." or File.directory?(File.join(roles_dir, f))
-      end.map do |file|
-        Loader.role(file)
-      end
+    Loader.resources(roles_dir, &Proc.new { |f| Loader.role(f) })
   end
 
   # Public: Load a role defined in configuration
@@ -30,6 +26,37 @@ module Loader
   def Loader.role(file)
     roles_dir = Configuration.instance.iam.roles_directory
     RoleConfig.new(JSON.parse(File.read(File.join(roles_dir, file))))
+  end
+
+  # Public: Load all the users defined in configuration.
+  #
+  # Returns an Array of UserConfig objects defined in user configuration files.
+  def Loader.users
+    users_dir = Configuration.instance.iam.users_directory
+    Loader.resources(users_dir, &Proc.new { |f| Loader.user(f) })
+  end
+
+  # Public: Load a user defined in configuration
+  #
+  # file - the file the user definition is found in
+  #
+  # Returns the UserConfig object defined by the file.
+  def Loader.user(file)
+    users_dir = Configuration.instance.iam.users_directory
+    UserConfig.new(JSON.parse(File.read(File.join(users_dir, file))))
+  end
+
+  # Internal: Load the resources in a directory, handling each file with the
+  # function passed in.
+  #
+  # dir               - the directory to load resources from
+  # individual_loader - the function that loads a resource from each file name
+  #
+  # Returns an array of resources
+  def Loader.resources(dir, &individual_loader)
+    Dir.entries(dir)
+    .reject { |f| f == "." or f == ".." or File.directory?(File.join(dir, f)) }
+    .map { |f| individual_loader.call(f) }
   end
 
   # Public: Load in a static policy as StatementConfig object
