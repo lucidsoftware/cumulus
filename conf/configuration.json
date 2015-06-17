@@ -1,6 +1,9 @@
 {
 	"colors-enabled": true,
 	"iam": {
+		"groups": {
+			"directory": "conf/iam/groups"
+		},
 		"policies": {
 			"static": {
 				"directory": "conf/iam/policies/static"

@@ -7,7 +7,7 @@ module Modules
   def self.iam
     if ARGV.size < 2 or
       (ARGV.size == 2 and ARGV[1] != "help") or
-      (ARGV.size >= 3 and ((ARGV[1] != "roles" and ARGV[1] != "users") or (ARGV[2] != "diff" and ARGV[2] != "list" and ARGV[2] != "sync")))
+      (ARGV.size >= 3 and ((ARGV[1] != "groups" and ARGV[1] != "roles" and ARGV[1] != "users") or (ARGV[2] != "diff" and ARGV[2] != "list" and ARGV[2] != "sync")))
       puts "Usage: cumulus iam [help|roles|users] [diff|list|sync] <asset>"
       exit
     end
@@ -16,9 +16,13 @@ module Modules
       puts "iam: Manage IAMs."
       puts "\tCompiles IAM assets and policies that are defined with configuration files and syncs the resulting IAM assets with AWS."
       puts
-      puts "Usage: cumulus iam [help|roles|users] [diff|list|sync] <asset>"
+      puts "Usage: cumulus iam [groups|help|roles|users] [diff|list|sync] <asset>"
       puts
       puts "Commands"
+      puts "\tgroups - Manage IAM groups and users associated with those groups"
+      puts "\t\tdiff\t- get a list of groups that have different definitions locally than in AWS (supplying the name of the group will diff only that group)"
+      puts "\t\tlist\t- list the groups defined in configuration"
+      puts "\t\tsync\t- sync the local group definition with AWS (supplying the name of the group will sync only that group). Also adds and removes users from groups"
       puts "\troles - Manage IAM roles"
       puts "\t\tdiff\t- get a list of roles that have different definitions locally than in AWS (supplying the name of the role will diff only that role)"
       puts "\t\tlist\t- list the roles defined in configuration"
@@ -38,6 +42,8 @@ module Modules
       resource = iam.roles
     elsif ARGV[1] == "users"
       resource = iam.users
+    elsif ARGV[1] == "groups"
+      resource = iam.groups
     end
     if ARGV[2] == "diff"
       if ARGV.size < 4

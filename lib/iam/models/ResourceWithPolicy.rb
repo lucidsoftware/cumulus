@@ -116,7 +116,7 @@ class ResourceWithPolicy
   #
   # Returns a Diff object containing the differences
   def diff(aws_resource)
-    differences = Diff.new(@name, ChangeType::REMOVE_POLICY, @type, self)
+    differences = Diff.new(@name, ChangeType::REMOVE_POLICY, self)
 
     aws_policies = {}
     aws_resource.policies.each do |policy|
@@ -162,4 +162,26 @@ class ResourceWithPolicy
     differences
   end
 
+  # Public: Get the string that represents adding this resource
+  def added_string
+    Colors.added("Add #{@type} #{@name}")
+  end
+
+  # Public: Get the string that represents changes in this resource
+  #
+  # policies      - the policy differences passed in from Diff
+  # added_users   - the added users passed in from Diff, ignored in the base
+  #                 class
+  # removed_users - the removed users passed in from the Diff, ignored in the
+  #                 base class
+  def changed_string(policies, added_users, removed_users)
+    lines = ["For #{@type} #{@name} there are the following differences:"]
+    lines << policies.map do |key, value|
+      policy_diffs = ["\tIn policy #{key}:"]
+      policy_diffs << value.map do |s|
+        "\t\t#{s}"
+      end
+    end.flatten
+    lines.flatten.join("\n")
+  end
 end

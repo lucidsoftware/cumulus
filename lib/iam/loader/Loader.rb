@@ -1,4 +1,5 @@
 require "conf/Configuration"
+require "iam/models/GroupConfig"
 require "iam/models/StatementConfig"
 require "iam/models/RoleConfig"
 require "iam/models/UserConfig"
@@ -44,6 +45,25 @@ module Loader
   def Loader.user(file)
     users_dir = Configuration.instance.iam.users_directory
     UserConfig.new(JSON.parse(File.read(File.join(users_dir, file))))
+  end
+
+  # Public: Load all the groups defined in configuration.
+  #
+  # Returns an Array of GroupConfig objects defined by the groups configuration
+  # files.
+  def Loader.groups
+    groups_dir = Configuration.instance.iam.groups_directory
+    Loader.resources(groups_dir, &Proc.new { |f| Loader.group(f) })
+  end
+
+  # Public: Load a group defined in configuration
+  #
+  # file - the file the group definition is found in
+  #
+  # Returns the GroupConfig object defined by the file
+  def Loader.group(file)
+    groups_dir = Configuration.instance.iam.groups_directory
+    GroupConfig.new(JSON.parse(File.read(File.join(groups_dir, file))))
   end
 
   # Internal: Load the resources in a directory, handling each file with the

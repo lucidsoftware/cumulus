@@ -15,18 +15,21 @@ class Diff
   attr_reader :name
   attr_accessor :type
   attr_reader :config
+  attr_reader :added_users
+  attr_reader :removed_users
 
   # Public: Constructor
   #
   # name    - the name of the resource this diff is for
   # type    - the type of change this diff is for
   # config  - the resource configuration for the resource this diff is for
-  def initialize(name, type, resource_type, config = nil)
+  def initialize(name, type, config = nil)
     @name = name
     @policies = {}
+    @added_users = []
+    @removed_users = []
     @type = type
     @config = config
-    @resource_type = resource_type
   end
 
   # Public: Determine if there are differences between the resource config and
@@ -34,7 +37,7 @@ class Diff
   #
   # Returns true if there are differences, false if there aren't
   def different?
-    return !@policies.empty?
+    return (!@policies.empty? or !@added_users.empty? or !@removed_users.empty?)
   end
 
   # Public: Add a policy difference
@@ -48,23 +51,30 @@ class Diff
     @policies[name] << difference
   end
 
+  # Public: Add a user to the Diff. This only applies to GroupConfigs
+  #
+  # user - the user to add
+  def add_user(user)
+    @added_users << user
+  end
+
+  # Public: Remove a user from the Diff. This only applies to GroupConfigs
+  #
+  # user - the user to remove
+  def remove_user(user)
+    @removed_users << user
+  end
+
   # Public: to string
   #
   # Returns the String representation of the resource differences
   def to_s
     if @type == ChangeType::ADD
-      Colors.added("Add #{@resource_type} #{@name}")
+      @config.added_string
     elsif @type == ChangeType::REMOVE
-      Colors.unmanaged("AWS #{@resource_type} #{@name} is not managed by Cumulus")
+      Colors.unmanaged("#{@name} is not managed by Cumulus")
     else
-      ret = ["For #{@resource_type} #{@name} there are the following differences:"]
-      ret << @policies.map do |key, value|
-        policy_diffs = ["\tIn policy #{key}:"]
-        policy_diffs << value.map do |s|
-          "\t\t#{s}"
-        end
-      end
-      ret.join("\n")
+      @config.changed_string(@policies, @added_users, @removed_users)
     end
   end
 

@@ -8,6 +8,7 @@ require "aws-sdk"
 # Public: The main class for the IAM Manager application.
 class Iam
 
+  attr_reader :groups
   attr_reader :roles
   attr_reader :users
 
@@ -16,6 +17,7 @@ class Iam
     iam = Aws::IAM::Client.new(
       region: Configuration.instance.region
     )
+    @groups = IamGroups.new(iam)
     @roles = IamRoles.new(iam)
     @users = IamUsers.new(iam)
   end
@@ -106,12 +108,12 @@ class Iam
     # Public: Update a resource in AWS
     #
     # resource  - the resource to update
-    # config    - the config object to be used when updating the resource
-    def update(resource, config)
-        if !config.policy.empty?
-          resource = resource.policy(config.generated_policy_name)
+    # diff    - the diff object to be used when updating the resource
+    def update(resource, diff)
+        if !diff.config.policy.empty?
+          resource = resource.policy(diff.config.generated_policy_name)
           resource.put({
-            :policy_document => config.policy.as_pretty_json
+            :policy_document => diff.config.policy.as_pretty_json
           })
         else
           puts Colors.red("Policy is empty. Not uploaded")
@@ -133,13 +135,13 @@ class Iam
         elsif difference.type == ChangeType::ADD
           puts Colors.blue("creating #{difference.name}")
           resource = create(difference)
-          update(resource, difference.config)
+          update(resource, difference)
         elsif difference.type == ChangeType::REMOVE_POLICY
           puts Colors.red("#{difference.name} has policies not managed by Cumulus")
         else
           puts Colors.blue("updating #{difference.name}...")
           aws_resource = aws[difference.name]
-          update(aws_resource, difference.config)
+          update(aws_resource, difference)
         end
       end
     end
@@ -173,7 +175,7 @@ class Iam
     #
     # local               - the local resources to check against
     # include_non_managed - whether to show the resources in AWS that aren't
-    #                             managed by Cumulus
+    #                       managed by Cumulus
     #
     # Returns an array of differences
     def calculate_differences(local, include_non_managed)
@@ -186,14 +188,14 @@ class Iam
       if include_non_managed
         aws.each do |name, resource|
           if !local.key?(name)
-            differences << Diff.new(name, ChangeType::REMOVE, @type, nil)
+            differences << Diff.new(name, ChangeType::REMOVE, nil)
           end
         end
       end
 
       local.each do |name, resource|
         if !aws.key?(name)
-          differences << Diff.new(name, ChangeType::ADD, @type, resource)
+          differences << Diff.new(name, ChangeType::ADD, resource)
         end
       end
 
@@ -212,7 +214,11 @@ class Iam
   end
 
   class IamRoles < IamResource
-    @type = "role"
+
+    def initialize(iam)
+      super(iam)
+      @type = "role"
+    end
 
     def local_resources
       local = {}
@@ -269,7 +275,11 @@ class Iam
   end
 
   class IamUsers < IamResource
-    @type = "user"
+
+    def initialize(iam)
+      super(iam)
+      @type = "user"
+    end
 
     def local_resources
       local = {}
@@ -299,6 +309,59 @@ class Iam
         :user_name => difference.name
       })
       Aws::IAM::User.new(difference.name, { :client => @iam })
+    end
+
+  end
+
+  class IamGroups < IamResource
+
+    def initialize(iam)
+      super(iam)
+      @type = "group"
+    end
+
+    def local_resources
+      local = {}
+      Loader.groups.each do |group|
+        local[group.name] = group
+      end
+      local
+    end
+
+    def one_local(name)
+      Loader.group(name)
+    end
+
+    def aws_resources
+      @aws_groups ||= init_aws_groups
+    end
+
+    def init_aws_groups
+      @iam.list_groups().groups.map do |group|
+        Aws::IAM::Group.new(group.group_name, { :client => @iam })
+      end
+    end
+
+    def create(difference)
+      @iam.create_group({
+        :group_name => difference.name
+      })
+      Aws::IAM::Group.new(difference.name, { :client => @iam })
+    end
+
+    def update(resource, diff)
+      super(resource, diff)
+
+      # add the users, handling the case that the user doesn't exist
+      diff.added_users.each do |u|
+        begin
+          resource.add_user({ :user_name => u })
+        rescue Aws::IAM::Errors::NoSuchEntity
+          puts Colors.red("\tNo such user #{u}!")
+        end
+      end
+
+      diff.removed_users.each { |u| resource.remove_user({ :user_name => u }) }
     end
 
   end

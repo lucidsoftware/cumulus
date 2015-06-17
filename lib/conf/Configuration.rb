@@ -61,13 +61,14 @@ class Configuration
   # Public: Inner class that contains IAM configuration options
   class IamConfig
 
+    attr_reader :groups_directory
+    attr_reader :policy_document_directory
     attr_reader :policy_prefix
     attr_reader :policy_suffix
     attr_reader :policy_version
+    attr_reader :roles_directory
     attr_reader :static_policy_directory
     attr_reader :template_policy_directory
-    attr_reader :roles_directory
-    attr_reader :policy_document_directory
     attr_reader :users_directory
 
     # Public: Constructor.
@@ -84,6 +85,7 @@ class Configuration
       @roles_directory = parent.absolute_path(json["roles"]["directory"])
       @policy_document_directory = parent.absolute_path(json["roles"]["policy-document-directory"])
       @users_directory = parent.absolute_path(json["users"]["directory"])
+      @groups_directory = parent.absolute_path(json["groups"]["directory"])
     end
   end
 
