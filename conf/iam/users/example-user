@@ -1,6 +1,7 @@
 {
   "name": "example-user",
   "policies": {
+    "attached": [],
     "static": [
       "example-static"
     ],

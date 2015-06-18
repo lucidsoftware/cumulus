@@ -10,6 +10,7 @@ require "util/Colors"
 # groups, roles, and users.
 class ResourceWithPolicy
 
+  attr_reader :attached_policies
   attr_reader :name
   attr_reader :type
 
@@ -19,6 +20,7 @@ class ResourceWithPolicy
   def initialize(json)
     @name = json["name"]
     @json = json
+    @attached_policies = json["policies"]["attached"]
   end
 
   # Public: Lazily produce the inline policy document for this resource as a
@@ -132,6 +134,7 @@ class ResourceWithPolicy
       )
     end
 
+    # loop through all the policies and look for changes
     aws_policies.each do |name, aws_policy|
       if name != generated_policy_name
         differences.add_diff(
@@ -159,6 +162,16 @@ class ResourceWithPolicy
       end
     end
 
+    # look for changes in managed policies
+    aws_arns = aws_resource.attached_policies.map { |a| a.arn }
+    new_policies = @attached_policies.select { |local| !aws_arns.include?(local) }
+    removed_policies = aws_arns.select { |aws| !@attached_policies.include?(aws) }
+    if !new_policies.empty? or !removed_policies.empty?
+      differences.type = ChangeType::CHANGE
+      new_policies.each { |arn| differences.attach_policy(arn) }
+      removed_policies.each { |arn| differences.detach_policy(arn) }
+    end
+
     differences
   end
 
@@ -169,19 +182,25 @@ class ResourceWithPolicy
 
   # Public: Get the string that represents changes in this resource
   #
-  # policies      - the policy differences passed in from Diff
-  # added_users   - the added users passed in from Diff, ignored in the base
-  #                 class
-  # removed_users - the removed users passed in from the Diff, ignored in the
-  #                 base class
-  def changed_string(policies, added_users, removed_users)
+  # diff - the Diff object for which to generate the change string
+  def changed_string(diff)
     lines = ["For #{@type} #{@name} there are the following differences:"]
-    lines << policies.map do |key, value|
+    lines << diff.policies.map do |key, value|
       policy_diffs = ["\tIn policy #{key}:"]
       policy_diffs << value.map do |s|
         "\t\t#{s}"
       end
     end.flatten
+
+    if !diff.attached_policies.empty?
+      lines << "\tAttaching the following managed policies:"
+      lines << diff.attached_policies.map { |arn| Colors.added("\t\t#{arn}") }
+    end
+    if !diff.detached_policies.empty?
+      lines << "\tDetaching the following managed policies:"
+      lines << diff.detached_policies.map { |arn| Colors.removed("\t\t#{arn}")}
+    end
+
     lines.flatten.join("\n")
   end
 end

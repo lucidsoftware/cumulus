@@ -15,8 +15,11 @@ class Diff
   attr_reader :name
   attr_accessor :type
   attr_reader :config
+  attr_reader :policies
   attr_reader :added_users
   attr_reader :removed_users
+  attr_reader :attached_policies
+  attr_reader :detached_policies
 
   # Public: Constructor
   #
@@ -28,6 +31,8 @@ class Diff
     @policies = {}
     @added_users = []
     @removed_users = []
+    @attached_policies = []
+    @detached_policies = []
     @type = type
     @config = config
   end
@@ -37,7 +42,13 @@ class Diff
   #
   # Returns true if there are differences, false if there aren't
   def different?
-    return (!@policies.empty? or !@added_users.empty? or !@removed_users.empty?)
+    return (
+      !@policies.empty? or
+      !@added_users.empty? or
+      !@removed_users.empty? or
+      !@attached_policies.empty? or
+      !@detached_policies.empty?
+    )
   end
 
   # Public: Add a policy difference
@@ -65,6 +76,20 @@ class Diff
     @removed_users << user
   end
 
+  # Public: Attach a managed policy to the Diff.
+  #
+  # policy_arn - the arn of the policy to attach
+  def attach_policy(arn)
+    @attached_policies << arn
+  end
+
+  # Public: Detach a manager policy from the Diff
+  #
+  # policy_arn - the arn of the policy to detach
+  def detach_policy(arn)
+    @detached_policies << arn
+  end
+
   # Public: to string
   #
   # Returns the String representation of the resource differences
@@ -74,7 +99,7 @@ class Diff
     elsif @type == ChangeType::REMOVE
       Colors.unmanaged("#{@name} is not managed by Cumulus")
     else
-      @config.changed_string(@policies, @added_users, @removed_users)
+      @config.changed_string(self)
     end
   end
 

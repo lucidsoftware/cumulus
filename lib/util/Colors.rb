@@ -29,6 +29,15 @@ class Colors
     self.red(s)
   end
 
+  # Public: color format a string the describes a removed resource
+  #
+  # s - the string to format
+  #
+  # Returns the formatted string
+  def self.removed(s)
+    self.red(s)
+  end
+
   # Public: color format a string that describes the changes in AWS
   #
   # s - the string to format

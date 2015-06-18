@@ -46,17 +46,17 @@ class GroupConfig < ResourceWithPolicy
   end
 
   # override changed_string to add the users that will be added or removed
-  def changed_string(policies, added_users, removed_users)
-    lines = [super(policies, added_users, removed_users)]
+  def changed_string(diff)
+    lines = [super(diff)]
 
-    if !added_users.empty?
+    if !diff.added_users.empty?
       lines << "\tAdding the following users:"
-      lines << added_users.map { |user| Colors.added("\t\t#{user}") }
+      lines << diff.added_users.map { |user| Colors.added("\t\t#{user}") }
     end
 
-    if !removed_users.empty?
+    if !diff.removed_users.empty?
       lines << "\tRemoving the following users:"
-      lines << removed_users.map { |user| Colors.unmanaged("\t\t#{user}") }
+      lines << diff.removed_users.map { |user| Colors.unmanaged("\t\t#{user}") }
     end
 
     lines.flatten.join("\n")

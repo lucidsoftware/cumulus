@@ -2,6 +2,7 @@
   "name": "example",
   "policy-document": "default",
   "policies": {
+    "attached": [],
     "static": [
       "example-static"
     ],

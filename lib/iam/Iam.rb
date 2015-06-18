@@ -110,14 +110,25 @@ class Iam
     # resource  - the resource to update
     # diff    - the diff object to be used when updating the resource
     def update(resource, diff)
-        if !diff.config.policy.empty?
-          resource = resource.policy(diff.config.generated_policy_name)
-          resource.put({
-            :policy_document => diff.config.policy.as_pretty_json
-          })
-        else
-          puts Colors.red("Policy is empty. Not uploaded")
+      if !diff.config.policy.empty?
+        policy = resource.policy(diff.config.generated_policy_name)
+        policy.put({
+          :policy_document => diff.config.policy.as_pretty_json
+        })
+      else
+        puts Colors.red("Policy is empty. Not uploaded")
+      end
+
+      if !diff.attached_policies.empty?
+        diff.attached_policies.each do |arn|
+          resource.attach_policy({ :policy_arn => arn })
         end
+      end
+      if !diff.detached_policies.empty?
+        diff.detached_policies.each do |arn|
+          resource.detach_policy({ :policy_arn => arn })
+        end
+      end
     end
 
     # Internal: Sync all the changes passed into the function to AWS
