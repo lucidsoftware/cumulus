@@ -35,7 +35,7 @@ module Modules
     end
 
     # run the application with the desired command
-    require "iam/Iam"
+    require "iam/manager/Iam"
     iam = Iam.new
     resource = nil
     if ARGV[1] == "roles"
