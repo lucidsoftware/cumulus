@@ -38,7 +38,7 @@ class ResourceWithPolicy
       @name = nil
       @attached_policies = []
       @statics = []
-      @templates = []
+      @templates = {}
       @inlines = []
     end
   end
