@@ -14,7 +14,7 @@ function _cumulus {
     *)
       case "$twoprev" in
         iam)
-          COMPREPLY=( $(compgen -W "diff list sync" -- $cur) )
+          COMPREPLY=( $(compgen -W "diff list migrate sync" -- $cur) )
         ;;
         *)
           case "$prev" in
