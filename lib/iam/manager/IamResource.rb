@@ -1,5 +1,8 @@
+require "iam/migration/PolicyUnifier"
 require "iam/models/Diff"
 require "util/Colors"
+
+require 'uri'
 
 # Internal: Represents the manager of a type of IamResource. Base class for
 # groups, roles, and users.
@@ -39,6 +42,22 @@ class IamResource
     nil
   end
 
+  # Public: Create an empty config object
+  #
+  # Returns the created config object
+  def empty_config
+    nil
+  end
+
+  # Public: When migrating, provide a config with any resource type specific
+  # data.
+  #
+  # configs_to_aws - an array of arrays where each inner array's first element
+  #                  is the configuration generated so far, and the second
+  #                  element is the corresponding aws resource
+  def migrate_additional(configs_to_aws)
+  end
+
   # =====================================================
   # End methods to be overridden
   # =====================================================
@@ -48,6 +67,7 @@ class IamResource
   # iam - the IAM client to use
   def initialize(iam)
     @iam = iam
+    @migration_root = "generated"
   end
 
   # Public: Print out the diff between the local configuration and the IAMS
@@ -84,6 +104,57 @@ class IamResource
   # name - the name of the resource to sync
   def sync_one(name)
     sync_changes(one_difference(name))
+  end
+
+  # Public: Migrate AWS IAMs to Cumulus configuration.
+  def migrate
+    assets = "#{@migration_root}/#{@migration_dir}"
+    policies_dir = "#{@migration_root}/policies"
+    statics_dir = "#{policies_dir}/static"
+
+    if !Dir.exists?(@migration_root)
+      Dir.mkdir(@migration_root)
+    end
+    if !Dir.exists?(assets)
+      Dir.mkdir(assets)
+    end
+    if !Dir.exists?(policies_dir)
+      Dir.mkdir(policies_dir)
+    end
+    if !Dir.exists?(statics_dir)
+      Dir.mkdir(statics_dir)
+    end
+
+    # generate the configuration objects. This MUST be done separate from
+    # writing to file, because the unifier will change the configuration objects
+    # as it finds ways to unify configured attributes.
+    policy_unifier = PolicyUnifier.new(statics_dir)
+    configs = aws_resources.map do |resource|
+      puts "Processing #{@type} #{resource.name}..."
+      config = empty_config
+      config.name = resource.name
+
+      config.attached_policies = resource.attached_policies.map { |p| p.arn }
+
+      resource.policies.each do |policy|
+        statements = JSON.parse(URI.decode(policy.policy_document))["Statement"]
+        statements.each { |statement| statement.delete("Sid") }
+        policy_unifier.unify(config, statements, policy.name)
+      end
+
+      [config, resource]
+    end
+
+    migrate_additional(configs)
+    configs = configs.map { |config, resource| config }
+
+    # write the configuration to file
+    puts "Writing configuration to file..."
+    configs.each do |config|
+      File.open("#{assets}/#{config.name}", 'w') { |f| f.write(config.json) }
+    end
+
+    puts "Done."
   end
 
   # Public: Update a resource in AWS

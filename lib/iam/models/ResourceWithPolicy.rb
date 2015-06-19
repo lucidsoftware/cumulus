@@ -5,22 +5,66 @@ require "iam/models/PolicyConfig"
 require "iam/models/StatementConfig"
 require "util/Colors"
 
+require "json"
+
 # Public: Represents a configuration for a resource that has attached policies.
 # Lazily loads its static and template policies as needed. Is the base class for
 # groups, roles, and users.
+#
+# Additionally, exposes a constructor that takes no parameters. This parameter
+# essentially creates an "empty resource", which can then be filled and json
+# configuration can be generated from the object. This is useful when migrating.
 class ResourceWithPolicy
 
-  attr_reader :attached_policies
-  attr_reader :name
+  attr_accessor :attached_policies
+  attr_accessor :name
+  attr_reader :inlines
+  attr_reader :statics
   attr_reader :type
 
   # Public: Constructor.
   #
-  # json - a hash containing JSON configuration for this resource
-  def initialize(json)
-    @name = json["name"]
-    @json = json
-    @attached_policies = json["policies"]["attached"]
+  # json - a hash containing JSON configuration for this resource, if nil, this
+  #        resource will be an "empty resource"
+  def initialize(json = nil)
+    if !json.nil?
+      @name = json["name"]
+      @json = json
+      @attached_policies = json["policies"]["attached"]
+      @statics = json["policies"]["static"]
+      @templates = json["policies"]["templates"]
+      @inlines = json["policies"]["inlines"]
+    else
+      @name = nil
+      @attached_policies = []
+      @statics = []
+      @templates = []
+      @inlines = []
+    end
+  end
+
+  # Public: Generate the JSON string to turn this object back into a Cumulus
+  # config file.
+  #
+  # Returns the JSON string.
+  def json
+    JSON.pretty_generate(hash)
+  end
+
+  # Public: Generate a hash that represents this config. This hash will be json
+  # serializable to Cumulus config format
+  #
+  # Returns the hash
+  def hash
+    {
+      "name" => @name,
+      "policies" => {
+        "attached" => @attached_policies,
+        "inlines" => @inlines.flatten,
+        "static" => @statics,
+        "templates" => @templates
+      }
+    }
   end
 
   # Public: Lazily produce the inline policy document for this resource as a
@@ -75,7 +119,7 @@ class ResourceWithPolicy
   # Returns an Array of static policies as StatementConfig
   def init_static_statements
     statements = []
-    @json["policies"]["static"].map do |name|
+    @statics.map do |name|
       statements << Loader.static_policy(name)
     end
     statements.flatten!
@@ -97,7 +141,7 @@ class ResourceWithPolicy
   #
   # Returns an Array of applied templates as StatementConfig objects
   def init_template_statements
-    @json["policies"]["templates"].map do |name, variables|
+    @templates.map do |name, variables|
       Loader.template_policy(name, variables)
     end
   end
@@ -106,7 +150,7 @@ class ResourceWithPolicy
   # Internal: Load the inline policies defined in the JSON config for this
   # resource.
   def inline_statements
-    @json["policies"]["inlines"].map do |inline|
+    @inlines.map do |inline|
       StatementConfig.new(inline)
     end
   end

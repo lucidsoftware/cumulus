@@ -5,15 +5,16 @@ require "util/Colors"
 # Public: Represents a config file for a group
 class GroupConfig < ResourceWithPolicy
 
-  attr_reader :users
+  attr_accessor :users
 
   # Public: Constructor
   #
-  # json - the Hash containing the JSON configuration for this GroupConfig
-  def initialize(json)
+  # json - the Hash containing the JSON configuration for this GroupConfig, if
+  #        nil, this will be an "empty GroupConfig"
+  def initialize(json = nil)
     super(json)
     @type = "group"
-    @users = json["users"]
+    @users = json["users"] unless json.nil?
   end
 
   # override diff to check for changes in users
@@ -60,6 +61,12 @@ class GroupConfig < ResourceWithPolicy
     end
 
     lines.flatten.join("\n")
+  end
+
+  def hash
+    h = super()
+    h["users"] = @users
+    h
   end
 
 end

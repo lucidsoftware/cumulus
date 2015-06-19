@@ -1,5 +1,7 @@
-require "iam/loader/Loader"
+ "iam/loader/Loader"
 require "iam/manager/IamResource"
+require "iam/migration/AssumeRoleUnifier"
+require "iam/models/RoleConfig"
 require "util/Colors"
 
 require "aws-sdk"
@@ -10,6 +12,7 @@ class IamRoles < IamResource
   def initialize(iam)
     super(iam)
     @type = "role"
+    @migration_dir = "roles"
   end
 
   def local_resources
@@ -62,6 +65,30 @@ class IamRoles < IamResource
       :role_name => difference.name
     })
     role
+  end
+
+  def empty_config
+    RoleConfig.new
+  end
+
+  def migrate_additional(configs_to_aws)
+    policy_document_dir = "#{@migration_root}/#{@migration_dir}/policy-documents"
+
+    if !Dir.exists?(policy_document_dir)
+      Dir.mkdir(policy_document_dir)
+    end
+
+    unifier = AssumeRoleUnifier.new(
+      policy_document_dir,
+      &Proc.new { |c, v| c.policy_document = v }
+    )
+    configs_to_aws.map do |config, resource|
+      unifier.unify(
+        config,
+        URI.unescape(resource.assume_role_policy_document),
+        config.name
+      )
+    end
   end
 
 end

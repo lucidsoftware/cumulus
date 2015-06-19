@@ -4,15 +4,22 @@ require "iam/models/ResourceWithPolicy"
 # template policies as needed.
 class RoleConfig < ResourceWithPolicy
 
-  attr_reader :policy_document
+  attr_accessor :policy_document
 
   # Public: Constructor.
   #
-  # json - the Hash containing the JSON configuration for this RoleConfig
-  def initialize(json)
+  # json - the Hash containing the JSON configuration for this RoleConfig, if
+  #        nil, this will be an "empty RoleConfig"
+  def initialize(json = nil)
     super(json)
-    @policy_document = Loader.policy_document(json["policy-document"])
+    @policy_document = Loader.policy_document(json["policy-document"]) unless json.nil?
     @type = "role"
+  end
+
+  def hash
+    h = super()
+    h["policy-document"] = @policy_document
+    h
   end
 
 end

@@ -77,15 +77,15 @@ class Configuration
     #          to be passed values from the "iam" node of configuration.json
     # parent - reference to the parent Configuration that spawned this IamConfig
     def initialize(json, parent)
+      @groups_directory = parent.absolute_path(json["groups"]["directory"])
+      @policy_document_directory = parent.absolute_path(json["roles"]["policy-document-directory"])
       @policy_prefix = json["policies"]["prefix"]
       @policy_suffix = json["policies"]["suffix"]
       @policy_version = json["policies"]["version"]
+      @roles_directory = parent.absolute_path(json["roles"]["directory"])
       @static_policy_directory = parent.absolute_path(json["policies"]["static"]["directory"])
       @template_policy_directory = parent.absolute_path(json["policies"]["templates"]["directory"])
-      @roles_directory = parent.absolute_path(json["roles"]["directory"])
-      @policy_document_directory = parent.absolute_path(json["roles"]["policy-document-directory"])
       @users_directory = parent.absolute_path(json["users"]["directory"])
-      @groups_directory = parent.absolute_path(json["groups"]["directory"])
     end
   end
 

@@ -1,5 +1,6 @@
 require "iam/loader/Loader"
 require "iam/manager/IamResource"
+require "iam/models/GroupConfig"
 require "util/Colors"
 
 require "aws-sdk"
@@ -10,6 +11,7 @@ class IamGroups < IamResource
   def initialize(iam)
     super(iam)
     @type = "group"
+    @migration_dir = "groups"
   end
 
   def local_resources
@@ -54,6 +56,16 @@ class IamGroups < IamResource
     end
 
     diff.removed_users.each { |u| resource.remove_user({ :user_name => u }) }
+  end
+
+  def empty_config
+    GroupConfig.new
+  end
+
+  def migrate_additional(configs_to_aws)
+    configs_to_aws.map do |config, resource|
+      config.users = resource.users.map { |u| u.name }
+    end
   end
 
 end
