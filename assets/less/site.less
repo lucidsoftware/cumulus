@@ -1,11 +1,13 @@
 @import '_colors';
 @import '_home';
+@import '_modules';
 
 html {
   font-size: 10px;
 }
 
 body {
+  color: @gray-blue;
   padding-top: 70px;
 }
 
@@ -17,6 +19,16 @@ a {
     color: @light-gray-blue;
     text-decoration: none;
   }
+}
+
+hr {
+  margin: 35px 0;
+}
+
+.product-image {
+  box-sizing: border-box;
+  border-radius: 100%;
+  border: @gray-blue 3px solid;
 }
 
 .navbar {

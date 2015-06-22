@@ -1,0 +1,65 @@
+.module {
+  padding-bottom: 75px;
+
+  header {
+    .product-image {
+      width: 250px;
+      height: 250px;
+      padding: 20px;
+    }
+
+    .product-description {
+      color: @orange;
+      font-size: 1.8rem;
+    }
+  }
+
+  .module-body {
+    font-size: 1.8rem;
+
+    a {
+      color: @orange;
+
+      &:hover {
+        color: lighten(@orange, 10%);
+        text-decoration: none;
+      }
+    }
+
+    h1, h2, h3 {
+      margin: 0;
+      padding: 10px 0;
+    }
+
+    p {
+      margin: 0;
+      padding: 20px;
+    }
+
+    code {
+      color: @code-orange;
+    }
+
+    .highlight {
+      padding: 0 20px;
+
+      code {
+        color: black;
+      }
+
+      pre {
+        background-color: #fafafa;
+      }
+
+      .language-json {
+        .nt {
+          color: @code-blue;
+        }
+
+        .s2 {
+          color: @code-orange;
+        }
+      }
+    }
+  }
+}

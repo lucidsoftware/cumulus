@@ -1,4 +1,14 @@
 ---
 layout: main
 ---
-{{ content }}
+<div class="module">
+  <header class="text-center">
+    <img class="product-image" src="{{ site.baseurl }}/{{ page.image }}" />
+    <h1 class="product-name">{{ page.title }}</h1>
+    <p class="product-description">{{ page.description }}</p>
+  </header>
+  <hr>
+  <div class="module-body">
+    {{ content }}
+  </div>
+</div>
