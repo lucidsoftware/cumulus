@@ -1,0 +1,7 @@
+exclude: [
+  assets/less,
+  Gemfile*
+]
+
+kramdown:
+  input: GFM
