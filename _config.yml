@@ -5,3 +5,5 @@ exclude: [
 
 kramdown:
   input: GFM
+
+baseurl: http://lucidsoftware.github.io/cumulus
