@@ -8,7 +8,7 @@ module Modules
     if ARGV.size < 2 or
       (ARGV.size == 2 and ARGV[1] != "help") or
       (ARGV.size >= 3 and ((ARGV[1] != "groups" and ARGV[1] != "roles" and ARGV[1] != "users") or (ARGV[2] != "diff" and ARGV[2] != "list" and ARGV[2] != "migrate" and ARGV[2] != "sync")))
-      puts "Usage: cumulus iam [help|roles|users] [diff|list|sync] <asset>"
+      puts "Usage: cumulus iam [help|groups|roles|users] [diff|list|migrate|sync] <asset>"
       exit
     end
 
