@@ -5,11 +5,14 @@
     "static": [
       "example-static"
     ],
-    "templates": {
-      "example-template": {
-        "bucket": "example"
+    "templates": [
+      {
+        "template": "example-template",
+        "vars": {
+          "bucket": "example"
+        }
       }
-    },
+    ],
     "inlines": [
       {
         "Effect": "Deny",

@@ -38,7 +38,7 @@ class ResourceWithPolicy
       @name = nil
       @attached_policies = []
       @statics = []
-      @templates = {}
+      @templates = []
       @inlines = []
     end
   end
@@ -141,8 +141,8 @@ class ResourceWithPolicy
   #
   # Returns an Array of applied templates as StatementConfig objects
   def init_template_statements
-    @templates.map do |name, variables|
-      Loader.template_policy(name, variables)
+    @templates.map do |template|
+      Loader.template_policy(template["template"], template["vars"])
     end
   end
   private :init_template_statements
