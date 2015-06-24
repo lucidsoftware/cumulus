@@ -27,7 +27,7 @@ Here's an example of an empty resource with the common attributes:
   "policies": {
     "attached": [],
     "static": [],
-    "templates": {},
+    "templates": [],
     "inlines": []
   }
 }
@@ -156,26 +156,29 @@ Sometimes many resources have policies that are almost the same, except for slig
 }
 {% endhighlight %}
 
-When including the template in a resource definition, simply supply the value of the variable, and the variable will be replaced by the value in the policy. Resource definitions contain an object called `templates`, the values of which are the names of template policy files mapped to an object containing variable names and values. For example:
+When including the template in a resource definition, simply supply the value of the variable, and the variable will be replaced by the value in the policy. Resource definitions contain an array called `templates`, which contains objects that have the template name and an object called `vars` which defines the variables and their values. For example:
 
 {% highlight json %}
 // incomplete resource definition
 {
   ...
   "policies": {
-    "templates": {
-      "example-template": {
-        "bucket": "example"
+    "templates": [
+      {
+        "template": "example-template"
+        "vars": {
+          "bucket": "example"
+        }
       },
       ...
-    },
+    ],
     ...
   },
   ...
 }
 {% endhighlight %}
 
-This definition will result in the resource containing the following in its policy:
+This definition will result in the resource containing the following statement in its policy:
 
 {% highlight json %}
 {
