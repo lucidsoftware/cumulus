@@ -2,7 +2,7 @@ require "autoscaling/models/AutoScalingDiff"
 
 # Public: An object representing the configuration for an AutoScaling group.
 class GroupConfig
-  attr_reader :check_grace, :check_type, :enabled_metrics, :desired
+  attr_reader :cooldown, :check_grace, :check_type, :enabled_metrics, :desired
   attr_reader :load_balancers, :max, :min, :name, :subnets, :tags, :termination
 
   # Public: Constructor
@@ -10,6 +10,7 @@ class GroupConfig
   # json - a hash containing the json configuration for the AutoScaling group
   def initialize(json)
     @name = json["name"]
+    @cooldown = json["cooldown-seconds"]
     @min = json["size"]["min"]
     @max = json["size"]["max"]
     @desired = json["size"]["desired"]
@@ -31,6 +32,9 @@ class GroupConfig
   def diff(aws)
     diffs = []
 
+    if @cooldown != aws.default_cooldown
+      diffs << AutoScalingDiff.new(AutoScalingChange::COOLDOWN, aws, self)
+    end
     if @min != aws.min_size
       diffs << AutoScalingDiff.new(AutoScalingChange::MIN, aws, self)
     end

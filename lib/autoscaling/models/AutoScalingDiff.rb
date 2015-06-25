@@ -14,6 +14,7 @@ module AutoScalingChange
   SUBNETS = 10
   TAGS = 11
   TERMINATION = 12
+  COOLDOWN = 13
 end
 
 # Public: Represents a single difference between local configuration and AWS
@@ -95,6 +96,8 @@ class AutoScalingDiff
       lines << (@aws.termination_policies - @local.termination).map { |t| "\t#{Colors.removed(t)}" }
       lines << (@local.termination - @aws.termination_policies).map { |t| "\t#{Colors.added(t)}" }
       lines.flatten.join("\n")
+    when COOLDOWN
+      "Cooldown: AWS - #{Colors.aws_changes(@aws.default_cooldown)}, Local - #{Colors.local_changes(@local.cooldown)}"
     end
   end
 

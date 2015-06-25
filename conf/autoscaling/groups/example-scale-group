@@ -1,4 +1,5 @@
 {
+  "cooldown-seconds": 500,
   "enabled-metrics": [
     "GroupMinSize"
   ],
