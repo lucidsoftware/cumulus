@@ -53,43 +53,44 @@ class AutoScalingDiff
   end
 
   def to_s
-    if @type == ADD
+    case @type
+    when ADD
       Colors.added("AutoScaling Group #{@local.name} will be created")
-    elsif @type == UNMANAGED
+    when UNMANAGED
       Colors.unmanaged("AutoScaling Group #{@aws.auto_scaling_group_name} is unmanaged by Cumulus")
-    elsif @type == MIN
+    when MIN
       "Min size: AWS - #{Colors.aws_changes(@aws.min_size)}, Local - #{Colors.local_changes(@local.min)}"
-    elsif @type == MAX
+    when MAX
       "Max size: AWS - #{Colors.aws_changes(@aws.max_size)}, Local - #{Colors.local_changes(@local.max)}"
-    elsif @type == DESIRED
+    when DESIRED
       "Desired size: AWS - #{Colors.aws_changes(@aws.desired_capacity)}, Local - #{Colors.local_changes(@local.desired)}"
-    elsif @type == METRICS
+    when METRICS
       lines = ["Enabled Metrics:"]
       lines << (@aws.enabled_metrics - @local.enabled_metrics).map { |m| "\t#{Colors.removed(m)}" }
       lines << (@local.enabled_metrics - @aws.enabled_metrics).map { |m| "\t#{Colors.added(m)}" }
       lines.flatten.join("\n")
-    elsif @type == CHECK_TYPE
+    when CHECK_TYPE
       "Health check type: AWS - #{Colors.aws_changes(@aws.health_check_type)}, Local - #{Colors.local_changes(@local.check_type)}"
-    elsif @type == CHECK_GRACE
+    when CHECK_GRACE
       "Health check grace period: AWS - #{Colors.aws_changes(@aws.health_check_grace_period)}, Local - #{Colors.local_changes(@local.check_grace)}"
-    elsif @type == LOAD_BALANCER
+    when LOAD_BALANCER
       lines = ["Load balancers:"]
       lines << (@aws.load_balancer_names - @local.load_balancers).map { |l| "\t#{Colors.removed(l)}" }
       lines << (@local.load_balancers - @aws.load_balancer_names).map { |l| "\t#{Colors.added(l)}" }
       lines.flatten.join("\n")
-    elsif @type == SUBNETS
+    when SUBNETS
       lines = ["Subnets:"]
       aws_subnets = @aws.vpc_zone_identifier.split(",")
       lines << (aws_subnets - @local.subnets).map { |s| "\t#{Colors.removed(s)}" }
       lines << (@local.subnets - aws_subnets).map { |s| "\t#{Colors.added(s)}" }
       lines.flatten.join("\n")
-    elsif @type == TAGS
+    when TAGS
       lines = ["Tags:"]
       aws_tags = Hash[@aws.tags.map { |tag| [tag.key, tag.value] }]
       lines << aws_tags.reject { |t| @local.tags.include?(t) }.map { |k, v| "\t#{Colors.removed("#{k} => #{v}")}" }
       lines << @local.tags.reject { |t| aws_tags.include?(t) }.map { |k, v| "\t#{Colors.added("#{k} => #{v}")}" }
       lines.flatten.join("\n")
-    elsif @type == TERMINATION
+    when TERMINATION
       lines = ["Termination policies:"]
       lines << (@aws.termination_policies - @local.termination).map { |t| "\t#{Colors.removed(t)}" }
       lines << (@local.termination - @aws.termination_policies).map { |t| "\t#{Colors.added(t)}" }
