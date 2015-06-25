@@ -66,6 +66,25 @@ module Modules
       end
     end
   end
+
+  # Public: Run the AutoScaling Group module
+  def self.autoscaling
+    if ARGV.size != 2 or
+      (ARGV.size == 2 and ARGV[1] != "help" and ARGV[1] != "diff")
+      puts "Usage: cumulus autoscaling [diff|help|sync]"
+      exit
+    end
+
+    if ARGV[1] == "help"
+      puts "autoscaling: Manage AutoScaling groups."
+    end
+
+    require "autoscaling/manager/AutoScaling"
+    autoscaling = AutoScaling.new
+    if ARGV[1] == "diff"
+      autoscaling.diff
+    end
+  end
 end
 
 # check for the aws ruby gem
@@ -77,8 +96,8 @@ rescue LoadError
   exit
 end
 
-if ARGV.size == 0 or (ARGV[0] != "iam" and ARGV[0] != "help")
-  puts "Usage: cumulus [iam|help]"
+if ARGV.size == 0 or (ARGV[0] != "iam" and ARGV[0] != "help" and ARGV[0] != "autoscaling")
+  puts "Usage: cumulus [help|iam|autoscaling]"
   exit
 end
 
@@ -88,6 +107,7 @@ if ARGV[0] == "help"
   puts
   puts "Modules"
   puts "\tiam\t- Compiles IAM roles and policies that are defined with configuration files and syncs the resulting IAM roles and policies with AWS"
+  puts "\tautoscaling\t- Manages configuration for EC2 AutoScaling."
 end
 
 # read in the optional path to the configuration file to use
@@ -131,4 +151,6 @@ Configuration.init(project_root, options[:config])
 
 if ARGV[0] == "iam"
   Modules.iam
+elsif ARGV[0] == "autoscaling"
+  Modules.autoscaling
 end

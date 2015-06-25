@@ -1,0 +1,25 @@
+{
+  "enabled-metrics": [
+    "GroupMinSize"
+  ],
+  "health-check-type": "ELB", // "ELB" or "EC2" // optional
+  "health-check-grace-seconds": 500, // optional
+  "load-balancers": [
+
+  ],
+  "name": "example-scale-group",
+  "size": {
+    "min": 1,
+    "max": 5,
+    "desired": 3 // optional
+  },
+  "subnets": [
+
+    ], // optional
+  "tags": {
+    "key": "value"
+  }, // optional
+  "termination": [
+    "OldestInstance"
+  ] // optional "Default", "OldestLaunchConfiguration", "NewestInstance", "ClosestToNextInstanceHour"
+}

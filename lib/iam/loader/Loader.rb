@@ -3,20 +3,28 @@ require "iam/models/GroupConfig"
 require "iam/models/StatementConfig"
 require "iam/models/RoleConfig"
 require "iam/models/UserConfig"
+require "common/BaseLoader"
 
 require "json"
 
 # Public: A module that handles loading all the json configuration files and
 # creating objects from them.
 module Loader
+  include BaseLoader
+
+  @@group_loader = Proc.new { |json| GroupConfig.new(json) }
+  @@groups_dir = Configuration.instance.iam.groups_directory
+  @@role_loader = Proc.new { |json| RoleConfig.new(json) }
+  @@roles_dir = Configuration.instance.iam.roles_directory
+  @@user_loader = Proc.new { |json| UserConfig.new(json) }
+  @@users_dir = Configuration.instance.iam.users_directory
 
   # Public: Load all the roles defined in configuration.
   #
   # Returns an Array of RoleConfig objects defined by the roles configuration
   # files.
   def Loader.roles
-    roles_dir = Configuration.instance.iam.roles_directory
-    Loader.resources(roles_dir, &Proc.new { |f| Loader.role(f) })
+    BaseLoader.resources(@@roles_dir, &@@role_loader)
   end
 
   # Public: Load a role defined in configuration
@@ -25,16 +33,14 @@ module Loader
   #
   # Returns a RoleConfig object defined by the role configuration files.
   def Loader.role(file)
-    roles_dir = Configuration.instance.iam.roles_directory
-    RoleConfig.new(JSON.parse(File.read(File.join(roles_dir, file))))
+    BaseLoader.resource(file, @@roles_dir, &RoleConfig.new)
   end
 
   # Public: Load all the users defined in configuration.
   #
   # Returns an Array of UserConfig objects defined in user configuration files.
   def Loader.users
-    users_dir = Configuration.instance.iam.users_directory
-    Loader.resources(users_dir, &Proc.new { |f| Loader.user(f) })
+    BaseLoader.resources(@@users_dir, &@@user_loader)
   end
 
   # Public: Load a user defined in configuration
@@ -43,8 +49,7 @@ module Loader
   #
   # Returns the UserConfig object defined by the file.
   def Loader.user(file)
-    users_dir = Configuration.instance.iam.users_directory
-    UserConfig.new(JSON.parse(File.read(File.join(users_dir, file))))
+    BaseLoader.resource(file, @@users_dir, &@@user_loader)
   end
 
   # Public: Load all the groups defined in configuration.
@@ -52,8 +57,7 @@ module Loader
   # Returns an Array of GroupConfig objects defined by the groups configuration
   # files.
   def Loader.groups
-    groups_dir = Configuration.instance.iam.groups_directory
-    Loader.resources(groups_dir, &Proc.new { |f| Loader.group(f) })
+    BaseLoader.resources(@@groups_dir, &@@group_loader)
   end
 
   # Public: Load a group defined in configuration
@@ -62,21 +66,7 @@ module Loader
   #
   # Returns the GroupConfig object defined by the file
   def Loader.group(file)
-    groups_dir = Configuration.instance.iam.groups_directory
-    GroupConfig.new(JSON.parse(File.read(File.join(groups_dir, file))))
-  end
-
-  # Internal: Load the resources in a directory, handling each file with the
-  # function passed in.
-  #
-  # dir               - the directory to load resources from
-  # individual_loader - the function that loads a resource from each file name
-  #
-  # Returns an array of resources
-  def Loader.resources(dir, &individual_loader)
-    Dir.entries(dir)
-    .reject { |f| f == "." or f == ".." or File.directory?(File.join(dir, f)) }
-    .map { |f| individual_loader.call(f) }
+    BaseLoader.resource(file, @@groups_dir, &@@group_loader)
   end
 
   # Public: Load in a static policy as StatementConfig object
