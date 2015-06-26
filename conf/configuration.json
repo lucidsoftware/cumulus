@@ -25,7 +25,8 @@
 	},
 	"autoscaling": {
 		"groups": {
-			"directory": "conf/autoscaling/groups"
+			"directory": "conf/autoscaling/groups",
+			"override-launch-config-on-sync": false
 		}
 	},
 	"region": "us-east-1"

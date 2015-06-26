@@ -88,7 +88,11 @@ class AutoScaling
   # group - the group to update
   # diffs - the diffs between local and AWS configuration
   def update_group(group, diffs)
-    @aws.update_auto_scaling_group(gen_autoscaling_aws_hash(group))
+    hash = gen_autoscaling_aws_hash(group)
+    if !Configuration.instance.autoscaling.override_launch_config_on_sync
+      hash.delete(:launch_configuration_name)
+    end
+    @aws.update_auto_scaling_group(hash)
     diffs.each do |diff|
       if diff.type == AutoScalingChange::TAGS
         update_tags(group, diff.tags_to_remove, diff.tags_to_remove)

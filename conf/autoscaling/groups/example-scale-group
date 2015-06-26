@@ -20,7 +20,7 @@
   },
   "subnets": [
 
-    ],
+  ],
   "tags": {
     "key": "value"
   }, // optional

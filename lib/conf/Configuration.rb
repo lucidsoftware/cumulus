@@ -94,6 +94,7 @@ class Configuration
   class AutoScalingConfig
 
     attr_reader :groups_directory
+    attr_reader :override_launch_config_on_sync
 
     # Public: Constructor.
     #
@@ -104,6 +105,7 @@ class Configuration
     #          AutoScalingConfig
     def initialize(json, parent)
       @groups_directory = parent.absolute_path(json["groups"]["directory"])
+      @override_launch_config_on_sync = json["groups"]["override-launch-config-on-sync"]
     end
 
   end
