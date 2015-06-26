@@ -1,26 +1,30 @@
 {
+  "availability-zones": [
+
+  ],
   "cooldown-seconds": 500,
   "enabled-metrics": [
-    "GroupMinSize"
+
   ],
-  "health-check-type": "ELB", // "ELB" or "EC2" // optional
-  "health-check-grace-seconds": 500, // optional
+  "health-check-type": "ELB", // "ELB" or "EC2"
+  "health-check-grace-seconds": 500,
+  "launch-configuration": "",
   "load-balancers": [
 
   ],
   "name": "example-scale-group",
   "size": {
-    "min": 1,
+    "min": 0,
     "max": 5,
-    "desired": 3 // optional
+    "desired": 0
   },
   "subnets": [
 
-    ], // optional
+    ],
   "tags": {
     "key": "value"
   }, // optional
   "termination": [
     "OldestInstance"
-  ] // optional "Default", "OldestLaunchConfiguration", "NewestInstance", "ClosestToNextInstanceHour"
+  ] // "Default", "OldestLaunchConfiguration", "NewestInstance", "ClosestToNextInstanceHour"
 }

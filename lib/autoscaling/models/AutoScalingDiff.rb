@@ -15,6 +15,8 @@ module AutoScalingChange
   TAGS = 11
   TERMINATION = 12
   COOLDOWN = 13
+  LAUNCH = 14
+  AVAILABILITY_ZONES = 15
 end
 
 # Public: Represents a single difference between local configuration and AWS
@@ -22,7 +24,7 @@ end
 class AutoScalingDiff
   include AutoScalingChange
 
-  attr_reader :type
+  attr_reader :local, :type
 
   # Public: Static method that will produce an "unmanaged" diff
   #
@@ -59,6 +61,8 @@ class AutoScalingDiff
       Colors.added("AutoScaling Group #{@local.name} will be created")
     when UNMANAGED
       Colors.unmanaged("AutoScaling Group #{@aws.auto_scaling_group_name} is unmanaged by Cumulus")
+    when LAUNCH
+      "Launch configuration: AWS - #{Colors.aws_changes(@aws.launch_configuration_name)}, Local - #{@local.launch}"
     when MIN
       "Min size: AWS - #{Colors.aws_changes(@aws.min_size)}, Local - #{Colors.local_changes(@local.min)}"
     when MAX
@@ -67,8 +71,8 @@ class AutoScalingDiff
       "Desired size: AWS - #{Colors.aws_changes(@aws.desired_capacity)}, Local - #{Colors.local_changes(@local.desired)}"
     when METRICS
       lines = ["Enabled Metrics:"]
-      lines << (@aws.enabled_metrics - @local.enabled_metrics).map { |m| "\t#{Colors.removed(m)}" }
-      lines << (@local.enabled_metrics - @aws.enabled_metrics).map { |m| "\t#{Colors.added(m)}" }
+      lines << metrics_to_disable.map { |m| "\t#{Colors.removed(m)}" }
+      lines << metrics_to_enable.map { |m| "\t#{Colors.added(m)}" }
       lines.flatten.join("\n")
     when CHECK_TYPE
       "Health check type: AWS - #{Colors.aws_changes(@aws.health_check_type)}, Local - #{Colors.local_changes(@local.check_type)}"
@@ -76,8 +80,8 @@ class AutoScalingDiff
       "Health check grace period: AWS - #{Colors.aws_changes(@aws.health_check_grace_period)}, Local - #{Colors.local_changes(@local.check_grace)}"
     when LOAD_BALANCER
       lines = ["Load balancers:"]
-      lines << (@aws.load_balancer_names - @local.load_balancers).map { |l| "\t#{Colors.removed(l)}" }
-      lines << (@local.load_balancers - @aws.load_balancer_names).map { |l| "\t#{Colors.added(l)}" }
+      lines << load_balancers_to_remove.map { |l| "\t#{Colors.removed(l)}" }
+      lines << load_balancers_to_add.map { |l| "\t#{Colors.added(l)}" }
       lines.flatten.join("\n")
     when SUBNETS
       lines = ["Subnets:"]
@@ -87,9 +91,8 @@ class AutoScalingDiff
       lines.flatten.join("\n")
     when TAGS
       lines = ["Tags:"]
-      aws_tags = Hash[@aws.tags.map { |tag| [tag.key, tag.value] }]
-      lines << aws_tags.reject { |t| @local.tags.include?(t) }.map { |k, v| "\t#{Colors.removed("#{k} => #{v}")}" }
-      lines << @local.tags.reject { |t| aws_tags.include?(t) }.map { |k, v| "\t#{Colors.added("#{k} => #{v}")}" }
+      lines << tags_to_remove.map { |k, v| "\t#{Colors.removed("#{k} => #{v}")}" }
+      lines << tags_to_add.map { |k, v| "\t#{Colors.added("#{k} => #{v}")}" }
       lines.flatten.join("\n")
     when TERMINATION
       lines = ["Termination policies:"]
@@ -98,7 +101,67 @@ class AutoScalingDiff
       lines.flatten.join("\n")
     when COOLDOWN
       "Cooldown: AWS - #{Colors.aws_changes(@aws.default_cooldown)}, Local - #{Colors.local_changes(@local.cooldown)}"
+    when AVAILABILITY_ZONES
+      lines = ["Availability zones:"]
+      lines << (@aws.availability_zones - @local.availability_zones).map { |a| "\t#{Colors.removed(a)}" }
+      lines << (@local.availability_zones - @aws.availability_zones).map { |a| "\t#{Colors.added(a)}" }
+      lines.flatten.join("\n")
     end
+  end
+
+  # Public: Get the metrics to disable, ie. are in AWS but not in local
+  # configuration.
+  #
+  # Returns an array of metrics
+  def metrics_to_disable
+    @aws.enabled_metrics - @local.enabled_metrics
+  end
+
+  # Public: Get the metrics to enable, ie. are in local configuration, but not
+  # AWS.
+  #
+  # Returns an array of metrics
+  def metrics_to_enable
+    @local.enabled_metrics - @aws.enabled_metrics
+  end
+
+  # Public: Get the load balancers to remove, ie. are in AWS and not local
+  # configuration
+  #
+  # Returns an array of load balancer names
+  def load_balancers_to_remove
+    @aws.load_balancer_names - @local.load_balancers
+  end
+
+  # Public: Get the load balancers to add, ie. are in local configuration but
+  # not in AWS
+  #
+  # Returns an array of load balancer names
+  def load_balancers_to_add
+    @local.load_balancers - @aws.load_balancer_names
+  end
+
+  # Public: Get the tags that are in AWS that are not in local configuration
+  #
+  # Returns a hash of tags
+  def tags_to_remove
+    aws_tags.reject { |t, v| @local.tags.include?(t) and @local.tags[t] == v }
+  end
+
+  # Public: Get the tags that are in local configuration but not in AWS
+  #
+  # Returns a hash of tags
+  def tags_to_add
+    @local.tags.reject { |t, v| aws_tags.include?(t) and aws_tags[t] == v  }
+  end
+
+  private
+
+  # Internal: Get the tags in AWS as a hash of key to value
+  #
+  # Returns a hash of tags
+  def aws_tags
+    @aws_tags ||= Hash[@aws.tags.map { |tag| [tag.key, tag.value] }]
   end
 
 end

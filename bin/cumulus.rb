@@ -70,7 +70,7 @@ module Modules
   # Public: Run the AutoScaling Group module
   def self.autoscaling
     if ARGV.size != 2 or
-      (ARGV.size == 2 and ARGV[1] != "help" and ARGV[1] != "diff")
+      (ARGV.size == 2 and ARGV[1] != "help" and ARGV[1] != "diff" and ARGV[1] != "sync")
       puts "Usage: cumulus autoscaling [diff|help|sync]"
       exit
     end
@@ -83,6 +83,8 @@ module Modules
     autoscaling = AutoScaling.new
     if ARGV[1] == "diff"
       autoscaling.diff
+    elsif ARGV[1] == "sync"
+      autoscaling.sync
     end
   end
 end
@@ -92,7 +94,8 @@ begin
   require 'aws-sdk'
 rescue LoadError
   puts "Cumulus requires the gem 'aws-sdk'"
-  puts "Please install 'aws-sdk'"
+  puts "Please install 'aws-sdk':"
+  puts "\tgem install aws-sdk -v 2.1.0"
   exit
 end
 
