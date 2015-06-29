@@ -17,6 +17,7 @@ module AutoScalingChange
   COOLDOWN = 13
   LAUNCH = 14
   AVAILABILITY_ZONES = 15
+  SCHEDULED = 16
 end
 
 # Public: Represents a single difference between local configuration and AWS
@@ -25,6 +26,7 @@ class AutoScalingDiff
   include AutoScalingChange
 
   attr_reader :local, :type
+  attr_accessor :scheduled_diffs
 
   # Public: Static method that will produce an "unmanaged" diff
   #
@@ -42,6 +44,18 @@ class AutoScalingDiff
   # Returns the diff
   def AutoScalingDiff.added(local)
     AutoScalingDiff.new(ADD, nil, local)
+  end
+
+  # Public: Static method that will produce a diff that contains changes in
+  # scheduled actions
+  #
+  # scheduled_diffs - the differences in scheduled actions
+  #
+  # Returns the diff
+  def AutoScalingDiff.scheduled(scheduled_diffs)
+    diff = AutoScalingDiff.new(SCHEDULED)
+    diff.scheduled_diffs = scheduled_diffs
+    diff
   end
 
   # Public: Constructor
@@ -106,6 +120,10 @@ class AutoScalingDiff
       lines << (@aws.availability_zones - @local.availability_zones).map { |a| "\t#{Colors.removed(a)}" }
       lines << (@local.availability_zones - @aws.availability_zones).map { |a| "\t#{Colors.added(a)}" }
       lines.flatten.join("\n")
+    when SCHEDULED
+      lines = ["Scheduled Actions:"]
+      lines << scheduled_diffs.map { |d| "\t#{d}" }
+      lines.flatten.join("\n")
     end
   end
 
@@ -152,7 +170,7 @@ class AutoScalingDiff
   #
   # Returns a hash of tags
   def tags_to_add
-    @local.tags.reject { |t, v| aws_tags.include?(t) and aws_tags[t] == v  }
+    @local.tags.reject { |t, v| aws_tags.include?(t) and aws_tags[t] == v }
   end
 
   private

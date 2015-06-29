@@ -13,6 +13,17 @@
 
   ],
   "name": "example-scale-group",
+  "scheduled": [
+    {
+      "name": "example-scheduled",
+      "start": "",
+      "end": "",
+      "recurrence": "0 5 * * *",
+      "min": 0,
+      "max": 5,
+      "desired": 0
+    }
+  ],
   "size": {
     "min": 0,
     "max": 5,

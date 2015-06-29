@@ -66,7 +66,10 @@ class AutoScaling
       if !aws.include?(name)
         f.call(name, [AutoScalingDiff.added(group)])
       else
-        f.call(name, group.diff(aws[name]))
+        scheduled_actions = @aws.describe_scheduled_actions({
+          auto_scaling_group_name: name
+        }).scheduled_update_group_actions
+        f.call(name, group.diff(aws[name], scheduled_actions))
       end
     end
   end

@@ -1,4 +1,6 @@
 require "autoscaling/models/AutoScalingDiff"
+require "autoscaling/models/ScheduledActionDiff"
+require "autoscaling/models/ScheduledConfig"
 
 # Public: An object representing the configuration for an AutoScaling group.
 class GroupConfig
@@ -25,15 +27,17 @@ class GroupConfig
     @tags = json["tags"]
     @termination = json["termination"]
     @availability_zones = json["availability-zones"]
+    @scheduled = Hash[json["scheduled"].map { |json| [json["name"], ScheduledConfig.new(json)] }]
   end
 
   # Public: Produce the differences between this local configuration and the
   # configuration in AWS
   #
-  # aws - the aws resource
+  # aws           - the aws resource
+  # aws_scheduled - the scheduled actions in aws for the resource
   #
   # Returns an Array of the AutoScalingDiffs that were found
-  def diff(aws)
+  def diff(aws, aws_scheduled)
     diffs = []
 
     if @cooldown != aws.default_cooldown
@@ -76,6 +80,38 @@ class GroupConfig
       diffs << AutoScalingDiff.new(AutoScalingChange::AVAILABILITY_ZONES, aws, self)
     end
 
+    scheduled_diffs = diff_scheduled(aws_scheduled)
+    if !scheduled_diffs.empty?
+      diffs << AutoScalingDiff.scheduled(scheduled_diffs)
+    end
+
     diffs
   end
+
+  private
+
+  # Internal: Determine changes in scheduled actions.
+  #
+  # aws_scheduled - the scheduled actions in AWS
+  #
+  # Returns an array of ScheduledActionDiff's that represent difference between
+  # local and AWS configuration
+  def diff_scheduled(aws_scheduled)
+    diffs = []
+
+    aws_scheduled = Hash[aws_scheduled.map { |s| [s.scheduled_action_name, s] }]
+    aws_scheduled.reject { |k, v| @scheduled.include?(k) }.each do |name, aws|
+      diffs << ScheduledActionDiff.unmanaged(aws)
+    end
+    @scheduled.each do |name, local|
+      if !aws_scheduled.include?(name)
+        diffs << ScheduledActionDiff.added(local)
+      else
+        diffs << local.diff(aws_scheduled[name])
+      end
+    end
+
+    diffs.flatten
+  end
+
 end
