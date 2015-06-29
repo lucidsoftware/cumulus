@@ -26,7 +26,6 @@ class GroupConfig
     @subnets = json["subnets"]
     @tags = json["tags"]
     @termination = json["termination"]
-    @availability_zones = json["availability-zones"]
     @scheduled = Hash[json["scheduled"].map { |json| [json["name"], ScheduledConfig.new(json)] }]
   end
 
@@ -75,9 +74,6 @@ class GroupConfig
     end
     if @termination != aws.termination_policies
       diffs << AutoScalingDiff.new(AutoScalingChange::TERMINATION, aws, self)
-    end
-    if @availability_zones != aws.availability_zones
-      diffs << AutoScalingDiff.new(AutoScalingChange::AVAILABILITY_ZONES, aws, self)
     end
 
     scheduled_diffs = diff_scheduled(aws_scheduled)

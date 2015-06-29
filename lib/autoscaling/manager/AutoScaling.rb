@@ -126,7 +126,6 @@ class AutoScaling
   def gen_autoscaling_aws_hash(group)
     {
       auto_scaling_group_name: group.name,
-      availability_zones: group.availability_zones.size > 0 ? group.availability_zones : nil,
       min_size: group.min,
       max_size: group.max,
       desired_capacity: group.desired,

@@ -16,8 +16,7 @@ module AutoScalingChange
   TERMINATION = 12
   COOLDOWN = 13
   LAUNCH = 14
-  AVAILABILITY_ZONES = 15
-  SCHEDULED = 16
+  SCHEDULED = 15
 end
 
 # Public: Represents a single difference between local configuration and AWS
@@ -115,11 +114,6 @@ class AutoScalingDiff
       lines.flatten.join("\n")
     when COOLDOWN
       "Cooldown: AWS - #{Colors.aws_changes(@aws.default_cooldown)}, Local - #{Colors.local_changes(@local.cooldown)}"
-    when AVAILABILITY_ZONES
-      lines = ["Availability zones:"]
-      lines << (@aws.availability_zones - @local.availability_zones).map { |a| "\t#{Colors.removed(a)}" }
-      lines << (@local.availability_zones - @aws.availability_zones).map { |a| "\t#{Colors.added(a)}" }
-      lines.flatten.join("\n")
     when SCHEDULED
       lines = ["Scheduled Actions:"]
       lines << scheduled_diffs.map { |d| "\t#{d}" }
