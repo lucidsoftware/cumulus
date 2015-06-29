@@ -143,7 +143,7 @@ class ResourceWithPolicy
   def init_template_statements
     @templates.map do |template|
       Loader.template_policy(template["template"], template["vars"])
-    end
+    end.flatten
   end
   private :init_template_statements
 

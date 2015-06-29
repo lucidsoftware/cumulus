@@ -110,7 +110,13 @@ module Loader
     variables.each do |key, value|
       template.gsub!("{{#{key}}}", value)
     end
-    StatementConfig.new(JSON.parse(template))
+    json = JSON.parse(template)
+
+    if json.is_a?(Array)
+      json.map { |s| StatementConfig.new(s) }
+    else
+      StatementConfig.new(json)
+    end
   end
 
   # Public: Load the JSON string that is a role's policy document from a file.
