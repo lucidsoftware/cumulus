@@ -1,5 +1,6 @@
 require "autoscaling/loader/Loader"
 require "autoscaling/models/AutoScalingDiff"
+require "autoscaling/models/ScheduledActionDiff"
 require "util/Colors"
 
 require "aws-sdk"
@@ -81,6 +82,7 @@ class AutoScaling
     @aws.create_auto_scaling_group(gen_autoscaling_aws_hash(group))
     update_tags(group, {}, group.tags)
     update_load_balancers(group, [], group.load_balancers)
+    update_scheduled_actions(group, [], group.scheduled.map { |k, v| k })
     if group.enabled_metrics.size > 0
       update_metrics(group, [], group.enabled_metrics)
     end
@@ -103,6 +105,14 @@ class AutoScaling
         update_load_balancers(group, diff.load_balancers_to_remove, diff.load_balancers_to_add)
       elsif diff.type == AutoScalingChange::METRICS
         update_metrics(group, diff.metrics_to_disable, diff.metrics_to_enable)
+      elsif diff.type == AutoScalingChange::SCHEDULED
+        remove = diff.scheduled_diffs.reject do |d|
+          d.type != ScheduledActionChange::UNMANAGED
+        end.map { |d| d.aws.scheduled_action_name }
+        update = diff.scheduled_diffs.select do |d|
+          d.type != ScheduledActionChange::UNMANAGED
+        end.map { |d| d.local.name }
+        update_scheduled_actions(group, remove, update)
       end
     end
   end
@@ -188,6 +198,38 @@ class AutoScaling
       metrics: enable,
       granularity: "1Minute"
     })
+  end
+
+  # Internal: Update the scheduled actions for an autoscaling group.
+  #
+  # group  - the group the scheduled actions belong to
+  # remove - the names of the actions to remove
+  # update - the names of the actions to update
+  def update_scheduled_actions(group, remove, update)
+    # remove any unmanaged scheduled actions
+    remove.each do |name|
+      @aws.delete_scheduled_action({
+        auto_scaling_group_name: group.name,
+        scheduled_action_name: name
+      })
+    end
+
+    # update or create all scheduled actions that have changed in local config
+    group.scheduled.each do |name, config|
+      if update.include?(name)
+        puts Colors.blue("\tupdating scheduled action #{name}...")
+        @aws.put_scheduled_update_group_action({
+          auto_scaling_group_name: group.name,
+          scheduled_action_name: name,
+          start_time: config.start,
+          end_time: config.end,
+          recurrence: config.recurrence,
+          min_size: config.min,
+          max_size: config.max,
+          desired_capacity: config.desired
+        })
+      end
+    end
   end
 
   # Internal: Get the AutoScaling Groups currently defined in AWS

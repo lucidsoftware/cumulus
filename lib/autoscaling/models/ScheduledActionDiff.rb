@@ -17,6 +17,8 @@ end
 class ScheduledActionDiff
   include ScheduledActionChange
 
+  attr_reader :aws, :local, :type
+
   # Public: Static method that will produce an "unmanaged" diff
   #
   # aws - the aws resource that is unmanaged

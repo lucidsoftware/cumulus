@@ -6,8 +6,8 @@ require "autoscaling/models/ScheduledConfig"
 class GroupConfig
   attr_reader :availability_zones
   attr_reader :cooldown, :check_grace, :check_type, :enabled_metrics, :desired
-  attr_reader :launch, :load_balancers, :max, :min, :name, :subnets, :tags
-  attr_reader :termination
+  attr_reader :launch, :load_balancers, :max, :min, :name, :scheduled, :subnets
+  attr_reader :tags, :termination
 
   # Public: Constructor
   #
