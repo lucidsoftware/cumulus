@@ -18,6 +18,17 @@ module Loader
   @@roles_dir = Configuration.instance.iam.roles_directory
   @@user_loader = Proc.new { |json| UserConfig.new(json) }
   @@users_dir = Configuration.instance.iam.users_directory
+  @@static_policy_dir = Configuration.instance.iam.static_policy_directory
+  @@template_dir = Configuration.instance.iam.template_policy_directory
+  @@policy_loader = Proc.new do |json|
+    if json.is_a?(Array)
+      json.map do |s|
+        StatementConfig.new(s)
+      end
+    else
+      StatementConfig.new(json)
+    end
+  end
 
   # Public: Load all the roles defined in configuration.
   #
@@ -75,16 +86,7 @@ module Loader
   #
   # Returns a StatementConfig object corresponding to the static policy
   def Loader.static_policy(file)
-    static_policy_dir = Configuration.instance.iam.static_policy_directory
-    json = JSON.parse(File.read(File.join(static_policy_dir, file)))
-
-    if json.is_a?(Array)
-      json.map do |s|
-        StatementConfig.new(s)
-      end
-    else
-      StatementConfig.new(json)
-    end
+    BaseLoader.resource(file, @@static_policy_dir, &@@policy_loader)
   end
 
   # Public: Load in a template policy, apply variables, and create a
@@ -95,18 +97,7 @@ module Loader
   #
   # Returns a StatementConfig object corresponding to the applied template policy
   def Loader.template_policy(file, variables)
-    template_dir = Configuration.instance.iam.template_policy_directory
-    template = File.read(File.join(template_dir, file))
-    variables.each do |key, value|
-      template.gsub!("{{#{key}}}", value)
-    end
-    json = JSON.parse(template)
-
-    if json.is_a?(Array)
-      json.map { |s| StatementConfig.new(s) }
-    else
-      StatementConfig.new(json)
-    end
+    BaseLoader.template(file, @@template_dir, variables, &@@policy_loader)
   end
 
   # Public: Load the JSON string that is a role's policy document from a file.

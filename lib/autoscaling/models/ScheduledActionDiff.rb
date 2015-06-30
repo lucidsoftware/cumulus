@@ -1,6 +1,6 @@
 require "util/Colors"
 
-# Public: The types of of changes that can be made to Scheduled Actions
+# Public: The types of changes that can be made to Scheduled Actions
 module ScheduledActionChange
   ADD = 1
   UNMANAGED = 2

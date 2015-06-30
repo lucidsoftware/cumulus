@@ -17,6 +17,7 @@ module AutoScalingChange
   COOLDOWN = 13
   LAUNCH = 14
   SCHEDULED = 15
+  POLICY = 16
 end
 
 # Public: Represents a single difference between local configuration and AWS
@@ -26,6 +27,7 @@ class AutoScalingDiff
 
   attr_reader :local, :type
   attr_accessor :scheduled_diffs
+  attr_accessor :policy_diffs
 
   # Public: Static method that will produce an "unmanaged" diff
   #
@@ -54,6 +56,18 @@ class AutoScalingDiff
   def AutoScalingDiff.scheduled(scheduled_diffs)
     diff = AutoScalingDiff.new(SCHEDULED)
     diff.scheduled_diffs = scheduled_diffs
+    diff
+  end
+
+  # Public: Static method that will produce a diff that contains changes in
+  # scaling policies
+  #
+  # policy_diffs - the differences in scaling policies
+  #
+  # Returns the diff
+  def AutoScalingDiff.policies(policy_diffs)
+    diff = AutoScalingDiff.new(POLICY)
+    diff.policy_diffs = policy_diffs
     diff
   end
 
@@ -117,6 +131,10 @@ class AutoScalingDiff
     when SCHEDULED
       lines = ["Scheduled Actions:"]
       lines << scheduled_diffs.map { |d| "\t#{d}" }
+      lines.flatten.join("\n")
+    when POLICY
+      lines = ["Scaling policies:"]
+      lines << policy_diffs.map { |d| "\t#{d}" }
       lines.flatten.join("\n")
     end
   end

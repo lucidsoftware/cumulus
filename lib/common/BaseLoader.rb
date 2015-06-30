@@ -25,4 +25,21 @@ module BaseLoader
   def BaseLoader.resource(file, dir, &loader)
     loader.call(JSON.parse(File.read(File.join(dir, file))))
   end
+
+  # Internal: Load the template, apply variables, and pass the parsed JSON to
+  # the function passed in
+  #
+  # file    - the name of the file to load
+  # dir     - the directory the file is located in
+  # vars    - the variables to apply to the template
+  # loader  - the function that will handle the read json
+  def BaseLoader.template(file, dir, vars, &loader)
+    template = File.read(File.join(dir, file))
+    vars.each do |key, value|
+      template.gsub!("{{#{key}}}", value)
+    end
+    json = JSON.parse(template)
+
+    loader.call(json)
+  end
 end

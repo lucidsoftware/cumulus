@@ -95,6 +95,8 @@ class Configuration
 
     attr_reader :groups_directory
     attr_reader :override_launch_config_on_sync
+    attr_reader :static_policy_directory
+    attr_reader :template_policy_directory
 
     # Public: Constructor.
     #
@@ -106,6 +108,8 @@ class Configuration
     def initialize(json, parent)
       @groups_directory = parent.absolute_path(json["groups"]["directory"])
       @override_launch_config_on_sync = json["groups"]["override-launch-config-on-sync"]
+      @static_policy_directory = parent.absolute_path(json["policies"]["static"]["directory"])
+      @template_policy_directory = parent.absolute_path(json["policies"]["templates"]["directory"])
     end
 
   end

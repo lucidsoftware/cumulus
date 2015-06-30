@@ -10,6 +10,47 @@
 
   ],
   "name": "example-scale-group",
+  "policies": {
+    "static": [
+      "example-static"
+    ],
+    "templates": [
+      {
+        "template": "example-template",
+        "vars": {
+          "n": "2"
+        }
+      }
+    ],
+    "inlines": [
+      {
+        "name": "Scale Up 3",
+        "adjustment-type": "ChangeInCapacity",
+        "adjustment": 3,
+        "cooldown": 600,
+        "alarms": [
+          {
+            "name": "CPU High",
+            "description": "",
+            "actions-enabled": true,
+            "action-states": [
+              "alarm"
+            ], // can also include "ok", or "insufficient-data"
+            "metric": "CPUUtilization",
+            "namespace": "EC2",
+            "statistic": "Average",
+            "dimensions": {
+              "AutoScalingGroupName": "DocumentService"
+            },
+            "period-seconds": 300,
+            "evaluation-periods": 1,
+            "threshold": 0.8,
+            "comparison": ">="
+          }
+        ]
+      }
+    ]
+  },
   "scheduled": [
     {
       "name": "example-scheduled",

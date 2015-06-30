@@ -1,4 +1,7 @@
+require "autoscaling/loader/Loader"
 require "autoscaling/models/AutoScalingDiff"
+require "autoscaling/models/PolicyConfig"
+require "autoscaling/models/PolicyDiff"
 require "autoscaling/models/ScheduledActionDiff"
 require "autoscaling/models/ScheduledConfig"
 
@@ -27,16 +30,25 @@ class GroupConfig
     @tags = json["tags"]
     @termination = json["termination"]
     @scheduled = Hash[json["scheduled"].map { |json| [json["name"], ScheduledConfig.new(json)] }]
+
+    # load scaling policies
+    static_policies = json["policies"]["static"].map { |file| Loader.static_policy(file) }
+    template_policies = json["policies"]["templates"].map do |template|
+      Loader.template_policy(template["template"], template["vars"])
+    end
+    inline_policies = json["policies"]["inlines"].map { |inline| PolicyConfig.new(inline) }
+    @policies = static_policies + template_policies + inline_policies
+    @policies = Hash[@policies.map { |policy| [policy.name, policy] }]
   end
 
   # Public: Produce the differences between this local configuration and the
   # configuration in AWS
   #
-  # aws           - the aws resource
-  # aws_scheduled - the scheduled actions in aws for the resource
+  # aws         - the aws resource
+  # autoscaling - the AWS client needed to get additional AWS resources
   #
   # Returns an Array of the AutoScalingDiffs that were found
-  def diff(aws, aws_scheduled)
+  def diff(aws, autoscaling)
     diffs = []
 
     if @cooldown != aws.default_cooldown
@@ -76,9 +88,22 @@ class GroupConfig
       diffs << AutoScalingDiff.new(AutoScalingChange::TERMINATION, aws, self)
     end
 
+    # check for changes in scheduled actions
+    aws_scheduled = autoscaling.describe_scheduled_actions({
+      auto_scaling_group_name: @name
+    }).scheduled_update_group_actions
     scheduled_diffs = diff_scheduled(aws_scheduled)
     if !scheduled_diffs.empty?
       diffs << AutoScalingDiff.scheduled(scheduled_diffs)
+    end
+
+    # check for changes in scaling policies
+    aws_policies = autoscaling.describe_policies({
+      auto_scaling_group_name: @name
+    }).scaling_policies
+    policy_diffs = diff_policies(aws_policies)
+    if !policy_diffs.empty?
+      diffs << AutoScalingDiff.policies(policy_diffs)
     end
 
     diffs
@@ -108,6 +133,30 @@ class GroupConfig
     end
 
     diffs.flatten
+  end
+
+  # Internal: Determine changes in scaling policies.
+  #
+  # aws_policies - the scaling policies in AWS
+  #
+  # Returns an array of PolicyDiff's that represent differences between local
+  # and AWS configuration
+  def diff_policies(aws_policies)
+    diffs = []
+
+    aws_policies = Hash[aws_policies.map { |p| [p.policy_name, p] }]
+    aws_policies.reject { |k, v| @policies.include?(k) }.each do |name, aws|
+      diffs << PolicyDiff.unmanaged(aws)
+    end
+    @policies.each do |name, local|
+      if !aws_policies.include?(name)
+        diffs << PolicyDiff.added(local)
+      else
+        diffs << local.diff(aws_policies[name])
+      end
+    end
+
+    diffs
   end
 
 end

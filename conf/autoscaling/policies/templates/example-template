@@ -1,0 +1,6 @@
+{
+  "name": "Scale Up {{n}}",
+  "adjustment-type": "ChangeInCapacity",
+  "adjustment": {{n}},
+  "cooldown": 600
+}
