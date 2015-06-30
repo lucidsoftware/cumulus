@@ -6,6 +6,7 @@ class PolicyConfig
   attr_reader :adjustment
   attr_reader :adjustment_type
   attr_reader :cooldown
+  attr_reader :min_adjustment
   attr_reader :name
 
   # Public: Constructor

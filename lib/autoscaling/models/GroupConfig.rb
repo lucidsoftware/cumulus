@@ -8,9 +8,21 @@ require "autoscaling/models/ScheduledConfig"
 # Public: An object representing the configuration for an AutoScaling group.
 class GroupConfig
   attr_reader :availability_zones
-  attr_reader :cooldown, :check_grace, :check_type, :enabled_metrics, :desired
-  attr_reader :launch, :load_balancers, :max, :min, :name, :scheduled, :subnets
-  attr_reader :tags, :termination
+  attr_reader :cooldown
+  attr_reader :check_grace
+  attr_reader :check_type
+  attr_reader :enabled_metrics
+  attr_reader :desired
+  attr_reader :launch
+  attr_reader :load_balancers
+  attr_reader :max
+  attr_reader :min
+  attr_reader :name
+  attr_reader :policies
+  attr_reader :scheduled
+  attr_reader :subnets
+  attr_reader :tags
+  attr_reader :termination
 
   # Public: Constructor
   #
@@ -156,7 +168,7 @@ class GroupConfig
       end
     end
 
-    diffs
+    diffs.flatten
   end
 
 end

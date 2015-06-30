@@ -80,6 +80,7 @@ class AutoScaling
     update_tags(group, {}, group.tags)
     update_load_balancers(group, [], group.load_balancers)
     update_scheduled_actions(group, [], group.scheduled.map { |k, v| k })
+    update_scaling_policies(group, [], group.policies.map { |k, v| k })
     if group.enabled_metrics.size > 0
       update_metrics(group, [], group.enabled_metrics)
     end
@@ -110,6 +111,14 @@ class AutoScaling
           d.type != ScheduledActionChange::UNMANAGED
         end.map { |d| d.local.name }
         update_scheduled_actions(group, remove, update)
+      elsif diff.type == AutoScalingChange::POLICY
+        remove = diff.policy_diffs.reject do |d|
+          d.type != PolicyChange::UNMANAGED
+        end.map { |d| d.aws.policy_name }
+        update = diff.policy_diffs.select do |d|
+          d.type !=  PolicyChange::UNMANAGED
+        end.map { |d| d.local.name }
+        update_scaling_policies(group, remove, update)
       end
     end
   end
@@ -223,6 +232,36 @@ class AutoScaling
           min_size: config.min,
           max_size: config.max,
           desired_capacity: config.desired
+        })
+      end
+    end
+  end
+
+  # Internal: Update the scaling policies for an autoscaling group
+  #
+  # group   - the group the scaling policies belong to
+  # remove  - the names of the scaling policies to remove
+  # update  - the names of the scaling policies to update
+  def update_scaling_policies(group, remove, update)
+    # remove any unmanaged scaling policies
+    remove.each do |name|
+      @aws.delete_policy({
+          auto_scaling_group_name: group.name,
+          policy_name: name
+      })
+    end
+
+    # update or create all policies that have changed in local config
+    group.policies.each do |name, config|
+      if update.include?(name)
+        puts Colors.blue("\tupdating scaling policy #{name}...")
+        @aws.put_scaling_policy({
+          auto_scaling_group_name: group.name,
+          policy_name: name,
+          adjustment_type: config.adjustment_type,
+          min_adjustment_step: config.min_adjustment,
+          scaling_adjustment: config.adjustment,
+          cooldown: config.cooldown
         })
       end
     end
