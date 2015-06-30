@@ -40,21 +40,14 @@ class IamGroups < IamResource
     @iam.create_group({
       :group_name => difference.name
     })
-    Aws::IAM::Group.new(difference.name, { :client => @iam })
+    resource = Aws::IAM::Group.new(difference.name, { :client => @iam })
+    add_users(resource, difference.config.users)
+    resource
   end
 
   def update(resource, diff)
     super(resource, diff)
-
-    # add the users, handling the case that the user doesn't exist
-    diff.added_users.each do |u|
-      begin
-        resource.add_user({ :user_name => u })
-      rescue Aws::IAM::Errors::NoSuchEntity
-        puts Colors.red("\tNo such user #{u}!")
-      end
-    end
-
+    add_users(resource, diff.added_users)
     diff.removed_users.each { |u| resource.remove_user({ :user_name => u }) }
   end
 
@@ -65,6 +58,23 @@ class IamGroups < IamResource
   def migrate_additional(configs_to_aws)
     configs_to_aws.map do |config, resource|
       config.users = resource.users.map { |u| u.name }
+    end
+  end
+
+  private
+
+  # Internal: Add the users assigned to the group to the group, handling the
+  # case that the user doesn't exist
+  #
+  # resource - the aws group resource
+  # users    - the users to add
+  def add_users(resource, users)
+    users.each do |u|
+      begin
+        resource.add_user({ :user_name => u })
+      rescue Aws::IAM::Errors::NoSuchEntity
+        puts Colors.red("\tNo such user #{u}!")
+      end
     end
   end
 
