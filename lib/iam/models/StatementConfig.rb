@@ -12,6 +12,7 @@ class StatementConfig
     @effect = json["Effect"]
     @action = json["Action"]
     @resource = json["Resource"]
+    @condition = json["Condition"]
   end
 
   # Public: Create a Hash that contains the data in this StatementConfig which
@@ -22,8 +23,9 @@ class StatementConfig
     {
       "Effect" => @effect,
       "Action" => @action,
-      "Resource" => @resource
-    }
+      "Resource" => @resource,
+      "Condition" => @condition
+    }.reject { |k, v| v.nil? }
   end
 
 end
