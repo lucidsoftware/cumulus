@@ -39,15 +39,20 @@ class ScheduledConfig
     # annoying, because it will make it seem as if start time is always changed.
     if @start != aws.start_time and !@start.nil?
       diffs << ScheduledActionDiff.new(ScheduledActionChange::START, aws, self)
-    elsif @end != aws.end_time
+    end
+    if @end != aws.end_time
       diffs << ScheduledActionDiff.new(ScheduledActionChange::ENDTIME, aws, self)
-    elsif @recurrence != aws.recurrence
+    end
+    if @recurrence != aws.recurrence
       diffs << ScheduledActionDiff.new(ScheduledActionChange::RECURRENCE, aws, self)
-    elsif @min != aws.min_size
+    end
+    if @min != aws.min_size
       diffs << ScheduledActionDiff.new(ScheduledActionChange::MIN, aws, self)
-    elsif @max != aws.max_size
+    end
+    if @max != aws.max_size
       diffs << ScheduledActionDiff.new(ScheduledActionChange::MAX, aws, self)
-    elsif @desired != aws.desired_capacity
+    end
+    if @desired != aws.desired_capacity
       diffs << ScheduledActionDiff.new(ScheduledActionChange::DESIRED, aws, self)
     end
 

@@ -31,21 +31,21 @@
         "alarms": [
           {
             "name": "CPU High",
-            "description": "",
+            "description": "description",
             "actions-enabled": true,
             "action-states": [
               "alarm"
             ], // can also include "ok", or "insufficient-data"
             "metric": "CPUUtilization",
-            "namespace": "EC2",
+            "namespace": "AWS/EC2",
             "statistic": "Average",
             "dimensions": {
-              "AutoScalingGroupName": "DocumentService"
+              "AutoScalingGroupName": "example-scale-group"
             },
             "period-seconds": 300,
             "evaluation-periods": 1,
             "threshold": 0.8,
-            "comparison": ">="
+            "comparison": "GreaterThanOrEqualToThreshold"
           }
         ]
       }

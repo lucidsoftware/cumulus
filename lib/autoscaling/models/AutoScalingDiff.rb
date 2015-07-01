@@ -1,51 +1,33 @@
+require "common/models/Diff"
 require "util/Colors"
 
 # Public: The types of changes that can be made to an AutoScaling Group
 module AutoScalingChange
-  ADD = 1
-  UNMANAGED = 2
-  MIN = 3
-  MAX = 4
-  DESIRED = 5
-  METRICS = 6
-  CHECK_TYPE = 7
-  CHECK_GRACE = 8
-  LOAD_BALANCER = 9
-  SUBNETS = 10
-  TAGS = 11
-  TERMINATION = 12
-  COOLDOWN = 13
-  LAUNCH = 14
-  SCHEDULED = 15
-  POLICY = 16
+  include DiffChange
+
+  MIN = DiffChange::next_change_id
+  MAX = DiffChange::next_change_id
+  DESIRED = DiffChange::next_change_id
+  METRICS = DiffChange::next_change_id
+  CHECK_TYPE = DiffChange::next_change_id
+  CHECK_GRACE = DiffChange::next_change_id
+  LOAD_BALANCER = DiffChange::next_change_id
+  SUBNETS = DiffChange::next_change_id
+  TAGS = DiffChange::next_change_id
+  TERMINATION = DiffChange::next_change_id
+  COOLDOWN = DiffChange::next_change_id
+  LAUNCH = DiffChange::next_change_id
+  SCHEDULED = DiffChange::next_change_id
+  POLICY = DiffChange::next_change_id
 end
 
 # Public: Represents a single difference between local configuration and AWS
 # configuration of AutoScaling Groups
-class AutoScalingDiff
+class AutoScalingDiff < Diff
   include AutoScalingChange
 
-  attr_reader :local, :type
   attr_accessor :scheduled_diffs
   attr_accessor :policy_diffs
-
-  # Public: Static method that will produce an "unmanaged" diff
-  #
-  # aws - the aws resource that is unmanaged
-  #
-  # Returns the diff
-  def AutoScalingDiff.unmanaged(aws)
-    AutoScalingDiff.new(UNMANAGED, aws)
-  end
-
-  # Public: Static method that will produce an "added" diff
-  #
-  # local - the local configuration that is added
-  #
-  # Returns the diff
-  def AutoScalingDiff.added(local)
-    AutoScalingDiff.new(ADD, nil, local)
-  end
 
   # Public: Static method that will produce a diff that contains changes in
   # scheduled actions
@@ -71,23 +53,8 @@ class AutoScalingDiff
     diff
   end
 
-  # Public: Constructor
-  #
-  # type  - the type of difference between them
-  # aws   - the aws resource that's different (defaults to nil)
-  # local - the local resource that's different (defaults to nil)
-  def initialize(type, aws = nil, local = nil)
-    @aws = aws
-    @local = local
-    @type = type
-  end
-
-  def to_s
+  def diff_string
     case @type
-    when ADD
-      Colors.added("AutoScaling Group #{@local.name} will be created")
-    when UNMANAGED
-      Colors.unmanaged("AutoScaling Group #{@aws.auto_scaling_group_name} is unmanaged by Cumulus")
     when LAUNCH
       "Launch configuration: AWS - #{Colors.aws_changes(@aws.launch_configuration_name)}, Local - #{@local.launch}"
     when MIN
@@ -137,6 +104,14 @@ class AutoScalingDiff
       lines << policy_diffs.map { |d| "\t#{d}" }
       lines.flatten.join("\n")
     end
+  end
+
+  def asset_type
+    "Autoscaling group"
+  end
+
+  def aws_name
+    @aws.auto_scaling_group_name
   end
 
   # Public: Get the metrics to disable, ie. are in AWS but not in local

@@ -1,59 +1,25 @@
+require "common/models/Diff"
 require "util/Colors"
 
 # Public: The types of changes that can be made to Scheduled Actions
 module ScheduledActionChange
-  ADD = 1
-  UNMANAGED = 2
-  START = 3
-  ENDTIME = 4
-  RECURRENCE = 5
-  MIN = 6
-  MAX = 7
-  DESIRED = 8
+  include DiffChange
+
+  START = DiffChange::next_change_id
+  ENDTIME = DiffChange::next_change_id
+  RECURRENCE = DiffChange::next_change_id
+  MIN = DiffChange::next_change_id
+  MAX = DiffChange::next_change_id
+  DESIRED = DiffChange::next_change_id
 end
 
 # Public: Represents a single difference between local configuration and AWS
 # configuration of Scheduled Actions
-class ScheduledActionDiff
+class ScheduledActionDiff < Diff
   include ScheduledActionChange
 
-  attr_reader :aws, :local, :type
-
-  # Public: Static method that will produce an "unmanaged" diff
-  #
-  # aws - the aws resource that is unmanaged
-  #
-  # Returns the diff
-  def ScheduledActionDiff.unmanaged(aws)
-    ScheduledActionDiff.new(UNMANAGED, aws)
-  end
-
-  # Public: Static method that will produce an "added" diff
-  #
-  # local - the local configuration that is added
-  #
-  # Returns the diff
-  def ScheduledActionDiff.added(local)
-    ScheduledActionDiff.new(ADD, nil, local)
-  end
-
-  # Public: Constructor
-  #
-  # type  - the type of the difference
-  # aws   - the aws resource that's different (defaults to nil)
-  # local - the local resource that's difference (defaults to nil)
-  def initialize(type, aws = nil, local = nil)
-    @aws = aws
-    @local = local
-    @type = type
-  end
-
-  def to_s
+  def diff_string
     case @type
-    when ADD
-      Colors.added("Scheduled Action #{@local.name} will be created")
-    when UNMANAGED
-      Colors.unmanaged("Scheduled Action #{@aws.scheduled_action_name} is not managed by Cumulus")
     when START
       "Start: AWS - #{Colors.aws_changes(@aws.start_time)}, Local - #{Colors.local_changes(@local.start)}"
     when ENDTIME
@@ -67,5 +33,13 @@ class ScheduledActionDiff
     when DESIRED
       "Desired capacity: AWS - #{Colors.aws_changes(@aws.desired_capacity)}, Local - #{Colors.local_changes(@local.desired)}"
     end
+  end
+
+  def asset_type
+    "Scheduled action"
+  end
+
+  def aws_name
+    @aws.scheduled_action_name
   end
 end
