@@ -10,6 +10,7 @@ require "aws-sdk"
 class PolicyConfig
   attr_reader :adjustment
   attr_reader :adjustment_type
+  attr_reader :alarms
   attr_reader :cooldown
   attr_reader :min_adjustment
   attr_reader :name
@@ -59,7 +60,7 @@ class PolicyConfig
     }).metric_alarms
     alarm_diffs = diff_alarms(aws_alarms, aws.policy_arn)
     if !alarm_diffs.empty?
-      diffs << PolicyDiff.alarms(alarm_diffs)
+      diffs << PolicyDiff.alarms(alarm_diffs, self, aws.policy_arn)
     end
 
     diffs

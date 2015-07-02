@@ -21,6 +21,7 @@ class AlarmConfig
   attr_reader :period
   attr_reader :statistic
   attr_reader :threshold
+  attr_reader :unit
 
   # Public: Constructor
   #
@@ -38,6 +39,7 @@ class AlarmConfig
     @period = json["period-seconds"]
     @statistic = json["statistic"]
     @threshold = json["threshold"]
+    @unit = json["unit"]
   end
 
   # Public: Produce the differences between this local configuration and the
@@ -76,6 +78,9 @@ class AlarmConfig
     end
     if @threshold != aws.threshold
       diffs << AlarmDiff.new(AlarmChange::THRESHOLD, aws, self)
+    end
+    if @unit != aws.unit
+      diffs << AlarmDiff.new(AlarmChange::UNIT, aws, self)
     end
     aws_dimensions = Hash[aws.dimensions.map { |d| [d.name, d.value] }]
     if @dimensions != aws_dimensions

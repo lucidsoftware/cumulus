@@ -18,6 +18,7 @@ module AlarmChange
   PERIOD = DiffChange::next_change_id
   STATISTIC = DiffChange::next_change_id
   THRESHOLD = DiffChange::next_change_id
+  UNIT = DiffChange::next_change_id
 end
 
 # Public: Represents a single difference between local configuration and AWS
@@ -71,6 +72,8 @@ class AlarmDiff < Diff
       "Statistic: AWS - #{Colors.aws_changes(@aws.statistic)}, Local - #{Colors.local_changes(@local.statistic)}"
     when THRESHOLD
       "Threshold: AWS - #{Colors.aws_changes(@aws.threshold)}, Local - #{Colors.local_changes(@local.threshold)}"
+    when UNIT
+      "Unit: AWS - #{Colors.aws_changes(@aws.unit)}, Local - #{Colors.local_changes(@local.unit)}"
     end
   end
 

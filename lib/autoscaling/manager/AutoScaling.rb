@@ -1,4 +1,5 @@
 require "autoscaling/loader/Loader"
+require "autoscaling/models/AlarmDiff"
 require "autoscaling/models/AutoScalingDiff"
 require "autoscaling/models/ScheduledActionDiff"
 require "util/Colors"
@@ -11,6 +12,9 @@ class AutoScaling
   # Public: Constructor. Initializes the AWS client.
   def initialize
     @aws = Aws::AutoScaling::Client.new(
+      region: Configuration.instance.region
+    )
+    @cloudwatch = Aws::CloudWatch::Client.new(
       region: Configuration.instance.region
     )
   end
@@ -84,6 +88,15 @@ class AutoScaling
     if group.enabled_metrics.size > 0
       update_metrics(group, [], group.enabled_metrics)
     end
+
+    # update alarms for each created scaling policy
+    group.policies.each do |policy_name, policy|
+      policy_arn = @aws.describe_policies({
+        auto_scaling_group_name: group.name,
+        policy_names: [policy_name]
+      }).scaling_policies[0].policy_arn
+      update_alarms(policy, policy_arn, [], policy.alarms.map { |k , v| k })
+    end
   end
 
   # Internal: Update an AutoScaling Group
@@ -116,9 +129,33 @@ class AutoScaling
           d.type != PolicyChange::UNMANAGED
         end.map { |d| d.aws.policy_name }
         update = diff.policy_diffs.select do |d|
-          d.type !=  PolicyChange::UNMANAGED
+          d.type !=  PolicyChange::UNMANAGED and d.type != PolicyChange::ALARM
         end.map { |d| d.local.name }
         update_scaling_policies(group, remove, update)
+
+        # update alarms for existing policies
+        alarms = diff.policy_diffs.select { |d| d.type == PolicyChange::ALARM }
+        alarms.each do |policy_diff|
+          remove = policy_diff.alarm_diffs.reject do |d|
+            d.type != AlarmChange::UNMANAGED
+          end.map { |d| d.aws.alarm_name }
+          update = policy_diff.alarm_diffs.select do |d|
+            d.type != AlarmChange::UNMANAGED
+          end.map { |u| u.local.name }
+
+          update_alarms(policy_diff.local, policy_diff.policy_arn, remove, update)
+        end
+
+        # create alarms for new policies
+        new_policies = diff.policy_diffs.select { |d| d.type == PolicyChange::ADD }
+        new_policies.each do |policy_diff|
+          config = policy_diff.local
+          policy_arn = @aws.describe_policies({
+            auto_scaling_group_name: group.name,
+            policy_names: [config.name]
+          }).scaling_policies[0].policy_arn
+          update_alarms(config, policy_arn, [], config.alarms.map {|k , v| k })
+        end
       end
     end
   end
@@ -263,6 +300,41 @@ class AutoScaling
           scaling_adjustment: config.adjustment,
           cooldown: config.cooldown
         })
+      end
+    end
+  end
+
+  # Internal: Update the cloudwatch alarms for a scaling policy
+  #
+  # policy     - the policy config the alarms belong to
+  # policy_arn - the arn of the policy for which to update arns
+  # remove     - the names of the alarms to remove
+  # update     - the names of the alarms to create or update
+  def update_alarms(policy, policy_arn, remove, update)
+    @cloudwatch.delete_alarms({
+      alarm_names: remove
+    })
+
+    policy.alarms.each do |name, config|
+      if update.include?(name)
+        puts Colors.blue("\tupdating cloudwatch alarm #{name}...")
+        @cloudwatch.put_metric_alarm({
+          alarm_name: config.name,
+          alarm_description: config.description,
+          actions_enabled: config.actions_enabled,
+          metric_name: config.metric,
+          namespace: config.namespace,
+          statistic: config.statistic,
+          dimensions: config.dimensions.map { |k, v| { name: k, value: v } },
+          period: config.period,
+          unit: config.unit,
+          evaluation_periods: config.evaluation_periods,
+          threshold: config.threshold,
+          comparison_operator: config.comparison,
+          ok_actions: config.action_states.include?("ok") ? [policy_arn] : nil,
+          alarm_actions: config.action_states.include?("alarm") ? [policy_arn] : nil,
+          insufficient_data_actions: config.action_states.include?("insufficient-data") ? [policy_arn] : nil
+        }.reject { |k, v| v == nil })
       end
     end
   end

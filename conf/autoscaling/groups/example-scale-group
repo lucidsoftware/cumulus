@@ -44,7 +44,8 @@
             },
             "period-seconds": 300,
             "evaluation-periods": 1,
-            "threshold": 0.8,
+            "threshold": 0.9,
+            "unit": "Percent",
             "comparison": "GreaterThanOrEqualToThreshold"
           }
         ]

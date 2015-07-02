@@ -95,7 +95,7 @@ begin
 rescue LoadError
   puts "Cumulus requires the gem 'aws-sdk'"
   puts "Please install 'aws-sdk':"
-  puts "\tgem install aws-sdk -v 2.1.0"
+  puts "\tgem install aws-sdk -v 2.1.2"
   exit
 end
 

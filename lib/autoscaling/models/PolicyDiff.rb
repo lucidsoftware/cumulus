@@ -18,16 +18,20 @@ class PolicyDiff < Diff
   include PolicyChange
 
   attr_accessor :alarm_diffs
+  attr_accessor :policy_arn
 
   # Public: Static method that will produce a diff that contains changes in
   # cloudwatch alarms
   #
   # alarm_diffs - the differences in alarms
+  # local       - the local configuration for the change
+  # policy_arn  - the arn of the policy the alarms should be associated with
   #
   # Returns the diff
-  def self.alarms(alarm_diffs)
-    diff = PolicyDiff.new(ALARM)
+  def self.alarms(alarm_diffs, local, policy_arn)
+    diff = PolicyDiff.new(ALARM, nil, local)
     diff.alarm_diffs = alarm_diffs
+    diff.policy_arn = policy_arn
     diff
   end
 
