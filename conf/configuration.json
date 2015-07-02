@@ -23,5 +23,19 @@
 			"directory": "conf/iam/users"
 		}
 	},
+	"autoscaling": {
+		"groups": {
+			"directory": "conf/autoscaling/groups",
+			"override-launch-config-on-sync": false
+		},
+		"policies": {
+			"static": {
+				"directory": "conf/autoscaling/policies/static"
+			},
+			"templates": {
+				"directory": "conf/autoscaling/policies/templates"
+			}
+		}
+	},
 	"region": "us-east-1"
 }

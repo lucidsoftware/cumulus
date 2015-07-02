@@ -66,6 +66,45 @@ module Modules
       end
     end
   end
+
+  # Public: Run the AutoScaling Group module
+  def self.autoscaling
+    if ARGV.size < 2 or
+      (ARGV.size >= 2 and ARGV[1] != "help" and ARGV[1] != "diff" and ARGV[1] != "list" and ARGV[1] != "sync")
+      puts "Usage: cumulus autoscaling [diff|help|list|sync] <asset>"
+      exit
+    end
+
+    if ARGV[1] == "help"
+      puts "autoscaling: Manage AutoScaling groups."
+      puts "\tCompiles AutoScaling groups, scaling policies, and alarms that are defined in configuration files and syncs the resulting AutoScaling groups with AWS."
+      puts
+      puts "Usage: cumulus autoscaling [diff|help|list|sync] <asset>"
+      puts
+      puts "Commands"
+      puts "\tdiff\t- print out differences between local configuration and AWS (supplying the name of an AutoScaling group will diff only that group)"
+      puts "\tlist\t- list the AutoScaling groups defined locally"
+      puts "\tsync\t- sync local AutoScaling definitions with AWS (supplying the name of an AutoScaling group will sync only that group)"
+    end
+
+    require "autoscaling/manager/AutoScaling"
+    autoscaling = AutoScaling.new
+    if ARGV[1] == "diff"
+      if ARGV.size == 2
+        autoscaling.diff
+      else
+        autoscaling.diff_one(ARGV[2])
+      end
+    elsif ARGV[1] == "list"
+      autoscaling.list
+    elsif ARGV[1] == "sync"
+      if ARGV.size == 2
+        autoscaling.sync
+      else
+        autoscaling.sync_one(ARGV[2])
+      end
+    end
+  end
 end
 
 # check for the aws ruby gem
@@ -73,12 +112,13 @@ begin
   require 'aws-sdk'
 rescue LoadError
   puts "Cumulus requires the gem 'aws-sdk'"
-  puts "Please install 'aws-sdk'"
+  puts "Please install 'aws-sdk':"
+  puts "\tgem install aws-sdk -v 2.1.2"
   exit
 end
 
-if ARGV.size == 0 or (ARGV[0] != "iam" and ARGV[0] != "help")
-  puts "Usage: cumulus [iam|help]"
+if ARGV.size == 0 or (ARGV[0] != "iam" and ARGV[0] != "help" and ARGV[0] != "autoscaling")
+  puts "Usage: cumulus [help|iam|autoscaling]"
   exit
 end
 
@@ -88,6 +128,7 @@ if ARGV[0] == "help"
   puts
   puts "Modules"
   puts "\tiam\t- Compiles IAM roles and policies that are defined with configuration files and syncs the resulting IAM roles and policies with AWS"
+  puts "\tautoscaling\t- Manages configuration for EC2 AutoScaling."
 end
 
 # read in the optional path to the configuration file to use
@@ -131,4 +172,6 @@ Configuration.init(project_root, options[:config])
 
 if ARGV[0] == "iam"
   Modules.iam
+elsif ARGV[0] == "autoscaling"
+  Modules.autoscaling
 end

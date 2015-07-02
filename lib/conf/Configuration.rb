@@ -5,7 +5,7 @@ require "json"
 class Configuration
 
   attr_reader :colors_enabled
-  attr_reader :iam
+  attr_reader :iam, :autoscaling
   attr_reader :region
 
   # Internal: Constructor. Sets up the `instance` variable, which is the access
@@ -20,6 +20,7 @@ class Configuration
     @colors_enabled = json["colors-enabled"]
     @region = json["region"]
     @iam = IamConfig.new(json["iam"], self)
+    @autoscaling = AutoScalingConfig.new(json["autoscaling"], self)
   end
 
   # Public: Take a path relative to the project root and turn it into an
@@ -87,6 +88,30 @@ class Configuration
       @template_policy_directory = parent.absolute_path(json["policies"]["templates"]["directory"])
       @users_directory = parent.absolute_path(json["users"]["directory"])
     end
+  end
+
+  # Public: Inner class that contains AutoScaling configuration options
+  class AutoScalingConfig
+
+    attr_reader :groups_directory
+    attr_reader :override_launch_config_on_sync
+    attr_reader :static_policy_directory
+    attr_reader :template_policy_directory
+
+    # Public: Constructor.
+    #
+    # json   - a hash that contains AutoScaling configuration values.
+    #          AutoScalingConfig expects to be passed values from the
+    #          "autoscaling" node of configuration.json
+    # parent - reference to the parent Configuration that spawned this
+    #          AutoScalingConfig
+    def initialize(json, parent)
+      @groups_directory = parent.absolute_path(json["groups"]["directory"])
+      @override_launch_config_on_sync = json["groups"]["override-launch-config-on-sync"]
+      @static_policy_directory = parent.absolute_path(json["policies"]["static"]["directory"])
+      @template_policy_directory = parent.absolute_path(json["policies"]["templates"]["directory"])
+    end
+
   end
 
 end

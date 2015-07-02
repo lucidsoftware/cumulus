@@ -1,0 +1,7 @@
+{
+  "name": "Scale Up 1",
+  "adjustment-type": "ChangeInCapacity",
+  "adjustment": 1,
+  // if adjustment-type is PercentChangeInCapacity, you can also specify a value for min-adjustment-step
+  "cooldown": 600
+}

@@ -1,0 +1,80 @@
+{
+  "cooldown-seconds": 500,
+  "enabled-metrics": [
+
+  ],
+  "health-check-type": "ELB", // "ELB" or "EC2"
+  "health-check-grace-seconds": 500,
+  "launch-configuration": "",
+  "load-balancers": [
+
+  ],
+  "name": "example-scale-group",
+  "policies": {
+    "static": [
+      "example-static"
+    ],
+    "templates": [
+      {
+        "template": "example-template",
+        "vars": {
+          "n": "2"
+        }
+      }
+    ],
+    "inlines": [
+      {
+        "name": "Scale Up 3",
+        "adjustment-type": "ChangeInCapacity",
+        "adjustment": 3,
+        "cooldown": 600,
+        "alarms": [
+          {
+            "name": "CPU High",
+            "description": "description",
+            "actions-enabled": true,
+            "action-states": [
+              "alarm"
+            ], // can also include "ok", or "insufficient-data"
+            "metric": "CPUUtilization",
+            "namespace": "AWS/EC2",
+            "statistic": "Average",
+            "dimensions": {
+              "AutoScalingGroupName": "example-scale-group"
+            },
+            "period-seconds": 300,
+            "evaluation-periods": 1,
+            "threshold": 0.9,
+            "unit": "Percent",
+            "comparison": "GreaterThanOrEqualToThreshold"
+          }
+        ]
+      }
+    ]
+  },
+  "scheduled": [
+    {
+      "name": "example-scheduled",
+      "start": "",
+      "end": "",
+      "recurrence": "0 5 * * *",
+      "min": 0,
+      "max": 5,
+      "desired": 0
+    }
+  ],
+  "size": {
+    "min": 0,
+    "max": 5,
+    "desired": 0
+  },
+  "subnets": [
+
+  ],
+  "tags": {
+    "key": "value"
+  }, // optional
+  "termination": [
+    "OldestInstance"
+  ] // "Default", "OldestLaunchConfiguration", "NewestInstance", "ClosestToNextInstanceHour"
+}
