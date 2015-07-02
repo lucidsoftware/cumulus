@@ -6,10 +6,11 @@ class UserConfig < ResourceWithPolicy
 
   # Public: Constructor
   #
+  # name - the name of the user
   # json - the Hash containing the JSON configuration for this UserConfig, if
   #        nil, this will be an "empty UserConfig"
-  def initialize(json = nil)
-    super(json)
+  def initialize(name = nil, json = nil)
+    super(name, json)
     @type = "user"
   end
 

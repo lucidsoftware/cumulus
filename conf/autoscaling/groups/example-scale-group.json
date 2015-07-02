@@ -9,7 +9,6 @@
   "load-balancers": [
 
   ],
-  "name": "example-scale-group",
   "policies": {
     "static": [
       "example-static"

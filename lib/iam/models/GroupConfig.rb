@@ -9,10 +9,11 @@ class GroupConfig < ResourceWithPolicy
 
   # Public: Constructor
   #
+  # name - the name of the group
   # json - the Hash containing the JSON configuration for this GroupConfig, if
   #        nil, this will be an "empty GroupConfig"
-  def initialize(json = nil)
-    super(json)
+  def initialize(name = nil, json = nil)
+    super(name, json)
     @type = "group"
     @users = json["users"] unless json.nil?
   end
