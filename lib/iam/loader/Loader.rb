@@ -44,7 +44,7 @@ module Loader
   #
   # Returns a RoleConfig object defined by the role configuration files.
   def Loader.role(file)
-    BaseLoader.resource(file, @@roles_dir, &RoleConfig.new)
+    BaseLoader.resource(file, @@roles_dir, &@@role_loader)
   end
 
   # Public: Load all the users defined in configuration.
@@ -107,7 +107,7 @@ module Loader
   # Returns the String contents of the policy document file
   def Loader.policy_document(file)
     policy_dir = Configuration.instance.iam.policy_document_directory
-    File.read(File.join(policy_dir, file))
+    BaseLoader.load_file(file, policy_dir)
   end
 
 end
