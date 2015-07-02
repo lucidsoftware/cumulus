@@ -26,9 +26,10 @@ class GroupConfig
 
   # Public: Constructor
   #
+  # name - the name of the group
   # json - a hash containing the json configuration for the AutoScaling group
-  def initialize(json)
-    @name = json["name"]
+  def initialize(name, json)
+    @name = name
     @cooldown = json["cooldown-seconds"]
     @min = json["size"]["min"]
     @max = json["size"]["max"]

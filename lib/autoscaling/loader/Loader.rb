@@ -8,10 +8,10 @@ module Loader
   include BaseLoader
 
   @@groups_dir = Configuration.instance.autoscaling.groups_directory
-  @@group_loader = Proc.new { |json| GroupConfig.new(json) }
+  @@group_loader = Proc.new { |name, json| GroupConfig.new(name, json) }
   @@static_dir = Configuration.instance.autoscaling.static_policy_directory
   @@template_dir = Configuration.instance.autoscaling.template_policy_directory
-  @@policy_loader = Proc.new { |json| PolicyConfig.new(json) }
+  @@policy_loader = Proc.new { |name, json| PolicyConfig.new(json) }
 
   # Public: Load all autoscaling group configurations as GroupConfig objects
   #

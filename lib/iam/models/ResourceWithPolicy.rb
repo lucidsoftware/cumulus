@@ -24,11 +24,12 @@ class ResourceWithPolicy
 
   # Public: Constructor.
   #
+  # name - the name of the resource
   # json - a hash containing JSON configuration for this resource, if nil, this
   #        resource will be an "empty resource"
-  def initialize(json = nil)
+  def initialize(name = nil, json = nil)
     if !json.nil?
-      @name = json["name"]
+      @name = name
       @json = json
       @attached_policies = json["policies"]["attached"]
       @statics = json["policies"]["static"]

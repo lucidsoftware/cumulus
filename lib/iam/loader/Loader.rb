@@ -12,15 +12,15 @@ require "json"
 module Loader
   include BaseLoader
 
-  @@group_loader = Proc.new { |json| GroupConfig.new(json) }
+  @@group_loader = Proc.new { |name, json| GroupConfig.new(name, json) }
   @@groups_dir = Configuration.instance.iam.groups_directory
-  @@role_loader = Proc.new { |json| RoleConfig.new(json) }
+  @@role_loader = Proc.new { |name, json| RoleConfig.new(name, json) }
   @@roles_dir = Configuration.instance.iam.roles_directory
-  @@user_loader = Proc.new { |json| UserConfig.new(json) }
+  @@user_loader = Proc.new { |name, json| UserConfig.new(name, json) }
   @@users_dir = Configuration.instance.iam.users_directory
   @@static_policy_dir = Configuration.instance.iam.static_policy_directory
   @@template_dir = Configuration.instance.iam.template_policy_directory
-  @@policy_loader = Proc.new do |json|
+  @@policy_loader = Proc.new do |name, json|
     if json.is_a?(Array)
       json.map do |s|
         StatementConfig.new(s)

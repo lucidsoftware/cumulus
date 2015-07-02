@@ -1,5 +1,4 @@
 {
-  "name": "example-role",
   "policy-document": "default",
   "policies": {
     "attached": [],

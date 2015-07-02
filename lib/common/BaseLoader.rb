@@ -23,7 +23,8 @@ module BaseLoader
   # dir     - the directory the file is located in
   # loader  - the function that will handle the read json
   def self.resource(file, dir, &loader)
-    loader.call(JSON.parse(load_file(file, dir)))
+    name = file.end_with?(".json") ? file[0...-5] : file
+    loader.call(name, JSON.parse(load_file(file, dir)))
   end
 
   # Internal: Load the template, apply variables, and pass the parsed JSON to
@@ -40,7 +41,7 @@ module BaseLoader
     end
     json = JSON.parse(template)
 
-    loader.call(json)
+    loader.call(nil, json)
   end
 
   # Internal: Load a file. Will check if a file exists by the name passed in, or
