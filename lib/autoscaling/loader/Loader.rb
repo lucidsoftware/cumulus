@@ -20,6 +20,16 @@ module Loader
     BaseLoader.resources(@@groups_dir, &@@group_loader)
   end
 
+  # Public: Load a single autoscaling group configuration as a GroupConfig
+  # object
+  #
+  # file - the name of the file the configuration is located in
+  #
+  # Returns the corresponding GroupConfig object
+  def Loader.group(file)
+    BaseLoader.resource(file, @@groups_dir, &@@group_loader)
+  end
+
   # Public: Load a static scaling policy
   #
   # file - the file the policy definition is found in

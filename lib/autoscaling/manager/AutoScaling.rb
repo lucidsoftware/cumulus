@@ -8,6 +8,20 @@ require "aws-sdk"
 
 # Public: The main class for the AutoScaling management module
 class AutoScaling
+  @@diff = Proc.new do |name, diffs|
+    if diffs.size > 0
+      if diffs.size == 1 and (diffs[0].type == AutoScalingChange::ADD or
+        diffs[0].type == AutoScalingChange::UNMANAGED)
+        puts diffs[0]
+      else
+        puts "AutoScaling Group #{name} has the following changes:"
+        diffs.each do |diff|
+          diff_string = diff.to_s.lines.map {|s| "\t#{s}" }.join
+          puts diff_string
+        end
+      end
+    end
+  end
 
   # Public: Constructor. Initializes the AWS client.
   def initialize
@@ -21,57 +35,78 @@ class AutoScaling
 
   # Public: Print a diff between local configuration and configuration in AWS
   def diff
-    each_difference do |name, diffs|
-      if diffs.size > 0
-        if diffs.size == 1 and (diffs[0].type == AutoScalingChange::ADD or
-          diffs[0].type == AutoScalingChange::UNMANAGED)
-          puts diffs[0]
-        else
-          puts "AutoScaling Group #{name} has the following changes:"
-          diffs.each do |diff|
-            diff_string = diff.to_s.lines.map {|s| "\t#{s}" }.join
-            puts diff_string
-          end
-        end
-      end
-    end
+    locals = Hash[Loader.groups.map { |local| [local.name, local] }]
+    each_difference(locals, true, &@@diff)
+  end
+
+  # Public: Print the diff between local configuration and AWS for a single
+  # AutoScaling group
+  #
+  # name - the name of the group to diff
+  def diff_one(name)
+    local = Loader.group(name)
+    each_difference({ local.name => local }, false, &@@diff)
+  end
+
+  # Public: Print out the names of all autoscaling groups managed by cumulus
+  def list
+    puts Loader.groups.map { |local| local.name }.join(" ")
   end
 
   # Public: Sync local configuration to AWS
   def sync
-    each_difference do |name, diffs|
-      if diffs.size > 0
-        if diffs[0].type == AutoScalingChange::UNMANAGED
-          puts diffs[0]
-        elsif diffs[0].type == AutoScalingChange::ADD
-          puts Colors.added("creating #{name}...")
-          create_group(diffs[0].local)
-        else
-          puts Colors.blue("updating #{name}...")
-          update_group(diffs[0].local, diffs)
-        end
-      end
-    end
+    locals = Hash[Loader.groups.map { |local| [local.name, local] }]
+    each_difference(locals, true) { |name, diffs| sync_difference(name, diffs) }
+  end
+
+  # Public: Sync local configuration to AWS for a single AutoScaling group
+  #
+  # name - the name of the group to sync
+  def sync_one(name)
+    local = Loader.group(name)
+    each_difference({ local.name => local }, false) { |name, diffs| sync_difference(name, diffs) }
   end
 
   private
 
   # Internal: Loop through the differences between local configuration and AWS
   #
-  # f - Will pass the name of the group and an array of AutoScalingDiffs
-  #     to the block passed to this function
-  def each_difference(&f)
-    locals = Hash[Loader.groups.map { |local| [local.name, local] }]
+  # locals            - the local configurations to compare against
+  # include_unmanaged - whether to include unmanaged groups in the list of
+  #                     changes
+  # f                 - Will pass the name of the group and an array of
+  #                     AutoScalingDiffs to the block passed to this function
+  def each_difference(locals, include_unmanaged, &f)
     aws = Hash[aws_groups.map { |aws| [aws.auto_scaling_group_name, aws] }]
 
-    aws.each do |name, group|
-      f.call(name, [AutoScalingDiff.unmanaged(group)]) if !locals.include?(name)
+    if include_unmanaged
+      aws.each do |name, group|
+        f.call(name, [AutoScalingDiff.unmanaged(group)]) if !locals.include?(name)
+      end
     end
     locals.each do |name, group|
       if !aws.include?(name)
         f.call(name, [AutoScalingDiff.added(group)])
       else
         f.call(name, group.diff(aws[name], @aws))
+      end
+    end
+  end
+
+  # Internal: Sync differences.
+  #
+  # name  - the name of the group to sync
+  # diffs - the differences between the group's configuration and AWS
+  def sync_difference(name, diffs)
+    if diffs.size > 0
+      if diffs[0].type == AutoScalingChange::UNMANAGED
+        puts diffs[0]
+      elsif diffs[0].type == AutoScalingChange::ADD
+        puts Colors.added("creating #{name}...")
+        create_group(diffs[0].local)
+      else
+        puts Colors.blue("updating #{name}...")
+        update_group(diffs[0].local, diffs)
       end
     end
   end
