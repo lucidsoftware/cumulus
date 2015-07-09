@@ -1,6 +1,6 @@
 require "conf/Configuration"
 require "iam/loader/Loader"
-require "iam/models/Diff"
+require "iam/models/IamDiff"
 require "iam/models/PolicyConfig"
 require "iam/models/StatementConfig"
 require "util/Colors"
@@ -160,48 +160,31 @@ class ResourceWithPolicy
   #
   # aws_resource - the Aws::IAM::* resource to compare against
   #
-  # Returns a Diff object containing the differences
+  # Returns an array of IamDiff objects representing the differences
   def diff(aws_resource)
-    differences = Diff.new(@name, ChangeType::REMOVE_POLICY, self)
+    diffs = []
 
-    aws_policies = {}
-    aws_resource.policies.each do |policy|
-      aws_policies[policy.name] = policy
-    end
+    aws_policies = Hash[aws_resource.policies.map { |p| [p.name, p] }]
+    p = policy
+    p.name = generated_policy_name
 
     # check if we've ever generated a policy for this resource
-    if !aws_policies.key?(generated_policy_name)
-      differences.type = ChangeType::CHANGE
-      differences.add_diff(
-        generated_policy_name,
-        Colors.added("#{generated_policy_name} will be created")
-      )
+    if !aws_policies.key?(generated_policy_name) and !policy.empty?
+      diffs << IamDiff.added_policy(generated_policy_name, p)
     end
 
     # loop through all the policies and look for changes
     aws_policies.each do |name, aws_policy|
       if name != generated_policy_name
-        differences.add_diff(
-          name,
-          Colors.unmanaged("Policy is not managed by Cumulus")
-        )
+        diffs << diffs.unmanaged_policy(name)
       else
         aws_statements = JSON.parse(URI.unescape(aws_policy.policy_document))["Statement"]
-        local_statements = policy.as_hash["Statement"]
+        local_statements = p.as_hash["Statement"]
 
         if aws_statements != local_statements
-          differences.type = ChangeType::CHANGE
-          aws_statements.each do |aws|
-            if !local_statements.include?(aws)
-              differences.add_diff(name, "AWS:\t#{Colors.aws_changes(aws.to_json)}")
-            end
-          end
-
-          local_statements.each do |local|
-            if !aws_statements.include?(local)
-              differences.add_diff(name, "Local:\t#{Colors.local_changes(local.to_json)}")
-            end
-          end
+          diff = IamDiff.new(IamChange::POLICY, aws_statements, p)
+          diff.policy_name = generated_policy_name
+          diffs << diff
         end
       end
     end
@@ -211,12 +194,10 @@ class ResourceWithPolicy
     new_policies = @attached_policies.select { |local| !aws_arns.include?(local) }
     removed_policies = aws_arns.select { |aws| !@attached_policies.include?(aws) }
     if !new_policies.empty? or !removed_policies.empty?
-      differences.type = ChangeType::CHANGE
-      new_policies.each { |arn| differences.attach_policy(arn) }
-      removed_policies.each { |arn| differences.detach_policy(arn) }
+      diffs << IamDiff.attached(new_policies, removed_policies)
     end
 
-    differences
+    diffs
   end
 
   # Public: Get the string that represents adding this resource

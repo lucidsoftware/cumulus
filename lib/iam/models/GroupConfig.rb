@@ -1,4 +1,4 @@
-require "iam/models/Diff"
+require "iam/models/IamDiff"
 require "iam/models/ResourceWithPolicy"
 require "util/Colors"
 
@@ -26,9 +26,7 @@ class GroupConfig < ResourceWithPolicy
     unmanaged = aws_users.select { |aws| !@users.include?(aws) }
 
     if !unmanaged.empty? or !new_users.empty?
-      differences.type = ChangeType::CHANGE
-      new_users.each { |u| differences.add_user(u) }
-      unmanaged.each { |u| differences.remove_user(u) }
+      differences << IamDiff.users(new_users, unmanaged)
     end
 
     differences

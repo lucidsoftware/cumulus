@@ -6,6 +6,8 @@ require "json"
 # define the things this policy allows.
 class PolicyConfig
 
+  attr_accessor :name
+
   # Public: Constructor. Will be created with no statements.
   def initialize
     @version = Configuration.instance.iam.policy_version

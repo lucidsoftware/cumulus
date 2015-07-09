@@ -38,9 +38,9 @@ class IamUsers < IamResource
 
   def create(difference)
     @iam.create_user({
-      :user_name => difference.name
+      :user_name => difference.local.name
     })
-    Aws::IAM::User.new(difference.name, { :client => @iam })
+    Aws::IAM::User.new(difference.local.name, { :client => @iam })
   end
 
   def empty_config
