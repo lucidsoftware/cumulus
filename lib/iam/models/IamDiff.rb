@@ -1,15 +1,18 @@
 require "common/models/Diff"
 require "util/Colors"
 
+require "json"
+
 # Public: The types of changes that can be made to IAM resources
 module IamChange
   include DiffChange
 
   ADDED_POLICY = DiffChange::next_change_id
-  UNMANAGED_POLICY = DiffChange::next_change_id
-  POLICY = DiffChange::next_change_id
-  USER = DiffChange::next_change_id
   ATTACHED = DiffChange::next_change_id
+  POLICY = DiffChange::next_change_id
+  POLICY_DOC = DiffChange::next_change_id
+  UNMANAGED_POLICY = DiffChange::next_change_id
+  USER = DiffChange::next_change_id
 end
 
 # Public: Represents a single difference between local configuration and AWS
@@ -74,10 +77,13 @@ class IamDiff < Diff
 
   def diff_string
     case @type
-    when UNMANAGED_POLICY
-      Colors.unmanaged("Policy #{@policy_name} is not managed by Cumulus")
     when ADDED_POLICY
       Colors.added("Policy #{@policy_name} will be created.")
+    when ATTACHED
+      lines = ["Attached policies:"]
+      lines << @attached.map { |arn| Colors.added("\t#{arn}") }
+      lines << @detached.map { |arn| Colors.removed("\t#{arn}") }
+      lines.flatten.join("\n")
     when POLICY
       lines = ["Policy differences:"]
       locals = @local.as_hash["Statement"]
@@ -95,15 +101,19 @@ class IamDiff < Diff
       end
 
       lines.join("\n")
+    when POLICY_DOC
+      aws = JSON.parse(URI.unescape(@aws.assume_role_policy_document)).to_s
+      [
+        "Assume role policy document:",
+        Colors.aws_changes("\tAWS -\t#{aws}"),
+        Colors.local_changes("\tLocal -\t#{@local.one_line_policy_document}")
+      ].join("\n")
+    when UNMANAGED_POLICY
+      Colors.unmanaged("Policy #{@policy_name} is not managed by Cumulus")
     when USER
       lines = ["User differences:"]
       lines << @added_users.map { |u| Colors.added("\t#{u}") }
       lines << @removed_users.map { |u| Colors.removed("\t#{u}") }
-      lines.flatten.join("\n")
-    when ATTACHED
-      lines = ["Attached policies:"]
-      lines << @attached.map { |arn| Colors.added("\t#{arn}") }
-      lines << @detached.map { |arn| Colors.removed("\t#{arn}") }
       lines.flatten.join("\n")
     end
   end
