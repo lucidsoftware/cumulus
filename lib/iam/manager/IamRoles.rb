@@ -1,6 +1,7 @@
- "iam/loader/Loader"
+require "iam/loader/Loader"
 require "iam/manager/IamResource"
 require "iam/migration/AssumeRoleUnifier"
+require "iam/models/IamDiff"
 require "iam/models/RoleConfig"
 require "util/Colors"
 
@@ -65,6 +66,19 @@ class IamRoles < IamResource
       :role_name => difference.local.name
     })
     role
+  end
+
+  def update(resource, diffs)
+    super(resource, diffs)
+
+    diffs.each do |diff|
+      if diff.type == IamChange::POLICY_DOC
+        puts Colors.blue("updating assume role policy document...")
+        resource.assume_role_policy.update({
+          policy_document: diff.local.policy_document
+        })
+      end
+    end
   end
 
   def empty_config
