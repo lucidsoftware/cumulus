@@ -44,25 +44,25 @@ class IamRoles < IamResource
   def create(difference)
     # create the role
     @iam.create_role({
-      :role_name => difference.name,
-      :assume_role_policy_document => difference.config.policy_document
+      :role_name => difference.local.name,
+      :assume_role_policy_document => difference.local.policy_document
     })
-    role = Aws::IAM::Role.new(difference.name, { :client => @iam })
+    role = Aws::IAM::Role.new(difference.local.name, { :client => @iam })
 
     # try to create the instance profile, but if it already exists, just warn
     # the user
     begin
       @iam.create_instance_profile({
-        :instance_profile_name => difference.name
+        :instance_profile_name => difference.local.name
       })
     rescue Aws::IAM::Errors::EntityAlreadyExists
       Colors.red("Instance profile already exists")
     end
 
     # assign the role to the instance profile
-    instance_profile = Aws::IAM::InstanceProfile.new(difference.name, { :client => @iam })
+    instance_profile = Aws::IAM::InstanceProfile.new(difference.local.name, { :client => @iam })
     instance_profile.add_role({
-      :role_name => difference.name
+      :role_name => difference.local.name
     })
     role
   end

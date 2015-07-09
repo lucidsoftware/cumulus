@@ -1,4 +1,6 @@
+require "common/models/Diff"
 require "iam/loader/Loader"
+require "iam/models/IamDiff"
 require "iam/manager/IamResource"
 require "iam/models/GroupConfig"
 require "util/Colors"
@@ -38,17 +40,28 @@ class IamGroups < IamResource
 
   def create(difference)
     @iam.create_group({
-      :group_name => difference.name
+      :group_name => difference.local.name
     })
-    resource = Aws::IAM::Group.new(difference.name, { :client => @iam })
-    add_users(resource, difference.config.users)
+    resource = Aws::IAM::Group.new(difference.local.name, { :client => @iam })
+    add_users(resource, difference.local.users)
     resource
   end
 
-  def update(resource, diff)
-    super(resource, diff)
-    add_users(resource, diff.added_users)
-    diff.removed_users.each { |u| resource.remove_user({ :user_name => u }) }
+  def update(resource, diffs)
+    super(resource, diffs)
+
+    if diffs.size == 1 and diffs[0].type == DiffChange::ADD
+      puts Colors.blue("\tadding users...")
+      add_users(resource, diffs[0].local.users)
+    else
+      diffs.each do |diff|
+        if diff.type == IamChange::USER
+          puts Colors.blue("\tupdating users...")
+          add_users(resource, diff.added_users)
+          diff.removed_users.each { |u| resource.remove_user({ :user_name => u }) }
+        end
+      end
+    end
   end
 
   def empty_config

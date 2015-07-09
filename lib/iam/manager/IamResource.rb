@@ -1,5 +1,6 @@
+require "common/models/Diff"
 require "iam/migration/PolicyUnifier"
-require "iam/models/Diff"
+require "iam/models/IamDiff"
 require "util/Colors"
 
 require 'uri'
@@ -7,6 +8,21 @@ require 'uri'
 # Internal: Represents the manager of a type of IamResource. Base class for
 # groups, roles, and users.
 class IamResource
+  @@diff = Proc.new do |name, diffs|
+    if diffs.size > 0
+      if diffs.size == 1 and (diffs[0].type == DiffChange::ADD or
+        diffs[0].type == DiffChange::UNMANAGED)
+        puts diffs[0]
+      else
+        puts "#{name} has the following changes:"
+        diffs.each do |diff|
+          diff_string = diff.to_s.lines.map { |s| "\t#{s}" }.join
+          puts diff_string
+        end
+      end
+    end
+  end
+
   # =====================================================
   # Methods to be overridden
   # =====================================================
@@ -73,7 +89,7 @@ class IamResource
   # Public: Print out the diff between the local configuration and the IAMS
   # in AWS
   def diff
-    puts differences.join("\n")
+    each_difference(local_resources, true, &@@diff)
   end
 
   # Public: Print out the diff between local configuration and AWS for one
@@ -81,29 +97,26 @@ class IamResource
   #
   # name - the name of the resource to diff
   def diff_one(name)
-    puts one_difference(name)
+    each_difference({ name => one_local(name) }, false, &@@diff)
   end
 
   # Public: Print out a list of resources defined by local configuration.
   def list
-    names = local_resources.map do |name, resource|
-      name
-    end
-    puts names.join(" ")
+    puts local_resources.map { |name, resource| name }.join(" ")
   end
 
   # Public: Sync the local configuration with the configuration in AWS. Will
   # not delete resources that are not locally configured; also will not remove
   # inline policies that are not locally configured.
   def sync
-    sync_changes(differences)
+    each_difference(local_resources, true) { |name, diffs| sync_difference(name, diffs) }
   end
 
   # Public: Sync the local configuration for one resource with AWS
   #
   # name - the name of the resource to sync
   def sync_one(name)
-    sync_changes(one_difference(name))
+    each_difference({ name => one_local(name) }, false) { |name, diffs| sync_difference(name, diffs) }
   end
 
   # Public: Migrate AWS IAMs to Cumulus configuration.
@@ -160,118 +173,100 @@ class IamResource
   # Public: Update a resource in AWS
   #
   # resource  - the resource to update
-  # diff    - the diff object to be used when updating the resource
-  def update(resource, diff)
-    if !diff.config.policy.empty?
-      policy = resource.policy(diff.config.generated_policy_name)
-      policy.put({
-        :policy_document => diff.config.policy.as_pretty_json
-      })
+  # diffs     - the diff objects to be used when updating the resource
+  def update(resource, diffs)
+    if diffs.size == 1 and diffs[0].type == DiffChange::ADD
+      update_policy(resource, diffs[0].local.generated_policy_name, diffs[0].local.policy)
+      update_attached(resource, diffs[0].local.attached_policies, [])
     else
-      puts Colors.red("Policy is empty. Not uploaded")
-    end
-
-    if !diff.attached_policies.empty?
-      diff.attached_policies.each do |arn|
-        resource.attach_policy({ :policy_arn => arn })
-      end
-    end
-    if !diff.detached_policies.empty?
-      diff.detached_policies.each do |arn|
-        resource.detach_policy({ :policy_arn => arn })
-      end
-    end
-  end
-
-  # Internal: Sync all the changes passed into the function to AWS
-  #
-  # diffs - the differences to sync
-  def sync_changes(diffs)
-    aws = {}
-    aws_resources.each do |resource|
-      aws[resource.name] = resource
-    end
-
-    diffs.each do |difference|
-      if difference.type == ChangeType::REMOVE
-        puts difference
-      elsif difference.type == ChangeType::ADD
-        puts Colors.blue("creating #{difference.name}")
-        resource = create(difference)
-        update(resource, difference)
-      elsif difference.type == ChangeType::REMOVE_POLICY
-        puts Colors.red("#{difference.name} has policies not managed by Cumulus")
-      else
-        puts Colors.blue("updating #{difference.name}...")
-        aws_resource = aws[difference.name]
-        update(aws_resource, difference)
+      diffs.each do |diff|
+        case diff.type
+        when IamChange::POLICY
+          update_policy(resource, diff.policy_name, diff.local)
+        when IamChange::ATTACHED
+          update_attached(resource, diff.attached, diff.detached)
+        when IamChange::ADDED_POLICY
+          update_policy(resource, diff.policy_name, diff.local)
+        when IamChange::UNMANAGED_POLICY
+          puts Colors.unmanaged("\t#{diff.policy_name} is not managed by Cumulus")
+        end
       end
     end
   end
-  private :sync_changes
 
-  # Internal: Get all the differences between the local configuration and the
-  # IAMS in AWS
-  #
-  # Returns and Array of Diff objects that represent the differences
-  def differences
-    calculate_differences(local_resources, true)
-  end
-  private :differences
+  private
 
-  # Internal: Find the differences between local and AWS configuration for one
-  # resource.
+  # Internal: Loop through the differences between local configuration and AWS
   #
-  # name - the name of the resource to check
-  #
-  # Returns the differences
-  def one_difference(name)
-    local = {
-      name => one_local(name)
-    }
+  # locals            - the local configurations to compare against
+  # include_unmanaged - whether to include unmanaged resources in the list of
+  #                     changes
+  # f                 - will be passed the name of the resource and an array of
+  #                     IamDiffs
+  def each_difference(locals, include_unmanaged, &f)
+    aws = Hash[aws_resources.map { |aws| [aws.name, aws] }]
 
-    calculate_differences(local, false)
-  end
-  private :one_difference
-
-  # Internal: Find the differences between the local and AWS configurations.
-  #
-  # local               - the local resources to check against
-  # include_non_managed - whether to show the resources in AWS that aren't
-  #                       managed by Cumulus
-  #
-  # Returns an array of differences
-  def calculate_differences(local, include_non_managed)
-    aws = {}
-    aws_resources.each do |resource|
-      aws[resource.name] = resource
-    end
-
-    differences = []
-    if include_non_managed
+    if include_unmanaged
       aws.each do |name, resource|
-        if !local.key?(name)
-          differences << Diff.new(name, ChangeType::REMOVE, nil)
-        end
+        f.call(name, [IamDiff.unmanaged(resource)]) if !locals.include?(name)
       end
     end
-
-    local.each do |name, resource|
-      if !aws.key?(name)
-        differences << Diff.new(name, ChangeType::ADD, resource)
+    locals.each do |name, resource|
+      if !aws.include?(name)
+        f.call(name, [IamDiff.added(resource)])
+      else
+        f.call(name, resource.diff(aws[name]))
       end
     end
-
-    aws.each do |name, resource|
-      if local.key?(name)
-        d = local[name].diff(resource)
-        if d.different?
-          differences << d
-        end
-      end
-    end
-
-    differences
   end
-  private :calculate_differences
+
+  # Internal: Sync differences
+  #
+  # name  - the name of the resource to sync
+  # diffs - the differences between the configuration and AWS
+  def sync_difference(name, diffs)
+    aws = Hash[aws_resources.map { |aws| [aws.name, aws] }]
+    if diffs.size > 0
+      if diffs[0].type == DiffChange::UNMANAGED
+        puts diffs[0]
+      elsif diffs[0].type == DiffChange::ADD
+        puts Colors.added("creating #{name}...")
+        resource = create(diffs[0])
+        update(resource, diffs)
+      else
+        puts Colors.blue("updating #{name}...")
+        resource = aws[name]
+        update(resource, diffs)
+      end
+    end
+  end
+
+  # Internal: Update the generated policy
+  #
+  # resource - the AWS resource to update
+  # name     - the name of the policy to update
+  # config   - the policy config to use when updating
+  def update_policy(resource, name, config)
+    puts Colors.blue("\tupdating policy #{name}...")
+    policy = resource.policy(name)
+    if config.empty?
+      policy.delete()
+    else
+      policy.put({
+        :policy_document => config.as_pretty_json
+      })
+    end
+  end
+
+  # Internal: Update the attached policies
+  #
+  # resource - the AWS resource to update
+  # attach   - the policy arns to attach
+  # detach   - the policy arns to detach
+  def update_attached(resource, attach, detach)
+    puts Colors.blue("\tupdating attached policies...")
+    attach.each { |arn| resource.attach_policy({ :policy_arn => arn }) }
+    detach.each { |arn| resource.detach_policy({ :policy_arn => arn }) }
+  end
+
 end
