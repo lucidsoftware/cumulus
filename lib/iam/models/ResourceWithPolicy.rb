@@ -201,32 +201,4 @@ class ResourceWithPolicy
     diffs
   end
 
-  # Public: Get the string that represents adding this resource
-  def added_string
-    Colors.added("Add #{@type} #{@name}")
-  end
-
-  # Public: Get the string that represents changes in this resource
-  #
-  # diff - the Diff object for which to generate the change string
-  def changed_string(diff)
-    lines = ["For #{@type} #{@name} there are the following differences:"]
-    lines << diff.policies.map do |key, value|
-      policy_diffs = ["\tIn policy #{key}:"]
-      policy_diffs << value.map do |s|
-        "\t\t#{s}"
-      end
-    end.flatten
-
-    if !diff.attached_policies.empty?
-      lines << "\tAttaching the following managed policies:"
-      lines << diff.attached_policies.map { |arn| Colors.added("\t\t#{arn}") }
-    end
-    if !diff.detached_policies.empty?
-      lines << "\tDetaching the following managed policies:"
-      lines << diff.detached_policies.map { |arn| Colors.removed("\t\t#{arn}")}
-    end
-
-    lines.flatten.join("\n")
-  end
 end

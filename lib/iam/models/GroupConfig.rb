@@ -33,39 +33,4 @@ class GroupConfig < ResourceWithPolicy
     differences
   end
 
-  # override added_string to include the users that will be added
-  def added_string
-    lines = [super()]
-    if !@users.empty?
-      lines << Colors.added("\tThese users will be added to the group:")
-      @users.each do |user|
-        lines << Colors.added("\t\t#{user}")
-      end
-    end
-    lines.join("\n")
-  end
-
-  # override changed_string to add the users that will be added or removed
-  def changed_string(diff)
-    lines = [super(diff)]
-
-    if !diff.added_users.empty?
-      lines << "\tAdding the following users:"
-      lines << diff.added_users.map { |user| Colors.added("\t\t#{user}") }
-    end
-
-    if !diff.removed_users.empty?
-      lines << "\tRemoving the following users:"
-      lines << diff.removed_users.map { |user| Colors.unmanaged("\t\t#{user}") }
-    end
-
-    lines.flatten.join("\n")
-  end
-
-  def hash
-    h = super()
-    h["users"] = @users
-    h
-  end
-
 end
