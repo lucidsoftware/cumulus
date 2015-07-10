@@ -7,12 +7,11 @@ require "autoscaling/models/ScheduledConfig"
 
 # Public: An object representing the configuration for an AutoScaling group.
 class GroupConfig
-  attr_reader :availability_zones
-  attr_reader :cooldown
   attr_reader :check_grace
   attr_reader :check_type
-  attr_reader :enabled_metrics
+  attr_reader :cooldown
   attr_reader :desired
+  attr_reader :enabled_metrics
   attr_reader :launch
   attr_reader :load_balancers
   attr_reader :max
@@ -28,30 +27,67 @@ class GroupConfig
   #
   # name - the name of the group
   # json - a hash containing the json configuration for the AutoScaling group
-  def initialize(name, json)
+  def initialize(name, json = nil)
     @name = name
-    @cooldown = json["cooldown-seconds"]
-    @min = json["size"]["min"]
-    @max = json["size"]["max"]
-    @desired = json["size"]["desired"]
-    @enabled_metrics = json["enabled-metrics"]
-    @check_type = json["health-check-type"]
-    @check_grace = json["health-check-grace-seconds"]
-    @launch = json["launch-configuration"]
-    @load_balancers = json["load-balancers"]
-    @subnets = json["subnets"]
-    @tags = json["tags"]
-    @termination = json["termination"]
-    @scheduled = Hash[json["scheduled"].map { |json| [json["name"], ScheduledConfig.new(json)] }]
+    if !json.nil?
+      @cooldown = json["cooldown-seconds"]
+      @min = json["size"]["min"]
+      @max = json["size"]["max"]
+      @desired = json["size"]["desired"]
+      @enabled_metrics = json["enabled-metrics"]
+      @check_type = json["health-check-type"]
+      @check_grace = json["health-check-grace-seconds"]
+      @launch = json["launch-configuration"]
+      @load_balancers = json["load-balancers"]
+      @subnets = json["subnets"]
+      @tags = json["tags"]
+      @termination = json["termination"]
+      @scheduled = Hash[json["scheduled"].map { |json| [json["name"], ScheduledConfig.new(json)] }]
 
-    # load scaling policies
-    static_policies = json["policies"]["static"].map { |file| Loader.static_policy(file) }
-    template_policies = json["policies"]["templates"].map do |template|
-      Loader.template_policy(template["template"], template["vars"])
+      # load scaling policies
+      static_policies = json["policies"]["static"].map { |file| Loader.static_policy(file) }
+      template_policies = json["policies"]["templates"].map do |template|
+        Loader.template_policy(template["template"], template["vars"])
+      end
+      inline_policies = json["policies"]["inlines"].map { |inline| PolicyConfig.new(inline) }
+      @policies = static_policies + template_policies + inline_policies
+      @policies = Hash[@policies.map { |policy| [policy.name, policy] }]
+    else
+      @enabled_metrics = []
+      @load_balancers = []
+      @subnets = []
+      @tags = {}
+      @termination = []
     end
-    inline_policies = json["policies"]["inlines"].map { |inline| PolicyConfig.new(inline) }
-    @policies = static_policies + template_policies + inline_policies
-    @policies = Hash[@policies.map { |policy| [policy.name, policy] }]
+  end
+
+  # Public: Get the config as a prettified JSON string. All policies will be in
+  # inlines.
+  #
+  # Returns the JSON string.
+  def pretty_json
+    JSON.pretty_generate({
+      "cooldown-seconds" => @cooldown,
+      "enabled-metrics" => @enabled_metrics,
+      "health-check-type" => @check_type,
+      "health-check-grace-seconds" => @check_grace,
+      "launch-configuration" => @launch,
+      "load-balancers" => @load_balancers,
+      "policies" => {
+        "static" => [],
+        "templates" => [],
+        "inlines" => @policies.map { |p| p.hash }
+      },
+      "scheduled" => @scheduled.map { |s| s.hash },
+      "size" => {
+        "min" => @min,
+        "max" => @max,
+        "desired" => @desired
+      },
+      "subnets" => @subnets,
+      "tags" => @tags,
+      "termination" => @termination
+    }.reject { |k, v| v.nil? })
   end
 
   # Public: Produce the differences between this local configuration and the
@@ -120,6 +156,47 @@ class GroupConfig
     end
 
     diffs
+  end
+
+  # Public: Populate the GroupConfig from an existing AWS AutoScaling group
+  #
+  # resource - the aws resource to populate from
+  def populate(resource)
+    @check_grace = resource.health_check_grace_period
+    @check_type = resource.health_check_type
+    @cooldown = resource.default_cooldown
+    @desired = resource.desired_capacity unless resource.desired_capacity.nil?
+    @enabled_metrics = resource.enabled_metrics.map { |m| m.metric }
+    @launch = resource.launch_configuration_name
+    @load_balancers = resource.load_balancer_names
+    @max = resource.max_size
+    @min = resource.min_size
+    @subnets = resource.vpc_zone_identifier.split(",")
+    @tags = Hash[resource.tags.map { |tag| [tag.key, tag.value] }]
+    @termination = resource.termination_policies
+  end
+
+  # Public: Populate the scheduled actions from existing scheduled actions in
+  # AWS.
+  #
+  # actions - the scheduled actions to populate from
+  def populate_scheduled(actions)
+    @scheduled = actions.map do |action|
+      config = ScheduledConfig.new()
+      config.populate(action)
+      config
+    end
+  end
+
+  # Public: Populate the policies from existing scaling policies in AWS.
+  #
+  # policies - the policies to populate from
+  def populate_policies(policies)
+    @policies = policies.map do |policy|
+      config = PolicyConfig.new()
+      config.populate(policy)
+      config
+    end
   end
 
   private

@@ -2,29 +2,46 @@ require "autoscaling/models/ScheduledActionDiff"
 
 # Public: A class representing the configuration for a scheduled scaling action
 class ScheduledConfig
-  attr_reader :desired
-  attr_reader :end
-  attr_reader :max
-  attr_reader :min
-  attr_reader :name
-  attr_reader :recurrence
-  attr_reader :start
+  attr_accessor :desired
+  attr_accessor :end
+  attr_accessor :max
+  attr_accessor :min
+  attr_accessor :name
+  attr_accessor :recurrence
+  attr_accessor :start
 
   # Public: Constructor
   #
   # json - a hash representing the JSON configuration for this action
-  def initialize(json)
-    @name = json["name"]
-    if !json["start"].nil? and json["start"] != ""
-      @start = Time.parse(json["start"])
+  def initialize(json = nil)
+    if !json.nil?
+      @name = json["name"]
+      if !json["start"].nil? and json["start"] != ""
+        @start = Time.parse(json["start"])
+      end
+      if !json["end"].nil? and json["end"] != ""
+        @end = Time.parse(json["end"])
+      end
+      @recurrence = json["recurrence"]
+      @min = json["min"]
+      @max = json["max"]
+      @desired = json["desired"]
     end
-    if !json["end"].nil? and json["end"] != ""
-      @end = Time.parse(json["end"])
-    end
-    @recurrence = json["recurrence"]
-    @min = json["min"]
-    @max = json["max"]
-    @desired = json["desired"]
+  end
+
+  # Public: Get the configuration as a hash
+  #
+  # Returns the hash
+  def hash
+    {
+      "desired" => @desired,
+      "end" => @end,
+      "max" => @max,
+      "min" => @min,
+      "name" => @name,
+      "recurrence" => @recurrence,
+      "start" => @start
+    }.reject { |k, v| v.nil? }
   end
 
   # Public: Produce the differences between this local configuration and the
@@ -57,6 +74,19 @@ class ScheduledConfig
     end
 
     diffs
+  end
+
+  # Public: Populate the ScheduledConfig from an existing AWS resource
+  #
+  # resource - the aws resource to populate from
+  def populate(resource)
+    @desired = resource.desired_capacity
+    @end = resource.end_time
+    @max = resource.max_size
+    @min = resource.min_size
+    @name = resource.scheduled_action_name
+    @recurrence = resource.recurrence
+    @start = resource.start_time
   end
 
 end

@@ -26,20 +26,68 @@ class AlarmConfig
   # Public: Constructor
   #
   # json - a hash containing the JSON configuration for the alarm
-  def initialize(json)
-    @action_states = json["action-states"]
-    @actions_enabled = json["actions-enabled"]
-    @comparison = json["comparison"]
-    @description = json["description"]
-    @dimensions = json["dimensions"]
-    @evaluation_periods = json["evaluation-periods"]
-    @metric = json["metric"]
-    @name = json["name"]
-    @namespace = json["namespace"]
-    @period = json["period-seconds"]
-    @statistic = json["statistic"]
-    @threshold = json["threshold"]
-    @unit = json["unit"]
+  def initialize(json = nil)
+    if !json.nil?
+      @action_states = json["action-states"]
+      @actions_enabled = json["actions-enabled"]
+      @comparison = json["comparison"]
+      @description = json["description"]
+      @dimensions = json["dimensions"]
+      @evaluation_periods = json["evaluation-periods"]
+      @metric = json["metric"]
+      @name = json["name"]
+      @namespace = json["namespace"]
+      @period = json["period-seconds"]
+      @statistic = json["statistic"]
+      @threshold = json["threshold"]
+      @unit = json["unit"]
+    end
+  end
+
+  # Public: Get the configuration as a hash
+  #
+  # Returns the hash
+  def hash
+    {
+      "name" => @name,
+      "action-states" => @action_states,
+      "actions-enabled" => @actions_enabled,
+      "comparison" => @comparison,
+      "description" => @description,
+      "dimensions" => @dimensions,
+      "evaluation-periods" => @evaluation_periods,
+      "metric" => @metric,
+      "namespace" => @namespace,
+      "period-seconds" => @period,
+      "statistic" => @statistic,
+      "threshold" => @threshold,
+      "unit" => @unit
+    }.reject { |k, v| v.nil? }
+  end
+
+  # Public: Populate the AlarmConfig from an existing AWS cloudwatch alarm
+  #
+  # policy_arn - the arn of the policy the alarm should be attached to
+  # resource   - the aws resource to populate from
+  def populate(policy_arn, resource)
+    action_states = []
+    if resource.ok_actions.include?(policy_arn) then action_states << "ok" end
+    if resource.alarm_actions.include?(policy_arn) then action_states << "alarm" end
+    if resource.insufficient_data_actions.include?(policy_arn) then action_states << "insufficient-data" end
+
+    @action_states = action_states
+    @actions_enabled = resource.actions_enabled
+    @comparison = resource.comparison_operator
+    @description = resource.alarm_description
+    @dimensions = Hash[resource.dimensions.map { |d| [d.name, d.value] }]
+    @evaluation_periods = resource.evaluation_periods
+    @metric = resource.metric_name
+    @name = resource.alarm_name
+    @namespace = resource.namespace
+    @period = resource.period
+    @statistic = resource.statistic
+    @threshold = resource.threshold
+    @unit = resource.unit
   end
 
   # Public: Produce the differences between this local configuration and the

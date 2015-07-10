@@ -70,8 +70,8 @@ module Modules
   # Public: Run the AutoScaling Group module
   def self.autoscaling
     if ARGV.size < 2 or
-      (ARGV.size >= 2 and ARGV[1] != "help" and ARGV[1] != "diff" and ARGV[1] != "list" and ARGV[1] != "sync")
-      puts "Usage: cumulus autoscaling [diff|help|list|sync] <asset>"
+      (ARGV.size >= 2 and ARGV[1] != "help" and ARGV[1] != "diff" and ARGV[1] != "list" and ARGV[1] != "migrate" and ARGV[1] != "sync")
+      puts "Usage: cumulus autoscaling [diff|help|list|migrate|sync] <asset>"
       exit
     end
 
@@ -79,11 +79,12 @@ module Modules
       puts "autoscaling: Manage AutoScaling groups."
       puts "\tCompiles AutoScaling groups, scaling policies, and alarms that are defined in configuration files and syncs the resulting AutoScaling groups with AWS."
       puts
-      puts "Usage: cumulus autoscaling [diff|help|list|sync] <asset>"
+      puts "Usage: cumulus autoscaling [diff|help|list|migrate|sync] <asset>"
       puts
       puts "Commands"
       puts "\tdiff\t- print out differences between local configuration and AWS (supplying the name of an AutoScaling group will diff only that group)"
       puts "\tlist\t- list the AutoScaling groups defined locally"
+      puts "\tmigrate\t- produce Cumulus configuration from current configuration in AWS"
       puts "\tsync\t- sync local AutoScaling definitions with AWS (supplying the name of an AutoScaling group will sync only that group)"
     end
 
@@ -97,6 +98,8 @@ module Modules
       end
     elsif ARGV[1] == "list"
       autoscaling.list
+    elsif ARGV[1] == "migrate"
+      autoscaling.migrate
     elsif ARGV[1] == "sync"
       if ARGV.size == 2
         autoscaling.sync

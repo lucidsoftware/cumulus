@@ -164,7 +164,7 @@ class IamResource
     # write the configuration to file
     puts "Writing configuration to file..."
     configs.each do |config|
-      File.open("#{assets}/#{config.name}", 'w') { |f| f.write(config.json) }
+      File.open("#{assets}/#{config.name}.json", 'w') { |f| f.write(config.json) }
     end
 
     puts "Done."
