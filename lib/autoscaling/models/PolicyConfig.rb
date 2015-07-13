@@ -18,20 +18,36 @@ class PolicyConfig
   # Public: Constructor
   #
   # json - a hash representing the JSON configuration for this scaling policy
-  def initialize(json)
+  def initialize(json = nil)
     @@cloudwatch ||= Aws::CloudWatch::Client.new(
       region: Configuration.instance.region
     )
 
-    @name = json["name"]
-    @adjustment_type = json["adjustment-type"]
-    @adjustment = json["adjustment"]
-    @cooldown = json["cooldown"]
-    @min_adjustment = json["min-adjustment-step"]
-    @alarms = {}
-    if !json["alarms"].nil?
-      @alarms = Hash[json["alarms"].map { |alarm| [alarm["name"], AlarmConfig.new(alarm)] }]
+    if !json.nil?
+      @name = json["name"]
+      @adjustment_type = json["adjustment-type"]
+      @adjustment = json["adjustment"]
+      @cooldown = json["cooldown"]
+      @min_adjustment = json["min-adjustment-step"]
+      @alarms = {}
+      if !json["alarms"].nil?
+        @alarms = Hash[json["alarms"].map { |alarm| [alarm["name"], AlarmConfig.new(alarm)] }]
+      end
     end
+  end
+
+  # Public: Get the configuration as a hash
+  #
+  # Returns the hash
+  def hash
+    {
+      "name" => @name,
+      "adjustment-type" => @adjustment_type,
+      "adjustment" => @adjustment,
+      "cooldown" => @cooldown,
+      "min-adjustment-step" => @min_adjustment,
+      "alarms" => @alarms.map { |a| a.hash }
+    }.reject { |k, v| v.nil? }
   end
 
   # Public: Produce the differences between this local configuration and the
@@ -64,6 +80,26 @@ class PolicyConfig
     end
 
     diffs
+  end
+
+  # Public: Populate the PolicyConfig from an existing AWS scaling policy
+  #
+  # resource - the aws resource to populate from
+  def populate(resource)
+    @name = resource.policy_name
+    @adjustment_type = resource.adjustment_type
+    @adjustment = resource.scaling_adjustment
+    @cooldown = resource.cooldown
+    @min_adjustment = resource.min_adjustment_step
+
+    alarms = @@cloudwatch.describe_alarms({
+      action_prefix: resource.policy_arn
+    }).metric_alarms
+    @alarms = alarms.map do |alarm|
+      config = AlarmConfig.new()
+      config.populate(resource.policy_arn, alarm)
+      config
+    end
   end
 
   private

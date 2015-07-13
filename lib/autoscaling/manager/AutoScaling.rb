@@ -31,6 +31,7 @@ class AutoScaling
     @cloudwatch = Aws::CloudWatch::Client.new(
       region: Configuration.instance.region
     )
+    @migration_root = "generated"
   end
 
   # Public: Print a diff between local configuration and configuration in AWS
@@ -65,6 +66,34 @@ class AutoScaling
   def sync_one(name)
     local = Loader.group(name)
     each_difference({ local.name => local }, false) { |name, diffs| sync_difference(name, diffs) }
+  end
+
+  # Public: Migrate AWS Autoscaling to Cumulus configuration.
+  def migrate
+    groups_dir = "#{@migration_root}/groups"
+
+    if !Dir.exists?(@migration_root)
+      Dir.mkdir(@migration_root)
+    end
+    if !Dir.exists?(groups_dir)
+      Dir.mkdir(groups_dir)
+    end
+
+    aws_groups.each do |resource|
+      puts "Processing #{resource.auto_scaling_group_name}..."
+      config = GroupConfig.new(resource.auto_scaling_group_name)
+      config.populate(resource)
+      config.populate_scheduled(@aws.describe_scheduled_actions({
+        auto_scaling_group_name: resource.auto_scaling_group_name
+      }).scheduled_update_group_actions)
+      config.populate_policies(@aws.describe_policies({
+        auto_scaling_group_name: resource.auto_scaling_group_name
+      }).scaling_policies)
+
+      puts "Writing #{resource.auto_scaling_group_name} configuration to file..."
+      File.open("#{groups_dir}/#{config.name}.json", 'w') { |f| f.write(config.pretty_json) }
+    end
+
   end
 
   private

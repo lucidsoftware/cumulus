@@ -28,7 +28,7 @@ function _cumulus {
               COMPREPLY=( $(compgen -W "groups roles users" -- $cur) )
             ;;
             autoscaling)
-              COMPREPLY=( $(compgen -W "diff list sync" -- $cur) )
+              COMPREPLY=( $(compgen -W "diff list migrate sync" -- $cur) )
             ;;
             cumulus)
               COMPREPLY=( $(compgen -W "autoscaling help iam" -- $cur) )
