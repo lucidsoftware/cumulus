@@ -143,7 +143,7 @@ class GroupConfig
     }).scheduled_update_group_actions
     scheduled_diffs = diff_scheduled(aws_scheduled)
     if !scheduled_diffs.empty?
-      diffs << AutoScalingDiff.scheduled(scheduled_diffs)
+      diffs << AutoScalingDiff.scheduled(self, scheduled_diffs)
     end
 
     # check for changes in scaling policies
@@ -152,7 +152,7 @@ class GroupConfig
     }).scaling_policies
     policy_diffs = diff_policies(aws_policies)
     if !policy_diffs.empty?
-      diffs << AutoScalingDiff.policies(policy_diffs)
+      diffs << AutoScalingDiff.policies(self, policy_diffs)
     end
 
     diffs

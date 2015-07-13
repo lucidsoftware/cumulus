@@ -32,11 +32,12 @@ class AutoScalingDiff < Diff
   # Public: Static method that will produce a diff that contains changes in
   # scheduled actions
   #
+  # local           - the local configuration
   # scheduled_diffs - the differences in scheduled actions
   #
   # Returns the diff
-  def AutoScalingDiff.scheduled(scheduled_diffs)
-    diff = AutoScalingDiff.new(SCHEDULED)
+  def AutoScalingDiff.scheduled(local, scheduled_diffs)
+    diff = AutoScalingDiff.new(SCHEDULED, nil, local)
     diff.scheduled_diffs = scheduled_diffs
     diff
   end
@@ -44,11 +45,12 @@ class AutoScalingDiff < Diff
   # Public: Static method that will produce a diff that contains changes in
   # scaling policies
   #
+  # local        - the local configuration
   # policy_diffs - the differences in scaling policies
   #
   # Returns the diff
-  def AutoScalingDiff.policies(policy_diffs)
-    diff = AutoScalingDiff.new(POLICY)
+  def AutoScalingDiff.policies(local, policy_diffs)
+    diff = AutoScalingDiff.new(POLICY, nil, local)
     diff.policy_diffs = policy_diffs
     diff
   end
