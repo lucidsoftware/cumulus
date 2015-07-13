@@ -29,52 +29,56 @@ class AlarmDiff < Diff
   attr_accessor :policy_arn
 
   def diff_string
+    diff_lines = [@local.name]
+
     case @type
     when ALARM
-      lines = ["Alarm actions:"]
-      lines << alarm_actions_to_remove.map { |a| "\t#{Colors.removed(a)}" }
-      lines << alarm_actions_to_add.map { |a| "\t#{Colors.added(a)}" }
-      lines.flatten.join("\n")
+      lines = ["\tAlarm actions:"]
+      lines << alarm_actions_to_remove.map { |a| "\t\t#{Colors.removed(a)}" }
+      lines << alarm_actions_to_add.map { |a| "\t\t#{Colors.added(a)}" }
+      diff_lines << lines.flatten.join("\n")
     when COMPARISON
-      "Comparison type: AWS - #{Colors.aws_changes(@aws.comparison_operator)}, Local - #{Colors.local_changes(@local.comparison)}"
+      diff_lines << "\tComparison type: AWS - #{Colors.aws_changes(@aws.comparison_operator)}, Local - #{Colors.local_changes(@local.comparison)}"
     when DESCRIPTION
-      [
-        "Description:",
-        Colors.aws_changes("\tAWS - #{@aws.alarm_description}"),
-        Colors.local_changes("\tLocal - #{@local.description}")
+      diff_lines << [
+        "\tDescription:",
+        Colors.aws_changes("\t\tAWS - #{@aws.alarm_description}"),
+        Colors.local_changes("\t\tLocal - #{@local.description}")
       ].join("\n")
     when DIMENSIONS
-      lines = ["Dimensions:"]
-      lines << dimensions_to_remove.map { |d| "\t#{Colors.removed(d)}" }
-      lines << dimensions_to_add.map { |d| "\t#{Colors.added(d)}" }
-      lines.flatten.join("\n")
+      lines = ["\tDimensions:"]
+      lines << dimensions_to_remove.map { |d| "\t\t#{Colors.removed(d)}" }
+      lines << dimensions_to_add.map { |d| "\t\t#{Colors.added(d)}" }
+      diff_lines << lines.flatten.join("\n")
     when ENABLED
-      "Actions enabled: AWS - #{Colors.aws_changes(@aws.actions_enabled)}, Local - #{Colors.local_changes(@local.actions_enabled)}"
+      diff_lines << "\tActions enabled: AWS - #{Colors.aws_changes(@aws.actions_enabled)}, Local - #{Colors.local_changes(@local.actions_enabled)}"
     when EVALUATION
-      "Evaluation periods: AWS - #{Colors.aws_changes(@aws.evaluation_periods)}, Local - #{Colors.local_changes(@local.evaluation_periods)}"
+      diff_lines << "\tEvaluation periods: AWS - #{Colors.aws_changes(@aws.evaluation_periods)}, Local - #{Colors.local_changes(@local.evaluation_periods)}"
     when INSUFFICIENT
-      lines = ["Insufficient data actions:"]
-      lines << insufficient_actions_to_remove.map { |i| "\t#{Colors.removed(i)}" }
-      lines << insufficient_actions_to_add.map { |i| "\t#{Colors.added(i)}" }
-      lines.flatten.join("\n")
+      lines = ["\tInsufficient data actions:"]
+      lines << insufficient_actions_to_remove.map { |i| "\t\t#{Colors.removed(i)}" }
+      lines << insufficient_actions_to_add.map { |i| "\t\t#{Colors.added(i)}" }
+      diff_lines << lines.flatten.join("\n")
     when METRIC
-      "Metric: AWS - #{Colors.aws_changes(@aws.metric_name)}, Local - #{Colors.local_changes(@local.metric)}"
+      diff_lines << "\tMetric: AWS - #{Colors.aws_changes(@aws.metric_name)}, Local - #{Colors.local_changes(@local.metric)}"
     when NAMESPACE
-      "Namespace: AWS - #{Colors.aws_changes(@aws.namespace)}, Local - #{Colors.local_changes(@local.namespace)}"
+      diff_lines << "\tNamespace: AWS - #{Colors.aws_changes(@aws.namespace)}, Local - #{Colors.local_changes(@local.namespace)}"
     when OK
-      lines = ["Ok actions:"]
-      lines << ok_actions_to_remove.map { |o| "\t#{Colors.removed(o)}" }
-      lines << ok_actions_to_add.map { |o| "\t#{Colors.added(o)}" }
-      lines.flatten.join("\n")
+      lines = ["\tOk actions:"]
+      lines << ok_actions_to_remove.map { |o| "\t\t#{Colors.removed(o)}" }
+      lines << ok_actions_to_add.map { |o| "\t\t#{Colors.added(o)}" }
+      diff_lines << lines.flatten.join("\n")
     when PERIOD
-      "Period seconds: AWS - #{Colors.aws_changes(@aws.period)}, Local - #{Colors.local_changes(@local.period)}"
+      diff_lines << "\tPeriod seconds: AWS - #{Colors.aws_changes(@aws.period)}, Local - #{Colors.local_changes(@local.period)}"
     when STATISTIC
-      "Statistic: AWS - #{Colors.aws_changes(@aws.statistic)}, Local - #{Colors.local_changes(@local.statistic)}"
+      diff_lines << "\tStatistic: AWS - #{Colors.aws_changes(@aws.statistic)}, Local - #{Colors.local_changes(@local.statistic)}"
     when THRESHOLD
-      "Threshold: AWS - #{Colors.aws_changes(@aws.threshold)}, Local - #{Colors.local_changes(@local.threshold)}"
+      diff_lines << "\tThreshold: AWS - #{Colors.aws_changes(@aws.threshold)}, Local - #{Colors.local_changes(@local.threshold)}"
     when UNIT
-      "Unit: AWS - #{Colors.aws_changes(@aws.unit)}, Local - #{Colors.local_changes(@local.unit)}"
+      diff_lines << "\tUnit: AWS - #{Colors.aws_changes(@aws.unit)}, Local - #{Colors.local_changes(@local.unit)}"
     end
+
+    diff_lines.flatten.join("\n")
   end
 
   def asset_type

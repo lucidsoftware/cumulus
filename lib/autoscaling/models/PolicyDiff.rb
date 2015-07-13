@@ -36,22 +36,26 @@ class PolicyDiff < Diff
   end
 
   def diff_string
+    diff_lines = [@local.name]
+
     case @type
     when ADJUSTMENT_TYPE
-      "Adjustment type: AWS - #{Colors.aws_changes(@aws.adjustment_type)}, Local - #{Colors.local_changes(@local.adjustment_type)}"
+      diff_lines << "\tAdjustment type: AWS - #{Colors.aws_changes(@aws.adjustment_type)}, Local - #{Colors.local_changes(@local.adjustment_type)}"
     when ADJUSTMENT
-      "Scaling adjustment: AWS - #{Colors.aws_changes(@aws.scaling_adjustment)}, Local - #{Colors.local_changes(@local.adjustment)}"
+      diff_lines << "\tScaling adjustment: AWS - #{Colors.aws_changes(@aws.scaling_adjustment)}, Local - #{Colors.local_changes(@local.adjustment)}"
     when ALARM
-      lines = ["Cloudwatch alarms:"]
+      lines = ["\t\tCloudwatch alarms:"]
       lines << alarm_diffs.map do |diff|
-        diff.to_s.lines.map {|s| "\t\t#{s}" }.join
+        diff.to_s.lines.map {|s| "\t\t\t#{s}" }.join
       end
-      lines.flatten.join("\n")
+      diff_lines << lines.flatten.join("\n")
     when COOLDOWN
-      "Cooldown: AWS - #{Colors.aws_changes(@aws.cooldown)}, Local - #{Colors.local_changes(@local.cooldown)}"
+      diff_lines << "\tCooldown: AWS - #{Colors.aws_changes(@aws.cooldown)}, Local - #{Colors.local_changes(@local.cooldown)}"
     when MIN_ADJUSTMENT
-      "Min adjustment step: AWS - #{Colors.aws_chnages(@aws.min_adjustment_step)}, Local - #{Colors.local_changes(@local.min_adjustment)}"
+      diff_lines << "\tMin adjustment step: AWS - #{Colors.aws_changes(@aws.min_adjustment_step)}, Local - #{Colors.local_changes(@local.min_adjustment)}"
     end
+
+    diff_lines.flatten.join("\n")
   end
 
   def asset_type
