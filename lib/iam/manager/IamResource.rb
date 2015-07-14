@@ -177,7 +177,9 @@ class IamResource
   def update(resource, diffs)
     if diffs.size == 1 and diffs[0].type == DiffChange::ADD
       update_policy(resource, diffs[0].local.generated_policy_name, diffs[0].local.policy)
-      update_attached(resource, diffs[0].local.attached_policies, [])
+      if !diffs[0].local.attached_policies.empty?
+        update_attached(resource, diffs[0].local.attached_policies, [])
+      end
     else
       diffs.each do |diff|
         case diff.type
