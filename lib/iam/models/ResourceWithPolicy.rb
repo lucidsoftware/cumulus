@@ -177,7 +177,7 @@ class ResourceWithPolicy
     # loop through all the policies and look for changes
     aws_policies.each do |name, aws_policy|
       if name != generated_policy_name
-        diffs << diffs.unmanaged_policy(name)
+        diffs << IamDiff.unmanaged_policy(name)
       else
         aws_statements = JSON.parse(URI.unescape(aws_policy.policy_document))["Statement"]
         local_statements = p.as_hash["Statement"]
