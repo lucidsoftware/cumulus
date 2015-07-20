@@ -8,16 +8,16 @@
     <nav class="navbar navbar-default navbar-fixed-top">
       <div class="container">
         <div class="navbar-inner">
-          <a class="brand" href="/">
+          <a class="brand" href="{{ site.baseurl }}/">
             <img src="{{ site.baseurl }}/assets/img/cumulus-branding.png" />
           </a>
           <ul class="nav navbar-nav navbar-right">
-            <li><a href="/">Home</a></li>
+            <li><a href="{{ site.baseurl }}/">Home</a></li>
             <li class="dropdown">
               <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Modules <span class="caret"></span></a>
               <ul class="dropdown-menu">
                 <li><a href="{{ site.baseurl }}/modules/iam.html">IAM</a></li>
-                <li><a href="{{ site.baseurl }}/modules/scale-groups.html">Scale Groups</a></li>
+                <li><a href="{{ site.baseurl }}/modules/autoscaling.html">Autoscaling Groups</a></li>
               </ul>
             </li>
           </ul>
