@@ -84,7 +84,7 @@ Scaling policies can contain alarms. Alarms correspond to Cloudwatch alarms, and
 * `dimensions` - a JSON object used to specify the dimensions for the metric. Each key value pair in the object will be a dimension, with key as the name of the dimension and the value as the dimension's value.
 * `period-seconds` - the number of seconds comprising a period over which the statistic is applied
 * `evaluation-periods` - the number of consecutive periods needed to change the state of the alarm
-* `threshold` - the number of compare against
+* `threshold` - the number to compare against
 * `unit` - the unit for the metric. See <a href="http://docs.aws.amazon.com/sdkforruby/api/Aws/CloudWatch/Client.html#put_metric_alarm-instance_method" target="_blank">AWS documentation</a> for a full list of units.
 * `comparison` - the type of comparison to do with the threshold and statistic. Valid values are `GreaterThanOrEqualToThreshold`, `GreaterThanThreshold`, `LessThanThreshold`, `LessThanOrEqualToThreshold`
 
@@ -110,7 +110,7 @@ Cumulus provides a `migrate` task that makes migrating to Cumulus easy. Autoscal
 
 ### Configuration
 
-Cumulus reads configuration from a configuration file, `conf/configuration.json` (the location of this file can also be specified by running cumulus with the `--config` option). The values in `configuration.json` can be changed to customized to change some of Cumulus's behavior. The following is a list of the values in `configuration.json` that pertain to the Autoscaling module (in the list, `.` means the name after the `.` is inside of the object who's name appears on the left):
+Cumulus reads configuration from a configuration file, `conf/configuration.json` (the location of this file can also be specified by running cumulus with the `--config` option). The values in `configuration.json` can be changed to customized to change some of Cumulus's behavior. The following is a list of the values in `configuration.json` that pertain to the Autoscaling module:
 
 * `$.autoscaling.groups.directory` - the directory where Cumulus expects to find autoscaling group definitions. Defaults to `conf/autoscaling/groups`
 * `$.autoscaling.groups.override-launch-config-on-sync` - whether to change the launch configuration when syncing a group. If set to false, changing the launch configuration will need to be done from the AWS console. Defaults to `false`
