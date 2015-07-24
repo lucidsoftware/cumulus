@@ -8,8 +8,8 @@ require "util/Colors"
 #   resource_name - return the resource name type (ie "Autoscaling Group", "Security Group", etc)
 #   local_resources - return a Hash of local resource name to local resource config object
 #   aws_resources - return a Hash of aws resource name to aws resource object
-#   diff - a function that will produce an array of differences between the local resource passed
-#     in and the aws resource passed in
+#   diff_resource - a function that will produce an array of differences between the local resource
+#     passed in and the aws resource passed in
 #   unmanaged_diff - return the correct type of diff from an AWS resource
 #   added_diff - return the correct type of diff from a local configuration object
 #   create - given a local configuration, create the AWS resource
@@ -64,7 +64,7 @@ class Manager
       if !aws_resources.include?(name)
         f.call(name, [added_diff(resource)])
       else
-        f.call(name, diff(resource, aws_resources[name]))
+        f.call(name, diff_resource(resource, aws_resources[name]))
       end
     end
   end

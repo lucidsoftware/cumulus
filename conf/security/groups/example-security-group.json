@@ -3,5 +3,23 @@
   "vpc-id": "vpc-5f019b35",
   "tags": {
     "key": "value"
+  },
+  "rules": {
+    "inbound": [
+      {
+        "security-group": "a-security-group",
+        "protocol": "tcp",
+        "from-port": 8000,
+        "to-port": 8080
+      }
+    ],
+    "outbound": [
+      {
+        "security-group": "a-security-group",
+        "protocol": "tcp",
+        "from-port": 8080,
+        "to-port": 8080
+      }
+    ]
   }
 }
