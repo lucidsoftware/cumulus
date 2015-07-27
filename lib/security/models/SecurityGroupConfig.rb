@@ -3,6 +3,8 @@ require "security/models/RuleConfig"
 require "security/models/RuleDiff"
 require "security/models/SecurityGroupDiff"
 
+require "json"
+
 # Public: An object representing configuration for a security group
 class SecurityGroupConfig
 
@@ -17,7 +19,7 @@ class SecurityGroupConfig
   #
   # name - the name of the security group
   # json - a hash containing the JSON configuration for the security group
-  def initialize(name, json)
+  def initialize(name, json = nil)
     @name = name
     if !json.nil?
       @description = if !json["description"].nil? then json["description"] else "" end
@@ -67,6 +69,34 @@ class SecurityGroupConfig
     end
 
     diffs
+  end
+
+  # Public: Populate this SecurityGroupConfig from an AWS resource
+  #
+  # aws             - the aws resource
+  # sg_ids_to_names - a mapping of security group ids to their names
+  def populate(aws, sg_ids_to_names)
+    @description = aws.description
+    @vpc_id = aws.vpc_id
+    @tags = Hash[aws.tags.map { |t| [t.key, t.value] }]
+    @inbound = aws.ip_permissions.map { |rule| RuleConfig.from_aws(rule, sg_ids_to_names) }
+    @outbound = aws.ip_permissions_egress.map { |rule| RuleConfig.from_aws(rule, sg_ids_to_names) }
+  end
+
+  # Public: Get the config as a prettified JSON string.
+  #
+  # Returns the JSON string
+  def pretty_json
+    JSON.pretty_generate({
+      "name" => @name,
+      "description" => @description,
+      "vpc-id" => @vpc_id,
+      "tags" => @tags,
+      "rules" => {
+        "inbound" => @inbound.map(&:hash).each { |r| if r["protocol"] == "-1" then r["protocol"] = "all" end },
+        "outbound" => @outbound.map(&:hash).each { |r| if r["protocol"] == "-1" then r["protocol"] = "all" end }
+      }
+    }.reject { |k, v| v.nil? })
   end
 
   private

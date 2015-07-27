@@ -141,7 +141,7 @@ module Modules
     elsif ARGV[1] == "list"
       security.list
     elsif ARGV[1] == "migrate"
-      # security.migrate
+      security.migrate
     elsif ARGV[1] == "sync"
       if ARGV.size == 2
         security.sync

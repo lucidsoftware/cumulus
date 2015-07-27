@@ -1,13 +1,39 @@
 require "common/manager/Manager"
 require "conf/Configuration"
 require "security/loader/Loader"
+require "security/models/SecurityGroupConfig"
 require "security/models/SecurityGroupDiff"
+require "util/Colors"
 
 require "aws-sdk"
 
 class SecurityGroups < Manager
   def initialize
+    super()
     @ec2 = Aws::EC2::Client.new(region: Configuration.instance.region)
+  end
+
+  # Public: Migrate AWS Security Groups to Cumulus configuration.
+  def migrate
+    groups_dir = "#{@migration_root}/groups"
+
+    if !Dir.exists?(@migration_root)
+      Dir.mkdir(@migration_root)
+    end
+    if !Dir.exists?(groups_dir)
+      Dir.mkdir(groups_dir)
+    end
+
+    aws_resources.each_value do |resource|
+      puts "Processing #{resource.group_name}..."
+      config = SecurityGroupConfig.new(resource.group_name)
+      config.populate(resource, sg_ids_to_names)
+
+      puts "Writing #{resource.group_name} configuration to file..."
+      File.open("#{groups_dir}/#{config.name}.json", "w") { |f| f.write(config.pretty_json) }
+    end
+
+    puts Colors.blue("IP addresses for inbound and outbound rules have been left as is in each individual security group, but we recommend that you name and group those IP addresses for maximum benefit.")
   end
 
   def resource_name

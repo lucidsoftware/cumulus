@@ -15,6 +15,10 @@ require "util/Colors"
 #   create - given a local configuration, create the AWS resource
 #   update - given a local configuration and an array of diffs, update the AWS resource
 class Manager
+  def initialize
+    @migration_root = "generated"
+  end
+
   # Public: Print a diff between local configuration and configuration in AWS
   def diff
     each_difference(local_resources, true) { |name, diffs| print_difference(name, diffs) }
