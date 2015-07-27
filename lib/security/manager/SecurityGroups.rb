@@ -54,7 +54,13 @@ class SecurityGroups < Manager
     @sg_ids_to_names[security_group_id] = local.name
     update_tags(security_group_id, local.tags, {})
     update_inbound(security_group_id, local.inbound, [])
-    update_outbound(security_group_id, local.outbound, [])
+
+    outbound_remove = if Configuration.instance.security.outbound_default_all_allowed and local.outbound.empty?
+      []
+    else
+      [RuleConfig.allow_all]
+    end
+    update_outbound(security_group_id, local.outbound, outbound_remove)
   end
 
   def update(local, diffs)
@@ -150,40 +156,60 @@ class SecurityGroups < Manager
   #   - add_action        - the client method to call to add rules
   #   - remove_action     - the client method to call to remove rules
   def update_rules(security_group_id, add, remove, options)
-    if !add.empty?
-      puts Colors.blue("\tadding #{options[:type]} rules...")
-      options[:add_action].call({
-        group_id: security_group_id,
-        ip_permissions: add.map do |added|
-          {
-            ip_protocol: added.protocol,
-            from_port: added.from,
-            to_port: added.to,
-            user_id_group_pairs: [
-              {
-                group_id: @sg_ids_to_names.key(added.security_group)
-              }
-            ]
-          }
-        end
-      })
-    end
-
     if !remove.empty?
       puts Colors.blue("\tremoving #{options[:type]} rules...")
       options[:remove_action].call({
         group_id: security_group_id,
         ip_permissions: remove.map do |removed|
-          {
+          permission = {
             ip_protocol: removed.protocol,
             from_port: removed.from,
-            to_port: removed.to,
-            user_id_group_pairs: [
+            to_port: removed.to
+          }
+
+          # put the security group or subnets into the request
+          if !removed.security_group.nil?
+            permission[:user_id_group_pairs] = [
               {
                 group_id: @sg_ids_to_names.key(removed.security_group)
               }
             ]
+          else
+            permission[:ip_ranges] = removed.subnets.map do |subnet|
+              { cidr_ip: subnet }
+            end
+          end
+
+          permission
+        end
+      })
+    end
+
+    if !add.empty?
+      puts Colors.blue("\tadding #{options[:type]} rules...")
+      options[:add_action].call({
+        group_id: security_group_id,
+        ip_permissions: add.map do |added|
+          permission = {
+            ip_protocol: added.protocol,
+            from_port: added.from,
+            to_port: added.to
           }
+
+          # put the security group or subnets into the request
+          if !added.security_group.nil?
+            permission[:user_id_group_pairs] = [
+              {
+                group_id: @sg_ids_to_names.key(added.security_group)
+              }
+            ]
+          else
+            permission[:ip_ranges] = added.subnets.map do |subnet|
+              { cidr_ip: subnet }
+            end
+          end
+
+          permission
         end
       })
     end

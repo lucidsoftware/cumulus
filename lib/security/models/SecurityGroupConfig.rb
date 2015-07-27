@@ -1,3 +1,4 @@
+require "conf/Configuration"
 require "security/models/RuleConfig"
 require "security/models/RuleDiff"
 require "security/models/SecurityGroupDiff"
@@ -19,11 +20,19 @@ class SecurityGroupConfig
   def initialize(name, json)
     @name = name
     if !json.nil?
-      @description = json["description"]
+      @description = if !json["description"].nil? then json["description"] else "" end
       @vpc_id = json["vpc-id"]
-      @tags = json["tags"]
+      @tags = if !json["tags"].nil? then json["tags"] else {} end
       @inbound = json["rules"]["inbound"].map(&RuleConfig.method(:new))
-      @outbound = json["rules"]["outbound"].map(&RuleConfig.method(:new))
+      @outbound = if !json["rules"]["outbound"].nil?
+        json["rules"]["outbound"].map(&RuleConfig.method(:new))
+      else
+        if Configuration.instance.security.outbound_default_all_allowed
+          [RuleConfig.allow_all]
+        else
+          []
+        end
+      end
     end
   end
 

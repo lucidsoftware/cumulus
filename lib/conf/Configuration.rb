@@ -119,6 +119,8 @@ class Configuration
   class SecurityConfig
 
     attr_reader :groups_directory
+    attr_reader :outbound_default_all_allowed
+    attr_reader :subnets_file
 
     # Public: Constructor.
     #
@@ -127,6 +129,8 @@ class Configuration
     # parent - reference to the parent Configuration that spawned this SecurityConfig
     def initialize(json, parent)
       @groups_directory = parent.absolute_path(json["groups"]["directory"])
+      @outbound_default_all_allowed = json["outbound-default-all-allowed"]
+      @subnets_file = parent.absolute_path(json["subnets-file"])
     end
 
   end

@@ -1,9 +1,12 @@
+require "security/loader/Loader"
+
 # Public: An object representing configuration for a security group rule
 class RuleConfig
 
   attr_reader :from
   attr_reader :protocol
   attr_reader :security_group
+  attr_reader :subnets
   attr_reader :to
 
   # Public: Static method that will produce a RuleConfig from an AWS rule resource.
@@ -13,18 +16,34 @@ class RuleConfig
   #
   # Returns a RuleConfig containing the data in the AWS rule
   def RuleConfig.from_aws(aws, sg_ids_to_names)
-    security_group = aws.user_id_group_pairs
-    if security_group.size == 1
-      security_group = sg_ids_to_names[security_group[0].group_id]
+    security_group = if aws.user_id_group_pairs.size == 1
+      sg_ids_to_names[aws.user_id_group_pairs[0].group_id]
     else
-      security_group = security_group.map { |s| sg_ids_to_names[s.group_id] }
+      nil
+    end
+
+    subnets = if aws.ip_ranges.empty?
+      nil
+    else
+      aws.ip_ranges.map { |ip| ip.cidr_ip }
     end
 
     RuleConfig.new({
       "security-group" => security_group,
       "protocol" => aws.ip_protocol,
       "from-port" => aws.from_port,
-      "to-port" => aws.to_port
+      "to-port" => aws.to_port,
+      "subnets" => subnets
+    })
+  end
+
+  # Public: Static method that will produce a RuleConfig that allows all access
+  #
+  # Returns the RuleConfig
+  def RuleConfig.allow_all
+    RuleConfig.new({
+      "protocol" => "all",
+      "subnets" => ["0.0.0.0/0"]
     })
   end
 
@@ -34,8 +53,27 @@ class RuleConfig
   def initialize(json)
     @from = json["from-port"]
     @protocol = json["protocol"]
-    @security_group = json["security-group"]
     @to = json["to-port"]
+    if !json["security-group"].nil?
+      @security_group = json["security-group"]
+    end
+    if !json["subnets"].nil?
+      @subnets = json["subnets"].map do |subnet|
+        if subnet.match(/\d{1,3}.\d{1,3}.\d{1,3}.\d{1,3}\/\d+/).nil?
+          Loader.subnet_group(subnet)
+        else
+          subnet
+        end
+      end.flatten
+    end
+  end
+
+  # Public: Get the protocol. If "all" was specified in the configuration,
+  # "-1" will be returned, which is what AWS uses to specify all.
+  #
+  # Returns the protocol
+  def protocol
+    if @protocol == "all" then "-1" else @protocol end
   end
 
   # Public: Get the configuration as a hash
@@ -44,9 +82,10 @@ class RuleConfig
   def hash
     {
       "security-group" => @security_group,
-      "protocol" => @protocol,
+      "protocol" => protocol,
       "from-port" => @from,
-      "to-port" => @to
+      "to-port" => @to,
+      "subnets" => @subnets,
     }.reject { |k, v| v.nil? }
   end
 
