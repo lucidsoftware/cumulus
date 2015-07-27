@@ -1,0 +1,32 @@
+{
+  "description": "an example security group",
+  "vpc-id": "",
+  "tags": {
+    "key": "value"
+  },
+  "rules": {
+    "inbound": [
+      {
+        "security-group": "a-security-group",
+        "protocol": "tcp",
+        // to-port and end-port are the port range that will be allowed by the security group
+        "from-port": 8001,
+        "to-port": 8080
+      },
+      {
+        "protocol": "tcp",
+        "from-port": 8080,
+        "to-port": 8080,
+        "subnets": [ "10.0.0.0/24", "example-subnet-group"]
+      }
+    ],
+    "outbound": [
+      {
+        "security-group": "a-security-group",
+        "protocol": "tcp",
+        "from-port": 8080,
+        "to-port": 8080
+      }
+    ]
+  }
+}

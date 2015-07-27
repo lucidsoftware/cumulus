@@ -37,5 +37,12 @@
 			}
 		}
 	},
+	"security": {
+		"groups": {
+			"directory": "conf/security/groups"
+		},
+		"subnets-file": "conf/security/subnets.json",
+		"outbound-default-all-allowed": true
+	},
 	"region": "us-east-1"
 }

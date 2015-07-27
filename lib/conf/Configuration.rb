@@ -5,7 +5,7 @@ require "json"
 class Configuration
 
   attr_reader :colors_enabled
-  attr_reader :iam, :autoscaling
+  attr_reader :iam, :autoscaling, :security
   attr_reader :region
 
   # Internal: Constructor. Sets up the `instance` variable, which is the access
@@ -21,6 +21,7 @@ class Configuration
     @region = json["region"]
     @iam = IamConfig.new(json["iam"], self)
     @autoscaling = AutoScalingConfig.new(json["autoscaling"], self)
+    @security = SecurityConfig.new(json["security"], self)
   end
 
   # Public: Take a path relative to the project root and turn it into an
@@ -110,6 +111,26 @@ class Configuration
       @override_launch_config_on_sync = json["groups"]["override-launch-config-on-sync"]
       @static_policy_directory = parent.absolute_path(json["policies"]["static"]["directory"])
       @template_policy_directory = parent.absolute_path(json["policies"]["templates"]["directory"])
+    end
+
+  end
+
+  # Public: Inner class that contains Security Group configuration options
+  class SecurityConfig
+
+    attr_reader :groups_directory
+    attr_reader :outbound_default_all_allowed
+    attr_reader :subnets_file
+
+    # Public: Constructor.
+    #
+    # json   - a hash that contains Security Group configuration values. SecurityConfig
+    #          expects to be passed values from the "security" node of configuration.json
+    # parent - reference to the parent Configuration that spawned this SecurityConfig
+    def initialize(json, parent)
+      @groups_directory = parent.absolute_path(json["groups"]["directory"])
+      @outbound_default_all_allowed = json["outbound-default-all-allowed"]
+      @subnets_file = parent.absolute_path(json["subnets-file"])
     end
 
   end

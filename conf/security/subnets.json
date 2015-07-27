@@ -1,0 +1,8 @@
+{
+  // name a group and assign subnets to it
+  "example-subnet-group": ["10.0.0.0/8"],
+  "another-example-subnet": [
+    "10.50.23.61/32",
+    "10.50.24.0/24"
+  ]
+}

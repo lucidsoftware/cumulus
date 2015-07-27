@@ -1,4 +1,5 @@
 require "common/models/Diff"
+require "common/models/TagsDiff"
 require "util/Colors"
 
 # Public: The types of changes that can be made to an AutoScaling Group
@@ -25,6 +26,7 @@ end
 # configuration of AutoScaling Groups
 class AutoScalingDiff < Diff
   include AutoScalingChange
+  include TagsDiff
 
   attr_accessor :scheduled_diffs
   attr_accessor :policy_diffs
@@ -86,10 +88,7 @@ class AutoScalingDiff < Diff
       lines << (@local.subnets - aws_subnets).map { |s| "\t#{Colors.added(s)}" }
       lines.flatten.join("\n")
     when TAGS
-      lines = ["Tags:"]
-      lines << tags_to_remove.map { |k, v| "\t#{Colors.removed("#{k} => #{v}")}" }
-      lines << tags_to_add.map { |k, v| "\t#{Colors.added("#{k} => #{v}")}" }
-      lines.flatten.join("\n")
+      tags_diff_string
     when TERMINATION
       lines = ["Termination policies:"]
       lines << (@aws.termination_policies - @local.termination).map { |t| "\t#{Colors.removed(t)}" }
@@ -146,29 +145,6 @@ class AutoScalingDiff < Diff
   # Returns an array of load balancer names
   def load_balancers_to_add
     @local.load_balancers - @aws.load_balancer_names
-  end
-
-  # Public: Get the tags that are in AWS that are not in local configuration
-  #
-  # Returns a hash of tags
-  def tags_to_remove
-    aws_tags.reject { |t, v| @local.tags.include?(t) and @local.tags[t] == v }
-  end
-
-  # Public: Get the tags that are in local configuration but not in AWS
-  #
-  # Returns a hash of tags
-  def tags_to_add
-    @local.tags.reject { |t, v| aws_tags.include?(t) and aws_tags[t] == v }
-  end
-
-  private
-
-  # Internal: Get the tags in AWS as a hash of key to value
-  #
-  # Returns a hash of tags
-  def aws_tags
-    @aws_tags ||= Hash[@aws.tags.map { |tag| [tag.key, tag.value] }]
   end
 
 end
