@@ -10,13 +10,16 @@
         "security-group": "a-security-group",
         "protocol": "tcp",
         // to-port and end-port are the port range that will be allowed by the security group
-        "from-port": 8001,
-        "to-port": 8080
+        "ports": [
+          "8001-8080",
+          8081
+        ]
       },
       {
-        "protocol": "tcp",
-        "from-port": 8080,
-        "to-port": 8080,
+        "protocol": "all",
+        "ports": [
+          8080
+        ],
         "subnets": [ "10.0.0.0/24", "example-subnet-group"]
       }
     ],
@@ -24,8 +27,9 @@
       {
         "security-group": "a-security-group",
         "protocol": "tcp",
-        "from-port": 8080,
-        "to-port": 8080
+        "ports": [
+          8080
+        ]
       }
     ]
   }

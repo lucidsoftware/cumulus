@@ -25,9 +25,9 @@ class SecurityGroupConfig
       @description = if !json["description"].nil? then json["description"] else "" end
       @vpc_id = json["vpc-id"]
       @tags = if !json["tags"].nil? then json["tags"] else {} end
-      @inbound = json["rules"]["inbound"].map(&RuleConfig.method(:new))
+      @inbound = json["rules"]["inbound"].map(&RuleConfig.method(:expand_ports)).flatten
       @outbound = if !json["rules"]["outbound"].nil?
-        json["rules"]["outbound"].map(&RuleConfig.method(:new))
+        json["rules"]["outbound"].map(&RuleConfig.method(:expand_ports)).flatten
       else
         if Configuration.instance.security.outbound_default_all_allowed
           [RuleConfig.allow_all]

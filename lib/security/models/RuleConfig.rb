@@ -47,6 +47,33 @@ class RuleConfig
     })
   end
 
+  # Public: Static method that will produce multiple RuleConfigs, one for each port
+  # range.
+  #
+  # Returns an array of RuleConfigs
+  def RuleConfig.expand_ports(json)
+    ports = json["ports"]
+
+    if !ports.nil?
+      ports.map do |port|
+        rule_hash = json.clone
+
+        if port.is_a? String
+          parts = port.split("-").map(&:strip)
+          rule_hash["from-port"] = parts[0]
+          rule_hash["to-port"] = parts[1]
+        else
+          rule_hash["from-port"] = port
+          rule_hash["to-port"] = port
+        end
+
+        RuleConfig.new(rule_hash)
+      end
+    else
+      RuleConfig.new(json)
+    end
+  end
+
   # Public: Constructor
   #
   # json - a hash containing the JSON configuration for the security group
