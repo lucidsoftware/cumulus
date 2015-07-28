@@ -195,6 +195,10 @@ class SecurityGroups < Manager
 
           # put the security group or subnets into the request
           if !removed.security_group.nil?
+            if @sg_ids_to_names.key(removed.security_group).nil?
+              puts Colors.red("\t\tNo such security group: #{removed.security_group}. Security group not removed.")
+            end
+
             permission[:user_id_group_pairs] = [
               {
                 group_id: @sg_ids_to_names.key(removed.security_group)
@@ -224,6 +228,10 @@ class SecurityGroups < Manager
 
           # put the security group or subnets into the request
           if !added.security_group.nil?
+            if @sg_ids_to_names.key(added.security_group).nil?
+              puts Colors.red("\t\tNo such security group: #{added.security_group}. Security group not added.")
+            end
+
             permission[:user_id_group_pairs] = [
               {
                 group_id: @sg_ids_to_names.key(added.security_group)
