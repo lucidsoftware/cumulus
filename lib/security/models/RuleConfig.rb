@@ -104,13 +104,27 @@ class RuleConfig
   #
   # Returns the hash
   def hash
-    {
-      "security-groups" => @security_groups,
-      "protocol" => protocol,
-      "from-port" => @from,
-      "to-port" => @to,
-      "subnets" => @subnets,
-    }.reject { |k, v| v.nil? }
+    security_hashes = @security_groups.map do |security_group|
+      {
+        "security-groups" => [security_group],
+        "protocol" => protocol,
+        "from-port" => @from,
+        "to-port" => @to,
+        "subnets" => [],
+      }.reject { |k, v| v.nil? }
+    end
+    subnet_hashes = if !@subnets.empty?
+      [{
+        "security-groups" => [],
+        "protocol" => protocol,
+        "from-port" => @from,
+        "to-port" => @to,
+        "subnets" => @subnets
+      }.reject { |k, v| v.nil? }]
+    else
+      []
+    end
+    security_hashes + subnet_hashes
   end
 
 end
