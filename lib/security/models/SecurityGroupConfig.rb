@@ -133,7 +133,7 @@ class SecurityGroupConfig
   def combine_rules(rules)
     # first we find the ones that have the same protocol and port
     rules.map(&RuleMigration.method(:from_rule_config)).group_by do |rule|
-      [rule.protocol, rule.security_groups.nil?, rule.ports]
+      [rule.protocol, rule.ports]
     # next, we combine the matching rules together
     end.flat_map do |ignored, matches|
       if matches.size == 1
@@ -143,11 +143,7 @@ class SecurityGroupConfig
       end
     # now, try to find ones that have the same groups of allowed entities and protocol
     end.group_by do |rule|
-      if !rule.security_groups.nil?
-        [rule.protocol, rule.security_groups]
-      else
-        [rule.protocol, rule.subnets]
-      end
+      [rule.protocol, rule.security_groups, rule.subnets]
     # finally, we'll combine ports for the matches
     end.flat_map do |ignored, matches|
       if matches.size == 1

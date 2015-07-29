@@ -22,29 +22,19 @@ class RuleMigration
       end
     end
 
-    security_groups = if !rule_config.security_group.nil?
-      [rule_config.security_group]
-    else
-      nil
-    end
-
     # we're gonna replace any "0.0.0.0/0" with all to educate users on subnets.json
-    subnets = if !rule_config.subnets.nil?
-      rule_config.subnets.map do |subnet|
-        if subnet == "0.0.0.0/0"
-          "all"
-        else
-          subnet
-        end
+    subnets = rule_config.subnets.map do |subnet|
+      if subnet == "0.0.0.0/0"
+        "all"
+      else
+        subnet
       end
-    else
-      nil
     end
 
     RuleMigration.new(
       ports,
       rule_config.protocol,
-      security_groups,
+      rule_config.security_groups,
       subnets
     )
   end
@@ -81,21 +71,12 @@ class RuleMigration
   # Returns the a new RuleMigration with this RuleMigration's ports and protocol, and
   # the allowed entities of both RuleMigrations concatenated together
   def combine_allowed(other)
-    if !@security_groups.nil?
-      RuleMigration.new(
-        @ports,
-        @protocol,
-        @security_groups + other.security_groups,
-        @subnets
-      )
-    else
-      RuleMigration.new(
-        @ports,
-        @protocol,
-        @security_groups,
-        @subnets + other.subnets
-      )
-    end
+    RuleMigration.new(
+      @ports,
+      @protocol,
+      @security_groups + other.security_groups,
+      @subnets + other.subnets
+    )
   end
 
   # Public: Combine two RuleMigrations by combining ports. If both of the RuleMigrations

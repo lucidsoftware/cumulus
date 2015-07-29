@@ -202,18 +202,20 @@ class SecurityGroups < Manager
             to_port: removed.to
           }
 
-          # put the security group or subnets into the request
-          if !removed.security_group.nil?
-            if @sg_ids_to_names.key(removed.security_group).nil?
-              puts Colors.red("\t\tNo such security group: #{removed.security_group}. Security group not removed.")
-            end
+          if removed.security_groups.any? { |s| @sg_ids_to_names.key(s).nil? }
+            security_group = removed.security_groups.find { |s| @sg_ids_to_names.key(s).nil? }
+            puts Colors.red("\t\tNo such security group: #{security_group}. Security group not removed.")
+          end
 
-            permission[:user_id_group_pairs] = [
+          # put the security group or subnets into the request
+          if !removed.security_groups.empty?
+            permission[:user_id_group_pairs] = removed.security_groups.map do |security_group|
               {
-                group_id: @sg_ids_to_names.key(removed.security_group)
+                group_id: @sg_ids_to_names.key(security_group)
               }
-            ]
-          else
+            end
+          end
+          if !removed.subnets.empty?
             permission[:ip_ranges] = removed.subnets.map do |subnet|
               { cidr_ip: subnet }
             end
@@ -235,18 +237,18 @@ class SecurityGroups < Manager
             to_port: added.to
           }
 
-          # put the security group or subnets into the request
-          if !added.security_group.nil?
-            if @sg_ids_to_names.key(added.security_group).nil?
-              puts Colors.red("\t\tNo such security group: #{added.security_group}. Security group not added.")
-            end
+          if added.security_groups.any? { |s| @sg_ids_to_names.key(s).nil? }
+            security_group = added.security_groups.find { |s| @sg_ids_to_names.key(s).nil? }
+            puts Colors.red("\t\tNo such security group: #{security_group}. Security group not added.")
+          end
 
-            permission[:user_id_group_pairs] = [
-              {
-                group_id: @sg_ids_to_names.key(added.security_group)
-              }
-            ]
-          else
+          # put the security group or subnets into the request
+          if !added.security_groups.empty?
+            permission[:user_id_group_pairs] = added.security_groups.map do |security_group|
+              { group_id: @sg_ids_to_names.key(security_group) }
+            end
+          end
+          if !added.subnets.empty?
             permission[:ip_ranges] = added.subnets.map do |subnet|
               { cidr_ip: subnet }
             end

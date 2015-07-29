@@ -19,10 +19,11 @@
       },
       {
         "protocol": "tcp",
+        "security-groups": ["a-security-group"],
         "ports": [
           8080
         ],
-        "subnets": [ "10.0.0.0/24", "example-subnet-group"]
+        "subnets": ["10.0.0.0/24", "example-subnet-group"]
       }
     ],
     "outbound": [
