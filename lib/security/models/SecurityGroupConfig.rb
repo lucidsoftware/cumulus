@@ -115,11 +115,11 @@ class SecurityGroupConfig
     aws = aws_rules.map do |rule|
       RuleConfig.from_aws(rule, sg_ids_to_names)
     end
-    aws_hashes = aws.map(&:hash)
-    local_hashes = local_rules.map(&:hash)
+    aws_hashes = aws.flat_map(&:hash)
+    local_hashes = local_rules.flat_map(&:hash)
 
-    diffs << local_rules.reject { |i| aws_hashes.include?(i.hash) }.map { |l| RuleDiff.added(l) }
-    diffs << aws.reject { |a| local_hashes.include?(a.hash) }.map { |a| RuleDiff.removed(a) }
+    diffs << local_hashes.reject { |i| aws_hashes.include?(i) }.map { |l| RuleDiff.added(RuleConfig.new(l)) }
+    diffs << aws_hashes.reject { |a| local_hashes.include?(a) }.map { |a| RuleDiff.removed(RuleConfig.new(a)) }
 
     diffs.flatten
   end
