@@ -6,6 +6,7 @@ require "security/models/SecurityGroupDiff"
 require "util/Colors"
 
 require "aws-sdk"
+require "json"
 
 class SecurityGroups < Manager
   def initialize
@@ -33,7 +34,15 @@ class SecurityGroups < Manager
       File.open("#{groups_dir}/#{config.name}.json", "w") { |f| f.write(config.pretty_json) }
     end
 
-    puts Colors.blue("IP addresses for inbound and outbound rules have been left as is in each individual security group, but we recommend that you name and group those IP addresses for maximum benefit.")
+    File.open("#{@migration_root}/subnets.json", "w") do |f|
+      f.write(JSON.pretty_generate({
+        "all" => ["0.0.0.0/0"]
+      }))
+    end
+
+    puts Colors.blue("IP addresses for inbound and outbound rules have been left as is in each individual security group, except in the case of 0.0.0.0/0.")
+    puts Colors.blue("0.0.0.0/0 has been renamed to 'all' and is referenced as such in security group definitions.")
+    puts Colors.blue("See subnets.json to see the definition of the 'all' subnet group.")
   end
 
   def resource_name
@@ -193,14 +202,20 @@ class SecurityGroups < Manager
             to_port: removed.to
           }
 
+          if removed.security_groups.any? { |s| @sg_ids_to_names.key(s).nil? }
+            security_group = removed.security_groups.find { |s| @sg_ids_to_names.key(s).nil? }
+            puts Colors.red("\t\tNo such security group: #{security_group}. Security group not removed.")
+          end
+
           # put the security group or subnets into the request
-          if !removed.security_group.nil?
-            permission[:user_id_group_pairs] = [
+          if !removed.security_groups.empty?
+            permission[:user_id_group_pairs] = removed.security_groups.map do |security_group|
               {
-                group_id: @sg_ids_to_names.key(removed.security_group)
+                group_id: @sg_ids_to_names.key(security_group)
               }
-            ]
-          else
+            end
+          end
+          if !removed.subnets.empty?
             permission[:ip_ranges] = removed.subnets.map do |subnet|
               { cidr_ip: subnet }
             end
@@ -222,14 +237,18 @@ class SecurityGroups < Manager
             to_port: added.to
           }
 
+          if added.security_groups.any? { |s| @sg_ids_to_names.key(s).nil? }
+            security_group = added.security_groups.find { |s| @sg_ids_to_names.key(s).nil? }
+            puts Colors.red("\t\tNo such security group: #{security_group}. Security group not added.")
+          end
+
           # put the security group or subnets into the request
-          if !added.security_group.nil?
-            permission[:user_id_group_pairs] = [
-              {
-                group_id: @sg_ids_to_names.key(added.security_group)
-              }
-            ]
-          else
+          if !added.security_groups.empty?
+            permission[:user_id_group_pairs] = added.security_groups.map do |security_group|
+              { group_id: @sg_ids_to_names.key(security_group) }
+            end
+          end
+          if !added.subnets.empty?
             permission[:ip_ranges] = added.subnets.map do |subnet|
               { cidr_ip: subnet }
             end

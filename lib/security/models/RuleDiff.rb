@@ -50,11 +50,7 @@ class RuleDiff < Diff
   def to_readable(config)
     # yes, for real, AWS returns the STRING "-1" if all protocols are allowed
     protocol = if config.protocol == "-1" then "All" else config.protocol end
-    allowed = if !config.security_group.nil?
-      config.security_group
-    else
-      config.subnets.join(", ")
-    end
+    allowed = (config.security_groups + config.subnets).join(", ")
 
     temp = "Allowed: #{allowed}, Protocol: #{protocol}, "
     if config.from != config.to

@@ -5,7 +5,7 @@ class RuleConfig
 
   attr_reader :from
   attr_reader :protocol
-  attr_reader :security_group
+  attr_reader :security_groups
   attr_reader :subnets
   attr_reader :to
 
@@ -16,24 +16,19 @@ class RuleConfig
   #
   # Returns a RuleConfig containing the data in the AWS rule
   def RuleConfig.from_aws(aws, sg_ids_to_names)
-    security_group = if aws.user_id_group_pairs.size == 1
-      sg_ids_to_names[aws.user_id_group_pairs[0].group_id]
-    else
-      nil
-    end
-
-    subnets = if aws.ip_ranges.empty?
-      nil
-    else
-      aws.ip_ranges.map { |ip| ip.cidr_ip }
+    from_port = aws.from_port
+    to_port = aws.to_port
+    if from_port == -1 or to_port == -1
+      from_port = nil
+      to_port = nil
     end
 
     RuleConfig.new({
-      "security-group" => security_group,
+      "security-groups" => aws.user_id_group_pairs.map { |security| sg_ids_to_names[security.group_id] },
       "protocol" => aws.ip_protocol,
-      "from-port" => aws.from_port,
-      "to-port" => aws.to_port,
-      "subnets" => subnets
+      "from-port" => from_port,
+      "to-port" => to_port,
+      "subnets" => aws.ip_ranges.map { |ip| ip.cidr_ip }
     })
   end
 
@@ -47,24 +42,53 @@ class RuleConfig
     })
   end
 
+  # Public: Static method that will produce multiple RuleConfigs, one for each port
+  # range.
+  #
+  # json - a hash containing the JSON configuration for the rule
+  #
+  # Returns an array of RuleConfigs
+  def RuleConfig.expand_ports(json)
+    ports = json["ports"]
+
+    if !ports.nil?
+      ports.map do |port|
+        rule_hash = json.clone
+
+        if port.is_a? String
+          parts = port.split("-").map(&:strip)
+          rule_hash["from-port"] = parts[0].to_i
+          rule_hash["to-port"] = parts[1].to_i
+        else
+          rule_hash["from-port"] = port
+          rule_hash["to-port"] = port
+        end
+
+        RuleConfig.new(rule_hash)
+      end
+    else
+      RuleConfig.new(json)
+    end
+  end
+
   # Public: Constructor
   #
-  # json - a hash containing the JSON configuration for the security group
+  # json - a hash containing the JSON configuration for the rule
   def initialize(json)
     @from = json["from-port"]
     @protocol = json["protocol"]
     @to = json["to-port"]
-    if !json["security-group"].nil?
-      @security_group = json["security-group"]
-    end
-    if !json["subnets"].nil?
-      @subnets = json["subnets"].map do |subnet|
+    @security_groups = if !json["security-groups"].nil? then json["security-groups"] else [] end
+    @subnets = if !json["subnets"].nil?
+      json["subnets"].flat_map do |subnet|
         if subnet.match(/\d{1,3}.\d{1,3}.\d{1,3}.\d{1,3}\/\d+/).nil?
           Loader.subnet_group(subnet)
         else
           subnet
         end
-      end.flatten
+      end
+    else
+      []
     end
   end
 
@@ -81,7 +105,7 @@ class RuleConfig
   # Returns the hash
   def hash
     {
-      "security-group" => @security_group,
+      "security-groups" => @security_groups,
       "protocol" => protocol,
       "from-port" => @from,
       "to-port" => @to,

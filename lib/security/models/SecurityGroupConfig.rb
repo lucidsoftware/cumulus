@@ -1,6 +1,7 @@
 require "conf/Configuration"
 require "security/models/RuleConfig"
 require "security/models/RuleDiff"
+require "security/models/RuleMigration"
 require "security/models/SecurityGroupDiff"
 
 require "json"
@@ -25,9 +26,9 @@ class SecurityGroupConfig
       @description = if !json["description"].nil? then json["description"] else "" end
       @vpc_id = json["vpc-id"]
       @tags = if !json["tags"].nil? then json["tags"] else {} end
-      @inbound = json["rules"]["inbound"].map(&RuleConfig.method(:new))
+      @inbound = json["rules"]["inbound"].map(&RuleConfig.method(:expand_ports)).flatten
       @outbound = if !json["rules"]["outbound"].nil?
-        json["rules"]["outbound"].map(&RuleConfig.method(:new))
+        json["rules"]["outbound"].map(&RuleConfig.method(:expand_ports)).flatten
       else
         if Configuration.instance.security.outbound_default_all_allowed
           [RuleConfig.allow_all]
@@ -79,8 +80,8 @@ class SecurityGroupConfig
     @description = aws.description
     @vpc_id = aws.vpc_id
     @tags = Hash[aws.tags.map { |t| [t.key, t.value] }]
-    @inbound = aws.ip_permissions.map { |rule| RuleConfig.from_aws(rule, sg_ids_to_names) }
-    @outbound = aws.ip_permissions_egress.map { |rule| RuleConfig.from_aws(rule, sg_ids_to_names) }
+    @inbound = combine_rules(aws.ip_permissions.map { |rule| RuleConfig.from_aws(rule, sg_ids_to_names) })
+    @outbound = combine_rules(aws.ip_permissions_egress.map { |rule| RuleConfig.from_aws(rule, sg_ids_to_names) })
   end
 
   # Public: Get the config as a prettified JSON string.
@@ -88,7 +89,6 @@ class SecurityGroupConfig
   # Returns the JSON string
   def pretty_json
     JSON.pretty_generate({
-      "name" => @name,
       "description" => @description,
       "vpc-id" => @vpc_id,
       "tags" => @tags,
@@ -122,5 +122,35 @@ class SecurityGroupConfig
     diffs << aws.reject { |a| local_hashes.include?(a.hash) }.map { |a| RuleDiff.removed(a) }
 
     diffs.flatten
+  end
+
+  # Internal: Combine rules that have the same ports and security groups to create the compact version
+  # used by cumulus config.
+  #
+  # rules - an array of the rules to combine
+  #
+  # Returns an array of compact rules
+  def combine_rules(rules)
+    # first we find the ones that have the same protocol and port
+    rules.map(&RuleMigration.method(:from_rule_config)).group_by do |rule|
+      [rule.protocol, rule.ports]
+    # next, we combine the matching rules together
+    end.flat_map do |ignored, matches|
+      if matches.size == 1
+        matches
+      else
+        matches[1..-1].inject(matches[0]) { |prev, cur| prev.combine_allowed(cur) }
+      end
+    # now, try to find ones that have the same groups of allowed entities and protocol
+    end.group_by do |rule|
+      [rule.protocol, rule.security_groups, rule.subnets]
+    # finally, we'll combine ports for the matches
+    end.flat_map do |ignored, matches|
+      if matches.size == 1
+        matches
+      else
+        matches[1..-1].inject(matches[0]) { |prev, cur| prev.combine_ports(cur) }
+      end
+    end
   end
 end
