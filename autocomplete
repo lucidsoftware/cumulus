@@ -27,6 +27,7 @@ function _cumulus {
             configs=$(cumulus security list)
             COMPREPLY=( $(compgen -W "$configs" -- $cur) )
           fi
+          ;;
         *)
           case "$prev" in
             iam)
