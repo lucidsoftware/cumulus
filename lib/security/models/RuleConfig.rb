@@ -28,11 +28,18 @@ class RuleConfig
       aws.ip_ranges.map { |ip| ip.cidr_ip }
     end
 
+    from_port = aws.from_port
+    to_port = aws.to_port
+    if from_port == -1 or to_port == -1
+      from_port = nil
+      to_port = nil
+    end
+
     RuleConfig.new({
       "security-group" => security_group,
       "protocol" => aws.ip_protocol,
-      "from-port" => aws.from_port,
-      "to-port" => aws.to_port,
+      "from-port" => from_port,
+      "to-port" => to_port,
       "subnets" => subnets
     })
   end
@@ -62,8 +69,8 @@ class RuleConfig
 
         if port.is_a? String
           parts = port.split("-").map(&:strip)
-          rule_hash["from-port"] = parts[0]
-          rule_hash["to-port"] = parts[1]
+          rule_hash["from-port"] = parts[0].to_i
+          rule_hash["to-port"] = parts[1].to_i
         else
           rule_hash["from-port"] = port
           rule_hash["to-port"] = port
