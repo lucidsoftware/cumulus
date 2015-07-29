@@ -28,8 +28,15 @@ class RuleMigration
       nil
     end
 
+    # we're gonna replace any "0.0.0.0/0" with all to educate users on subnets.json
     subnets = if !rule_config.subnets.nil?
-      rule_config.subnets
+      rule_config.subnets.map do |subnet|
+        if subnet == "0.0.0.0/0"
+          "all"
+        else
+          subnet
+        end
+      end
     else
       nil
     end

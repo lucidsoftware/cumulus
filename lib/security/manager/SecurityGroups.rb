@@ -6,6 +6,7 @@ require "security/models/SecurityGroupDiff"
 require "util/Colors"
 
 require "aws-sdk"
+require "json"
 
 class SecurityGroups < Manager
   def initialize
@@ -33,7 +34,15 @@ class SecurityGroups < Manager
       File.open("#{groups_dir}/#{config.name}.json", "w") { |f| f.write(config.pretty_json) }
     end
 
-    puts Colors.blue("IP addresses for inbound and outbound rules have been left as is in each individual security group, but we recommend that you name and group those IP addresses for maximum benefit.")
+    File.open("#{@migration_root}/subnets.json", "w") do |f|
+      f.write(JSON.pretty_generate({
+        "all" => ["0.0.0.0/0"]
+      }))
+    end
+
+    puts Colors.blue("IP addresses for inbound and outbound rules have been left as is in each individual security group, except in the case of 0.0.0.0/0.")
+    puts Colors.blue("0.0.0.0/0 has been renamed to 'all' and is referenced as such in security group definitions.")
+    puts Colors.blue("See subnets.json to see the definition of the 'all' subnet group.")
   end
 
   def resource_name
