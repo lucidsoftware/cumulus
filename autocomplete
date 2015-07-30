@@ -22,9 +22,9 @@ function _cumulus {
             COMPREPLY=( $(compgen -W "$configs" -- $cur) )
           fi
         ;;
-        security)
+        security-groups)
           if [ "$prev" == "diff" ] || [ "$prev" == "sync" ]; then
-            configs=$(cumulus security list)
+            configs=$(cumulus security-groups list)
             COMPREPLY=( $(compgen -W "$configs" -- $cur) )
           fi
           ;;
@@ -37,9 +37,9 @@ function _cumulus {
               COMPREPLY=( $(compgen -W "diff list migrate sync" -- $cur) )
             ;;
             cumulus)
-              COMPREPLY=( $(compgen -W "autoscaling help iam security" -- $cur) )
+              COMPREPLY=( $(compgen -W "autoscaling help iam security-groups" -- $cur) )
             ;;
-            security)
+            security-groups)
               COMPREPLY=( $(compgen -W "diff list migrate sync" -- $cur) )
             ;;
           esac

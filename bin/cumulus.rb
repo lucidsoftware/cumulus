@@ -112,15 +112,15 @@ module Modules
   # Public: Run the Security Group module
   def self.security
     if ARGV.size < 2 or (ARGV[1] != "help" and ARGV[1] != "diff" and ARGV[1] != "list" and ARGV[1] != "migrate" and ARGV[1] != "sync")
-      puts "Usage: cumulus security [diff|help|list|migrate|sync] <asset>"
+      puts "Usage: cumulus security-groups [diff|help|list|migrate|sync] <asset>"
       exit
     end
 
     if ARGV[1] == "help"
-      puts "security: Manage EC2 Security Groups"
+      puts "security-groups: Manage EC2 Security Groups"
       puts "\tDiff and sync EC2 security group configuration with AWS."
       puts
-      puts "Usage: cumulus security [diff|help|list|migrate|sync] <asset>"
+      puts "Usage: cumulus security-groups [diff|help|list|migrate|sync] <asset>"
       puts
       puts "Commands"
       puts "\tdiff\t- print out differences between local configuration and AWS (supplying the name of the security group will diff only that security group)"
@@ -163,8 +163,8 @@ rescue LoadError
   exit
 end
 
-if ARGV.size == 0 or (ARGV[0] != "iam" and ARGV[0] != "help" and ARGV[0] != "autoscaling" and ARGV[0] != "security")
-  puts "Usage: cumulus [help|iam|autoscaling|security]"
+if ARGV.size == 0 or (ARGV[0] != "iam" and ARGV[0] != "help" and ARGV[0] != "autoscaling" and ARGV[0] != "security-groups")
+  puts "Usage: cumulus [help|iam|autoscaling|security-groups]"
   exit
 end
 
@@ -173,9 +173,9 @@ if ARGV[0] == "help"
   puts "\tConfiguration based management of AWS resources."
   puts
   puts "Modules"
-  puts "\tiam\t- Compiles IAM roles and policies that are defined with configuration files and syncs the resulting IAM roles and policies with AWS"
+  puts "\tiam\t\t- Compiles IAM roles and policies that are defined with configuration files and syncs the resulting IAM roles and policies with AWS"
   puts "\tautoscaling\t- Manages configuration for EC2 AutoScaling."
-  puts "\tsecurity\t- Manages configuration for EC2 Security Groups."
+  puts "\tsecurity-groups\t- Manages configuration for EC2 Security Groups."
 end
 
 # read in the optional path to the configuration file to use
@@ -221,6 +221,6 @@ if ARGV[0] == "iam"
   Modules.iam
 elsif ARGV[0] == "autoscaling"
   Modules.autoscaling
-elsif ARGV[0] == "security"
+elsif ARGV[0] == "security-groups"
   Modules.security
 end
