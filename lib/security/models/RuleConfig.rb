@@ -86,7 +86,7 @@ class RuleConfig
         else
           subnet
         end
-      end
+      end.sort
     else
       []
     end
