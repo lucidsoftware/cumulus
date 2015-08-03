@@ -90,7 +90,7 @@ Scaling policies can contain alarms. Alarms correspond to Cloudwatch alarms, and
 
 ### Diffing and Syncing Configuration
 
-Cumulus's IAM module has the following usage:
+Cumulus's autoscaling module has the following usage:
 
 {% highlight bash %}
 cumulus autoscaling [diff|help|list|migrate|sync] <asset>
