@@ -109,6 +109,47 @@ module Modules
     end
   end
 
+  # Public: Run the route53 module
+  def self.route53
+    if ARGV.size < 2 or (ARGV[1] != "help" and ARGV[1] != "diff" and ARGV[1] != "list" and ARGV[1] != "migrate" and ARGV[1] != "sync")
+      puts "Usage: cumulus route53 [diff|help|list|migrate|sync] <asset>"
+      exit
+    end
+
+    if ARGV[1] == "help"
+      puts "route53: Manage Route53"
+      puts "\tDiff and sync Route53 configuration with AWS."
+      puts
+      puts "Usage: cumulus route53 [diff|help|list|migrate|sync] <asset>"
+      puts "Commands"
+      puts "\tdiff\t- print out differences between local configuration and AWS (supplying the name of the zone will diff only that zone)"
+      puts "\tlist\t- list the locally defined zones"
+      puts "\tmigrate\t- produce Cumulus zone configuration from current AWS configuration"
+      puts "\tsync\t- sync local zone definitions with AWS (supplying the name of the zone will sync only that zone)"
+      exit
+    end
+
+    require "route53/manager/Route53"
+    route53 = Route53.new
+    if ARGV[1] == "diff"
+      if ARGV.size == 2
+        route53.diff
+      else
+        route53.diff_one(ARGV[2])
+      end
+    elsif ARGV[1] == "list"
+      route53.list
+    elsif ARGV[1] == "migrate"
+      route53.migrate
+    elsif ARGV[1] == "sync"
+      if ARGV.size == 2
+        route53.sync
+      else
+        route53.sync_one(ARGV[2])
+      end
+    end
+  end
+
   # Public: Run the Security Group module
   def self.security
     if ARGV.size < 2 or (ARGV[1] != "help" and ARGV[1] != "diff" and ARGV[1] != "list" and ARGV[1] != "migrate" and ARGV[1] != "sync")
@@ -163,8 +204,9 @@ rescue LoadError
   exit
 end
 
-if ARGV.size == 0 or (ARGV[0] != "iam" and ARGV[0] != "help" and ARGV[0] != "autoscaling" and ARGV[0] != "security-groups")
-  puts "Usage: cumulus [help|iam|autoscaling|security-groups]"
+if ARGV.size == 0 or (ARGV[0] != "iam" and ARGV[0] != "help" and ARGV[0] != "autoscaling" and
+  ARGV[0] != "route53" and ARGV[0] != "security-groups")
+  puts "Usage: cumulus [help|iam|autoscaling|route53|security-groups]"
   exit
 end
 
@@ -174,8 +216,9 @@ if ARGV[0] == "help"
   puts
   puts "Modules"
   puts "\tiam\t\t- Compiles IAM roles and policies that are defined with configuration files and syncs the resulting IAM roles and policies with AWS"
-  puts "\tautoscaling\t- Manages configuration for EC2 AutoScaling."
-  puts "\tsecurity-groups\t- Manages configuration for EC2 Security Groups."
+  puts "\tautoscaling\t- Manages configuration for EC2 AutoScaling"
+  puts "\troute53\t\t- Manages configuration for Route53"
+  puts "\tsecurity-groups\t- Manages configuration for EC2 Security Groups"
 end
 
 # read in the optional path to the configuration file to use
@@ -221,6 +264,8 @@ if ARGV[0] == "iam"
   Modules.iam
 elsif ARGV[0] == "autoscaling"
   Modules.autoscaling
+elsif ARGV[0] == "route53"
+  Modules.route53
 elsif ARGV[0] == "security-groups"
   Modules.security
 end

@@ -5,7 +5,7 @@ require "json"
 class Configuration
 
   attr_reader :colors_enabled
-  attr_reader :iam, :autoscaling, :security
+  attr_reader :iam, :autoscaling, :route53, :security
   attr_reader :region
 
   # Internal: Constructor. Sets up the `instance` variable, which is the access
@@ -21,6 +21,7 @@ class Configuration
     @region = json["region"]
     @iam = IamConfig.new(json["iam"], self)
     @autoscaling = AutoScalingConfig.new(json["autoscaling"], self)
+    @route53 = Route53Config.new(json["route53"], self)
     @security = SecurityConfig.new(json["security"], self)
   end
 
@@ -113,6 +114,19 @@ class Configuration
       @template_policy_directory = parent.absolute_path(json["policies"]["templates"]["directory"])
     end
 
+  end
+
+  # Public: Inner class that contains Route53 configuration options
+  class Route53Config
+    attr_reader :zones_directory
+
+    # Public: Constructor
+    # json   - a hash that contains Route53 configuration values. Route53 expects to be
+    #          passed values from the "route53" node of configuration.json
+    # parent - reference to the parent Configuration that spawned this Route53Config
+    def initialize(json, parent)
+      @zones_directory = parent.absolute_path(json["zones"]["directory"])
+    end
   end
 
   # Public: Inner class that contains Security Group configuration options

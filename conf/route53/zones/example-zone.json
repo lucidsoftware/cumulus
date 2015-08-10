@@ -1,0 +1,9 @@
+{
+  "domain": "www.example.com",
+  "private": false,
+  "comment": "An example comment",
+  "zone-id": "ZWZD9JDVIN50A",
+  "records": [
+
+  ]
+}

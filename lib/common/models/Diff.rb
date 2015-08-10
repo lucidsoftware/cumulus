@@ -65,7 +65,7 @@ class Diff
   def to_s
     case @type
     when ADD
-      Colors.added("#{asset_type} #{@local.name} will be created.")
+      Colors.added("#{asset_type} #{@local.name} #{add_string}")
     when UNMANAGED
       Colors.unmanaged("#{asset_type} #{aws_name} is not managed by Cumulus.")
     else
@@ -73,4 +73,11 @@ class Diff
     end
   end
 
+  # Public: A method that produces the string that describes what will be done with new assets.
+  # This can be overridden for the case that the ADD case doesn't create the asset.
+  #
+  # Returns the string describing the action that will be taken.
+  def add_string
+    "will be created."
+  end
 end

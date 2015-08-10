@@ -14,9 +14,15 @@ require "util/Colors"
 #   added_diff - return the correct type of diff from a local configuration object
 #   create - given a local configuration, create the AWS resource
 #   update - given a local configuration and an array of diffs, update the AWS resource
+#
+# Additionally, the following instance variables can be set to change the behavior of the manager:
+#
+#   create_asset - if true, the asset will be created, if false, a warning will be printed about
+#     the asset not being created
 class Manager
   def initialize
     @migration_root = "generated"
+    @create_asset = true
   end
 
   # Public: Print a diff between local configuration and configuration in AWS
@@ -28,13 +34,13 @@ class Manager
   #
   # name - the name of the resource to diff
   def diff_one(name)
-    local = local_resources.reject { |n, l| n != name }
+    local = local_resources.reject { |n, l| l.name != name }
     each_difference(local, false) { |name, diffs| print_difference(name, diffs) }
   end
 
   # Public: Print out the names of all resources managed by Cumulus
   def list
-    puts local_resources.map { |name, l| name }.join(" ")
+    puts local_resources.map { |name, l| l.name }.join(" ")
   end
 
   # Public: Sync local configuration to AWS
@@ -46,7 +52,7 @@ class Manager
   #
   # name - the name of the resource to sync
   def sync_one(name)
-    local = local_resources.reject { |n, l| n != name }
+    local = local_resources.reject { |n, l| l.name != name }
     each_difference(local, false) { |name, diffs| sync_difference(name, diffs) }
   end
 
@@ -66,9 +72,9 @@ class Manager
     end
     locals.each do |name, resource|
       if !aws_resources.include?(name)
-        f.call(name, [added_diff(resource)])
+        f.call(resource.name, [added_diff(resource)])
       else
-        f.call(name, diff_resource(resource, aws_resources[name]))
+        f.call(resource.name, diff_resource(resource, aws_resources[name]))
       end
     end
   end
@@ -101,8 +107,12 @@ class Manager
       if diffs[0].type == DiffChange::UNMANAGED
         puts diffs[0]
       elsif diffs[0].type == DiffChange::ADD
-        puts Colors.added("creating #{name}...")
-        create(diffs[0].local)
+        if @create_asset
+          puts Colors.added("creating #{name}...")
+          create(diffs[0].local)
+        else
+          puts Colors.red("not creating #{name}...")
+        end
       else
         puts Colors.blue("updating #{name}...")
         update(diffs[0].local, diffs)
