@@ -61,10 +61,10 @@ class Manager
   def each_difference(locals, include_unmanaged, &f)
     if include_unmanaged
       aws_resources.each do |name, resource|
-        f.call(name, [unmanaged_diff(resource)]) if !local_resources.include?(name)
+        f.call(name, [unmanaged_diff(resource)]) if !locals.include?(name)
       end
     end
-    local_resources.each do |name, resource|
+    locals.each do |name, resource|
       if !aws_resources.include?(name)
         f.call(name, [added_diff(resource)])
       else
