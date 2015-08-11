@@ -1,0 +1,15 @@
+{
+  "domain": "www.example.com",
+  "private": true,
+  "vpc": [
+    {
+      "id": "vpc-5f019b3a",
+      "region": "us-east-1"
+    }
+  ],
+  "comment": "An example comment",
+  "zone-id": "Z23N6K3FTHCHPS",
+  "records": [
+
+  ]
+}

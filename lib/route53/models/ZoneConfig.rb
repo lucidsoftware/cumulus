@@ -1,4 +1,5 @@
 require "route53/models/RecordConfig"
+require "route53/models/Vpc"
 require "route53/models/ZoneDiff"
 
 # Public: An object representing configuration for a zone
@@ -9,6 +10,7 @@ class ZoneConfig
   attr_reader :name
   attr_reader :private
   attr_reader :records
+  attr_reader :vpc
 
   # Public: Constructor
   #
@@ -19,8 +21,10 @@ class ZoneConfig
       @id = "/hostedzone/#{json["zone-id"]}"
       @domain = json["domain"]
       @private = json["private"]
+      @vpc = if @private then json["vpc"].map { |v| Vpc.new(v["id"], v["region"]) } else [] end
       @comment = json["comment"]
       @records = json["records"].map(&RecordConfig.method(:new))
+
     end
   end
 
@@ -41,6 +45,9 @@ class ZoneConfig
     end
     if @private != aws.config.private_zone
       diffs << ZoneDiff.new(ZoneChange::PRIVATE, aws, self)
+    end
+    if @private and @vpc.sort != aws.vpc.sort
+      diffs << ZoneDiff.new(ZoneChange::VPC, aws, self)
     end
 
     diffs
