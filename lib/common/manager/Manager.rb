@@ -111,7 +111,7 @@ class Manager
           puts Colors.added("creating #{name}...")
           create(diffs[0].local)
         else
-          puts Colors.red("not creating #{name}...")
+          puts "not creating #{name}..."
         end
       else
         puts Colors.blue("updating #{name}...")

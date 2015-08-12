@@ -8,6 +8,7 @@ module ZoneChange
   COMMENT = DiffChange::next_change_id
   DOMAIN = DiffChange::next_change_id
   PRIVATE = DiffChange::next_change_id
+  RECORD = DiffChange::next_change_id
   VPC = DiffChange::next_change_id
 end
 
@@ -15,6 +16,20 @@ end
 # configuration of zones.
 class ZoneDiff < Diff
   include ZoneChange
+
+  attr_accessor :changed_records
+
+  # Public: Static method that produces a diff representing changes in records
+  #
+  # changed_records - the RecordDiffs
+  # local           - the local configuration for the zone
+  #
+  # Returns the diff
+  def self.records(changed_records, local)
+    diff = ZoneDiff.new(RECORD, nil, local)
+    diff.changed_records = changed_records
+    diff
+  end
 
   def asset_type
     "Zone"
@@ -47,6 +62,11 @@ class ZoneDiff < Diff
         "Private: AWS - #{Colors.aws_changes(@aws.config.private_zone)}, Local - #{Colors.local_changes(@local.private)}",
         "\tAWS doesn't allow you to change whether a zone is private."
       ].join("\n")
+    when RECORD
+      [
+        "Records:",
+        @changed_records.map { |r| "\t#{r}" }
+      ].flatten.join("\n")
     when VPC
       [
         "VPCs:",

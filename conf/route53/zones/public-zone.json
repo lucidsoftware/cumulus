@@ -4,6 +4,22 @@
   "comment": "An example comment",
   "zone-id": "Z23N6K3FTHCHPS",
   "records": [
-
+    {
+      "name": "sub",
+      "type": "A",
+      "ttl": 300,
+      "value": [
+        "127.0.0.1",
+        "123.4.5.6"
+      ]
+    },
+    {
+      "name": "sub",
+      "type": "TXT",
+      "ttl": 300,
+      "value": [
+        "Sample Text"
+      ]
+    }
   ]
 }

@@ -1,4 +1,5 @@
 require "route53/models/RecordConfig"
+require "route53/models/RecordDiff"
 require "route53/models/Vpc"
 require "route53/models/ZoneDiff"
 
@@ -19,12 +20,11 @@ class ZoneConfig
     @name = name
     if !json.nil?
       @id = "/hostedzone/#{json["zone-id"]}"
-      @domain = json["domain"]
+      @domain = json["domain"].chomp(".")
       @private = json["private"]
       @vpc = if @private then json["vpc"].map { |v| Vpc.new(v["id"], v["region"]) } else [] end
       @comment = json["comment"]
-      @records = json["records"].map(&RecordConfig.method(:new))
-
+      @records = json["records"].map { |json| RecordConfig.new(json, @domain) }
     end
   end
 
@@ -40,7 +40,7 @@ class ZoneConfig
     if @comment != aws.config.comment
       diffs << ZoneDiff.new(ZoneChange::COMMENT, aws, self)
     end
-    if @domain != aws.name and "#{@domain}." != aws.name
+    if !domain_matches(aws.name)
       diffs << ZoneDiff.new(ZoneChange::DOMAIN, aws, self)
     end
     if @private != aws.config.private_zone
@@ -50,6 +50,67 @@ class ZoneConfig
       diffs << ZoneDiff.new(ZoneChange::VPC, aws, self)
     end
 
+    record_diffs = diff_records(aws.records)
+    if !record_diffs.empty?
+      diffs << ZoneDiff.records(record_diffs, self)
+    end
+
     diffs
+  end
+
+  private
+
+  # The unique key on a record is a combination of name and type
+  RecordKey = Struct.new(:name, :type)
+
+  # Internal: Produce an array of differences between local record configuration and the
+  # configuration in AWS.
+  #
+  # aws - an array of records in aws
+  #
+  # Returns an array of the RecordDiffs that were found
+  def diff_records(aws)
+    diffs = []
+
+    # map the records to their keys
+    aws = Hash[aws.map { |r| [RecordKey.new(r.name, r.type), r] }]
+    local = Hash[@records.map { |r| [RecordKey.new(r.name, r.type), r] }]
+
+    # find records in aws that are not configured locally, ignoring the NS and SOA
+    # record for the domain
+    aws.each do |key, record|
+      if !local.include?(key)
+        if domain_matches(record.name) and record.type == "NS"
+          diffs << RecordDiff.ignored("Default NS record is supplied in AWS, but not locally. It will be ignored when syncing.", record)
+        elsif domain_matches(record.name) and record.type == "SOA"
+          diffs << RecordDiff.ignored("Default SOA record is supplied in AWS, but not locally. It will be ignored when syncing.", record)
+        else
+          diffs << RecordDiff.unmanaged(record)
+        end
+      end
+    end
+
+    local.each do |key, record|
+      if !aws.include?(key)
+        diffs << RecordDiff.added(record)
+      else
+        d = record.diff(aws[key])
+        if !d.empty?
+          diffs << RecordDiff.changed(d, record)
+        end
+      end
+    end
+
+    diffs.flatten
+  end
+
+  # Internal: Determine if a string is the same as the domain. This method is needed because
+  # AWS considers a domain ending in "." to be equivalent to one without.
+  #
+  # s - the string to compare
+  #
+  # Returns whether the string matches the domain
+  def domain_matches(s)
+    @domain == s or "#{@domain}." == s
   end
 end

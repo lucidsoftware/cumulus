@@ -1,6 +1,7 @@
 require "common/manager/Manager"
 require "conf/Configuration"
 require "route53/loader/Loader"
+require "route53/models/RecordDiff"
 require "route53/models/Vpc"
 require "route53/models/ZoneDiff"
 require "util/Colors"
@@ -50,6 +51,14 @@ class Route53 < Manager
         puts "\tAWS doesn't allow you to change whether a zone is private."
       when ZoneChange::VPC
         update_vpc(local.id, diff.added_vpc_ids, diff.removed_vpc_ids)
+      when ZoneChange::RECORD
+        update_records(
+          local.id,
+          diff.changed_records.reject { |r| r.type == RecordChange::IGNORED }
+        )
+        diff.changed_records.select { |r| r.type == RecordChange::IGNORED }.each do |record_diff|
+          puts "\tIgnoring record #{record_diff.aws_name}"
+        end
       end
     end
   end
@@ -93,6 +102,50 @@ class Route53 < Manager
     end
   end
 
+  # Internal: Update the records associated with a zone.
+  #
+  # id      - the id of the zone to update
+  # records - RecordDiff objects representing the changes
+  def update_records(id, records)
+    puts Colors.blue("\tupdating records...")
+    if !records.empty?
+      changes = records.map do |record|
+        action = nil
+        resource = nil
+        records = nil
+
+        case record.type
+        when RecordChange::CHANGED
+          action = "UPSERT"
+          resource = record.local
+        when RecordChange::ADD
+          action = "CREATE"
+          resource = record.local
+        when RecordChange::UNMANAGED
+          action = "DELETE"
+          resource = record.aws
+        end
+
+        {
+          action: action,
+          resource_record_set: {
+            name: resource.name,
+            type: resource.type,
+            ttl: resource.ttl,
+            resource_records: resource.resource_records
+          }
+        }
+      end
+
+      @route53.change_resource_record_sets({
+        hosted_zone_id: id,
+        change_batch: {
+          changes: changes
+        }
+      })
+    end
+  end
+
   # A struct that combines all the data about a hosted zone in AWS
   AwsZone = Struct.new(:id, :name, :config, :vpc, :route53) do
     def records
@@ -104,7 +157,7 @@ class Route53 < Manager
     # Internal: Get the records for this hosted zone.
     #
     # Returns an array of records belonging to the zone
-    def get_zone_records(id)
+    def get_zone_records()
       records = []
       all_records_retrieved = false
       next_record_name = nil
@@ -128,18 +181,19 @@ class Route53 < Manager
         end
       end
 
-      records.flatten
+      records.flatten.map { |r| r.name = r.name.chomp("."); r }
     end
   end
 
   def init_aws_resources
     aws = @route53.list_hosted_zones().hosted_zones.map do |zone|
       vpc = if zone.config.private_zone
-        @route53.get_hosted_zone(id: zone.id).vp_cs.map { |v| Vpc.new(v.vpc_id, v.vpc_region) }
+        details = @route53.get_hosted_zone(id: zone.id)
+        details.vp_cs.map { |v| Vpc.new(v.vpc_id, v.vpc_region) }
       else
         nil
       end
-      AwsZone.new(zone.id, zone.name, zone.config, vpc, @route53)
+      AwsZone.new(zone.id, zone.name.chomp("."), zone.config, vpc, @route53)
     end
     Hash[aws.map { |z| [z.id, z] }]
   end
