@@ -190,7 +190,7 @@ class Route53 < Manager
   end
 
   def init_aws_resources
-    aws = @route53.list_hosted_zones().hosted_zones.map do |zone|
+    aws = @route53.list_hosted_zones.hosted_zones.map do |zone|
       vpc = if zone.config.private_zone
         details = @route53.get_hosted_zone(id: zone.id)
         details.vp_cs.map { |v| Vpc.new(v.vpc_id, v.vpc_region) }

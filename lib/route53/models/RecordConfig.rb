@@ -69,11 +69,7 @@ class RecordConfig
     if !@alias_target.nil?
       if is_elb_alias? and aws.alias_target.elb_dns_name != ELB::get_aws(@alias_target.name).dns_name
         diffs << SingleRecordDiff.new(RecordChange::ALIAS, aws, self)
-      elsif is_record_set_alias? and aws.alias_target.chomped_dns != @alias_target.dns_name
-        diffs << SingleRecordDiff.new(RecordChange::ALIAS, aws, self)
-      elsif is_s3_alias? and aws.alias_target.chomped_dns != @alias_target.dns_name
-        diffs << SingleRecordDiff.new(RecordChange::ALIAS, aws, self)
-      elsif is_cloudfront_alias? and aws.alias_target.chomped_dns != @alias_target.dns_name
+      elsif aws.alias_target.chomped_dns != @alias_target.dns_name
         diffs << SingleRecordDiff.new(RecordChange::ALIAS, aws, self)
       end
     end
