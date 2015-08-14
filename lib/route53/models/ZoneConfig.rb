@@ -24,7 +24,7 @@ class ZoneConfig
       @private = json["private"]
       @vpc = if @private then json["vpc"].map { |v| Vpc.new(v["id"], v["region"]) } else [] end
       @comment = json["comment"]
-      @records = json["records"].map { |json| RecordConfig.new(json, @domain) }
+      @records = json["records"].map { |j| RecordConfig.new(j, @domain, json["zone-id"]) }
     end
   end
 
@@ -40,7 +40,7 @@ class ZoneConfig
     if @comment != aws.config.comment
       diffs << ZoneDiff.new(ZoneChange::COMMENT, aws, self)
     end
-    if !domain_matches(aws.name)
+    if @domain != aws.name
       diffs << ZoneDiff.new(ZoneChange::DOMAIN, aws, self)
     end
     if @private != aws.config.private_zone
@@ -80,9 +80,9 @@ class ZoneConfig
     # record for the domain
     aws.each do |key, record|
       if !local.include?(key)
-        if domain_matches(record.name) and record.type == "NS"
+        if @domain == record.name and record.type == "NS"
           diffs << RecordDiff.ignored("Default NS record is supplied in AWS, but not locally. It will be ignored when syncing.", record)
-        elsif domain_matches(record.name) and record.type == "SOA"
+        elsif @domain == record.name and record.type == "SOA"
           diffs << RecordDiff.ignored("Default SOA record is supplied in AWS, but not locally. It will be ignored when syncing.", record)
         else
           diffs << RecordDiff.unmanaged(record)
@@ -102,15 +102,5 @@ class ZoneConfig
     end
 
     diffs.flatten
-  end
-
-  # Internal: Determine if a string is the same as the domain. This method is needed because
-  # AWS considers a domain ending in "." to be equivalent to one without.
-  #
-  # s - the string to compare
-  #
-  # Returns whether the string matches the domain
-  def domain_matches(s)
-    @domain == s or "#{@domain}." == s
   end
 end

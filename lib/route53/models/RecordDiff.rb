@@ -1,10 +1,12 @@
 require "common/models/Diff"
+require "elb/ELB"
 require "util/Colors"
 
 # Public: The types of changes that can be made to records
 module RecordChange
   include DiffChange
 
+  ALIAS = DiffChange::next_change_id
   CHANGED = DiffChange::next_change_id
   IGNORED = DiffChange::next_change_id
   TTL = DiffChange::next_change_id
@@ -79,6 +81,13 @@ class SingleRecordDiff < Diff
 
   def diff_string
     case @type
+    when ALIAS
+      if @local.is_elb_alias?
+        aws_name = ELB::get_aws_by_dns_name(@aws.alias_target.elb_dns_name).load_balancer_name
+        "Alias: AWS - #{Colors.aws_changes(aws_name)}, Local - #{Colors.local_changes(@local.alias_target.name)}"
+      else
+        "Alias: AWS - #{Colors.aws_changes(@aws.alias_target.chomped_dns)}, Local - #{Colors.local_changes(@local.alias_target.dns_name)}"
+      end
     when TTL
       "TTL: AWS - #{Colors.aws_changes(@aws.ttl)}, Local - #{Colors.local_changes(@local.ttl)}"
     when VALUE

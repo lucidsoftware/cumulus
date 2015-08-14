@@ -112,7 +112,6 @@ class Route53 < Manager
       changes = records.map do |record|
         action = nil
         resource = nil
-        records = nil
 
         case record.type
         when RecordChange::CHANGED
@@ -132,7 +131,12 @@ class Route53 < Manager
             name: resource.name,
             type: resource.type,
             ttl: resource.ttl,
-            resource_records: resource.resource_records
+            resource_records: resource.resource_records,
+            alias_target: if resource.alias_target.nil? then nil else {
+              hosted_zone_id: resource.alias_target.hosted_zone_id,
+              dns_name: resource.alias_target.dns_name,
+              evaluate_target_health: resource.alias_target.evaluate_target_health
+            } end
           }
         }
       end

@@ -1,5 +1,5 @@
 {
-  "domain": "www.example.com",
+  "domain": "example.com",
   "private": false,
   "comment": "An example comment",
   "zone-id": "Z23N6K3FTHCHPS",
@@ -20,6 +20,14 @@
       "value": [
         "Sample Text"
       ]
+    },
+    {
+      "name": "asdf",
+      "type": "A",
+      "alias": {
+        "type": "elb",
+        "name": "elb-name"
+      }
     }
   ]
 }
