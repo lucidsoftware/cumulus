@@ -1,3 +1,4 @@
+require "conf/Configuration"
 require "route53/models/RecordConfig"
 require "route53/models/RecordDiff"
 require "route53/models/Vpc"
@@ -84,6 +85,8 @@ class ZoneConfig
           diffs << RecordDiff.ignored("Default NS record is supplied in AWS, but not locally. It will be ignored when syncing.", record)
         elsif @domain == record.name and record.type == "SOA"
           diffs << RecordDiff.ignored("Default SOA record is supplied in AWS, but not locally. It will be ignored when syncing.", record)
+        elsif !Configuration.instance.route53.ignored.find_index { |i| !record.name.match(i).nil? }.nil?
+          diffs << RecordDiff.ignored("Record (#{record.type}) #{record.name} is ignored by your blacklist", aws)
         else
           diffs << RecordDiff.unmanaged(record)
         end

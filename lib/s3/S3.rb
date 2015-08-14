@@ -37,7 +37,12 @@ module Cumulus
       #
       # Returns the Aws::S3::Types::Bucket by that name
       def get_aws(name)
-        buckets[name]
+        if buckets[name].nil?
+          puts "No S3 bucket named #{name}"
+          exit
+        else
+          buckets[name]
+        end
       end
 
       private

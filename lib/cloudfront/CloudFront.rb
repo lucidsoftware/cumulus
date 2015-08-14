@@ -13,7 +13,12 @@ module Cumulus
       #
       # Returns the Aws::CloudFront::Types::DistributionSummary
       def get_aws(cname)
-        distributions[cname]
+        if distributions[cname].nil?
+          puts "No CloudFront distribution named #{cname}"
+          exit
+        else
+          distributions[cname]
+        end
       end
 
       private

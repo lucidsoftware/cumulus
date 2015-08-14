@@ -118,6 +118,7 @@ class Configuration
 
   # Public: Inner class that contains Route53 configuration options
   class Route53Config
+    attr_reader :ignored
     attr_reader :zones_directory
 
     # Public: Constructor
@@ -125,6 +126,7 @@ class Configuration
     #          passed values from the "route53" node of configuration.json
     # parent - reference to the parent Configuration that spawned this Route53Config
     def initialize(json, parent)
+      @ignored = json["ignored"]
       @zones_directory = parent.absolute_path(json["zones"]["directory"])
     end
   end

@@ -13,7 +13,12 @@ module Cumulus
       #
       # Returns the Aws::ElasticLoadBalancing::Types::LoadBalancerDescription by that name
       def get_aws(name)
-        elbs[name]
+        if elbs[name].nil?
+          puts "No ELB named #{name}"
+          exit
+        else
+          elbs[name]
+        end
       end
 
       # Public: Static method that will get an ELB from AWS by its dns name.
