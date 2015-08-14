@@ -38,6 +38,9 @@
 		}
 	},
 	"route53": {
+		"ignored": [
+			"^example-ignored"
+		],
 		"zones": {
 			"directory": "conf/route53/zones"
 		}
