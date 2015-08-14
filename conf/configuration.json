@@ -37,6 +37,11 @@
 			}
 		}
 	},
+	"route53": {
+		"zones": {
+			"directory": "conf/route53/zones"
+		}
+	},
 	"security": {
 		"groups": {
 			"directory": "conf/security/groups"

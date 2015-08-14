@@ -28,6 +28,8 @@ end
 #    asset for which this is a diff.
 # 3. Provide an `aws_name` method. This method should give back the string name
 #    of the aws asset.
+# 4. (Optional) Replace the existing `local_name` method. This method produces the string name
+#    of the local asset. Defaults to `name` on the local asset.
 class Diff
   include DiffChange
 
@@ -65,7 +67,7 @@ class Diff
   def to_s
     case @type
     when ADD
-      Colors.added("#{asset_type} #{@local.name} will be created.")
+      Colors.added("#{asset_type} #{local_name} #{add_string}")
     when UNMANAGED
       Colors.unmanaged("#{asset_type} #{aws_name} is not managed by Cumulus.")
     else
@@ -73,4 +75,15 @@ class Diff
     end
   end
 
+  # Public: A method that produces the string that describes what will be done with new assets.
+  # This can be overridden for the case that the ADD case doesn't create the asset.
+  #
+  # Returns the string describing the action that will be taken.
+  def add_string
+    "will be created."
+  end
+
+  def local_name
+    @local.name
+  end
 end
