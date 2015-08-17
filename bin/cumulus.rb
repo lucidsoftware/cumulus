@@ -206,7 +206,7 @@ end
 
 if ARGV.size == 0 or (ARGV[0] != "iam" and ARGV[0] != "help" and ARGV[0] != "autoscaling" and
   ARGV[0] != "route53" and ARGV[0] != "security-groups")
-  puts "Usage: cumulus [help|iam|autoscaling|route53|security-groups]"
+  puts "Usage: cumulus [autoscaling|help|iam|route53|security-groups]"
   exit
 end
 
@@ -215,8 +215,8 @@ if ARGV[0] == "help"
   puts "\tConfiguration based management of AWS resources."
   puts
   puts "Modules"
-  puts "\tiam\t\t- Compiles IAM roles and policies that are defined with configuration files and syncs the resulting IAM roles and policies with AWS"
   puts "\tautoscaling\t- Manages configuration for EC2 AutoScaling"
+  puts "\tiam\t\t- Compiles IAM roles and policies that are defined with configuration files and syncs the resulting IAM roles and policies with AWS"
   puts "\troute53\t\t- Manages configuration for Route53"
   puts "\tsecurity-groups\t- Manages configuration for EC2 Security Groups"
 end
