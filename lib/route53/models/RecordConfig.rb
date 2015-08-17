@@ -28,7 +28,7 @@ class RecordConfig
   # json    - a hash containing the JSON configuration for the record
   # domain  - the domain of the zone this record belongs to
   # zone_id - the id of the zone this record belongs to
-  def initialize(json, domain, zone_id)
+  def initialize(json = nil, domain = nil, zone_id = nil)
     if !json.nil?
       @name = if json["name"] == "" then domain else "#{json["name"].chomp(".")}.#{domain}".chomp(".") end
       @ttl = json["ttl"]
@@ -42,13 +42,64 @@ class RecordConfig
           @value = @value.map { |v| "\"#{v}\"" }
         end
       else
+        alias_name = if json["alias"]["name"].nil?
+          if json["alias"]["type"] == "s3" then @name else domain end
+        else
+          json["alias"]["name"].chomp(".")
+        end
         @alias_target = AliasTarget.new(
-          if json["alias"]["name"].nil? then domain else json["alias"]["name"] end,
+          alias_name,
           json["alias"]["type"],
           zone_id
         )
       end
     end
+  end
+
+  # Public: Populate this RecordConfig from an AWS resource.
+  #
+  # aws     - the aws resource
+  # domain  - the domain of the parent hosted zone
+  def populate(aws, domain)
+    @name = aws.name.chomp(domain).chomp(".")
+    @ttl = aws.ttl
+    @type = aws.type
+    if !aws.resource_records.nil?
+      if @type == "TXT" or @type == "SPF"
+        @value = aws.resource_records.map { |r| r.value[1..-2] }
+      else
+        @value = aws.resource_records.map(&:value)
+      end
+    end
+
+    if !aws.alias_target.nil?
+      if aws.alias_target.dns_name.include? "elb"
+        @alias_target = AliasTarget.new(
+          Cumulus::ELB::get_aws_by_dns_name(aws.alias_target.elb_dns_name).load_balancer_name,
+          "elb",
+          nil
+        )
+      elsif aws.alias_target.dns_name.include? "s3"
+        @alias_target = AliasTarget.new(nil, "s3", nil)
+      elsif aws.alias_target.dns_name.include? "cloudfront"
+        @alias_target = AliasTarget.new(nil, "cloudfront", nil)
+      else
+        @alias_target = AliasTarget.new(aws.alias_target.dns_name.chomp("."), "record", nil)
+      end
+    end
+  end
+
+  # Public: Get the config as a hash
+  #
+  # Returns the hash
+  def to_hash
+    {
+      "name" => @name,
+      "type" => @type,
+      "ttl" => @ttl,
+      "value" => @value,
+      "alias" => if @alias_target.nil? then nil else @alias_target.to_hash end,
+    }.reject { |k, v| v.nil? }
   end
 
   # Public: Produce an array of differences between this local configuration and the

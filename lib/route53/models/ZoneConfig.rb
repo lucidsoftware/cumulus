@@ -4,6 +4,8 @@ require "route53/models/RecordDiff"
 require "route53/models/Vpc"
 require "route53/models/ZoneDiff"
 
+require "json"
+
 # Public: An object representing configuration for a zone
 class ZoneConfig
   attr_reader :comment
@@ -27,6 +29,36 @@ class ZoneConfig
       @comment = json["comment"]
       @records = json["records"].map { |j| RecordConfig.new(j, @domain, json["zone-id"]) }
     end
+  end
+
+  # Public: Populate this ZoneConfig from an AWS resource
+  #
+  # aws - the aws resource
+  def populate(aws)
+    @id = aws.id.sub(/\/hostedzone\//, '')
+    @domain = aws.name
+    @private = aws.config.private_zone
+    @vpc = if @private then aws.vpc else nil end
+    @comment = aws.config.comment
+    @records = aws.records.map do |record|
+      r = RecordConfig.new()
+      r.populate(record, @domain)
+      r
+    end
+  end
+
+  # Public: Get the config as a prettified JSON string.
+  #
+  # Returns the JSON string
+  def pretty_json
+    JSON.pretty_generate({
+      "zone-id" => @id,
+      "domain" => @domain,
+      "private" => @private,
+      "vpc" => if @vpc.nil? then nil else @vpc.map(&:to_hash) end,
+      "comment" => @comment,
+      "records" => @records.map(&:to_hash),
+    }.reject { |k, v| v.nil? })
   end
 
   # Public: Produce an array of differences between this local configuration and the
