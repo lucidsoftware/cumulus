@@ -38,8 +38,8 @@ module Modules
     end
 
     # run the application with the desired command
-    require "iam/manager/Iam"
-    iam = Iam.new
+    require "iam/manager/Manager"
+    iam = Cumulus::IAM::Manager.new
     resource = nil
     if ARGV[1] == "roles"
       resource = iam.roles
@@ -88,8 +88,8 @@ module Modules
       puts "\tsync\t- sync local AutoScaling definitions with AWS (supplying the name of an AutoScaling group will sync only that group)"
     end
 
-    require "autoscaling/manager/AutoScaling"
-    autoscaling = AutoScaling.new
+    require "autoscaling/manager/Manager"
+    autoscaling = Cumulus::AutoScaling::Manager.new
     if ARGV[1] == "diff"
       if ARGV.size == 2
         autoscaling.diff
@@ -129,8 +129,8 @@ module Modules
       exit
     end
 
-    require "route53/manager/Route53"
-    route53 = Route53.new
+    require "route53/manager/Manager"
+    route53 = Cumulus::Route53::Manager.new
     if ARGV[1] == "diff"
       if ARGV.size == 2
         route53.diff
@@ -171,8 +171,8 @@ module Modules
       exit
     end
 
-    require "security/manager/SecurityGroups"
-    security = SecurityGroups.new
+    require "security/manager/Manager"
+    security = Cumulus::SecurityGroups::Manager.new
     if ARGV[1] == "diff"
       if ARGV.size == 2
         security.diff
@@ -258,7 +258,7 @@ project_root = File.expand_path(
 if !options[:root].nil?
   project_root = File.expand_path(options[:root])
 end
-Configuration.init(project_root, options[:config])
+Cumulus::Configuration.init(project_root, options[:config])
 
 if ARGV[0] == "iam"
   Modules.iam
