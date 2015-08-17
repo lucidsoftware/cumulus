@@ -20,10 +20,10 @@ module Cumulus
       json = JSON.parse(File.read(absolute_path(file_path)))
       @colors_enabled = json["colors-enabled"]
       @region = json["region"]
-      @iam = IamConfig.new(json["iam"], self)
-      @autoscaling = AutoScalingConfig.new(json["autoscaling"], self)
-      @route53 = Route53Config.new(json["route53"], self)
-      @security = SecurityConfig.new(json["security"], self)
+      @iam = IamConfig.new(json["iam"], &self.method(:absolute_path))
+      @autoscaling = AutoScalingConfig.new(json["autoscaling"], &self.method(:absolute_path))
+      @route53 = Route53Config.new(json["route53"], &self.method(:absolute_path))
+      @security = SecurityConfig.new(json["security"], &self.method(:absolute_path))
     end
 
     # Public: Take a path relative to the project root and turn it into an
@@ -77,19 +77,19 @@ module Cumulus
 
       # Public: Constructor.
       #
-      # json   - a hash that contains IAM configuration values. IamConfig expects
-      #          to be passed values from the "iam" node of configuration.json
-      # parent - reference to the parent Configuration that spawned this IamConfig
-      def initialize(json, parent)
-        @groups_directory = parent.absolute_path(json["groups"]["directory"])
-        @policy_document_directory = parent.absolute_path(json["roles"]["policy-document-directory"])
+      # json          - a hash that contains IAM configuration values. IamConfig expects
+      #                 to be passed values from the "iam" node of configuration.json
+      # absolute_path - a method that, given a path, will produce an absolute path
+      def initialize(json, &absolute_path)
+        @groups_directory = absolute_path.call(json["groups"]["directory"])
+        @policy_document_directory = absolute_path.call(json["roles"]["policy-document-directory"])
         @policy_prefix = json["policies"]["prefix"]
         @policy_suffix = json["policies"]["suffix"]
         @policy_version = json["policies"]["version"]
-        @roles_directory = parent.absolute_path(json["roles"]["directory"])
-        @static_policy_directory = parent.absolute_path(json["policies"]["static"]["directory"])
-        @template_policy_directory = parent.absolute_path(json["policies"]["templates"]["directory"])
-        @users_directory = parent.absolute_path(json["users"]["directory"])
+        @roles_directory = absolute_path.call(json["roles"]["directory"])
+        @static_policy_directory = absolute_path.call(json["policies"]["static"]["directory"])
+        @template_policy_directory = absolute_path.call(json["policies"]["templates"]["directory"])
+        @users_directory = absolute_path.call(json["users"]["directory"])
       end
     end
 
@@ -103,16 +103,15 @@ module Cumulus
 
       # Public: Constructor.
       #
-      # json   - a hash that contains AutoScaling configuration values.
-      #          AutoScalingConfig expects to be passed values from the
-      #          "autoscaling" node of configuration.json
-      # parent - reference to the parent Configuration that spawned this
-      #          AutoScalingConfig
-      def initialize(json, parent)
-        @groups_directory = parent.absolute_path(json["groups"]["directory"])
+      # json          - a hash that contains AutoScaling configuration values.
+      #                 AutoScalingConfig expects to be passed values from the
+      #                 "autoscaling" node of configuration.json
+      # absolute_path - a method that, given a path, will produce an absolute path
+      def initialize(json, &absolute_path)
+        @groups_directory = absolute_path.call(json["groups"]["directory"])
         @override_launch_config_on_sync = json["groups"]["override-launch-config-on-sync"]
-        @static_policy_directory = parent.absolute_path(json["policies"]["static"]["directory"])
-        @template_policy_directory = parent.absolute_path(json["policies"]["templates"]["directory"])
+        @static_policy_directory = absolute_path.call(json["policies"]["static"]["directory"])
+        @template_policy_directory = absolute_path.call(json["policies"]["templates"]["directory"])
       end
 
     end
@@ -123,12 +122,12 @@ module Cumulus
       attr_reader :zones_directory
 
       # Public: Constructor
-      # json   - a hash that contains Route53 configuration values. Route53 expects to be
-      #          passed values from the "route53" node of configuration.json
-      # parent - reference to the parent Configuration that spawned this Route53Config
-      def initialize(json, parent)
+      # json          - a hash that contains Route53 configuration values. Route53 expects to be
+      #                 passed values from the "route53" node of configuration.json
+      # absolute_path - a method that, given a path, will produce an absolute path
+      def initialize(json, &absolute_path)
         @ignored = json["ignored"]
-        @zones_directory = parent.absolute_path(json["zones"]["directory"])
+        @zones_directory = absolute_path.call(json["zones"]["directory"])
       end
     end
 
@@ -141,13 +140,13 @@ module Cumulus
 
       # Public: Constructor.
       #
-      # json   - a hash that contains Security Group configuration values. SecurityConfig
-      #          expects to be passed values from the "security" node of configuration.json
-      # parent - reference to the parent Configuration that spawned this SecurityConfig
-      def initialize(json, parent)
-        @groups_directory = parent.absolute_path(json["groups"]["directory"])
+      # json          - a hash that contains Security Group configuration values. SecurityConfig
+      #                 expects to be passed values from the "security" node of configuration.json
+      # absolute_path - a method that, given a path, will produce an absolute path
+      def initialize(json, &absolute_path)
+        @groups_directory = absolute_path.call(json["groups"]["directory"])
         @outbound_default_all_allowed = json["outbound-default-all-allowed"]
-        @subnets_file = parent.absolute_path(json["subnets-file"])
+        @subnets_file = absolute_path.call(json["subnets-file"])
       end
 
     end
