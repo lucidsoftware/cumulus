@@ -3,6 +3,9 @@
   "private": false,
   "comment": "An example comment",
   "zone-id": "Z23N6K3FTHCHPS",
+  "ignored": [
+    "^example-ignored"
+  ],
   "records": [
     {
       "name": "sub",
