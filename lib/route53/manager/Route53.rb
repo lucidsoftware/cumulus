@@ -15,6 +15,28 @@ class Route53 < Manager
     @route53 = Aws::Route53::Client.new(region: Configuration.instance.region)
   end
 
+  # Public: Migrate AWS Route53 configuration to Cumulus configuration.
+  def migrate
+    zones_dir = "#{@migration_root}/zones"
+
+    if !Dir.exists?(@migration_root)
+      Dir.mkdir(@migration_root)
+    end
+    if !Dir.exists?(zones_dir)
+      Dir.mkdir(zones_dir)
+    end
+
+    aws_resources.each_value do |resource|
+      puts "Processing #{resource.name}..."
+      config = ZoneConfig.new(resource.name)
+      config.populate(resource)
+
+      puts "Writing #{resource.name} configuration to file"
+      filename = if config.private then "#{config.name}-private" else config.name end
+      File.open("#{zones_dir}/#{filename.sub(".", "-")}.json", "w") { |f| f.write(config.pretty_json) }
+    end
+  end
+
   def resource_name
     "Zone"
   end

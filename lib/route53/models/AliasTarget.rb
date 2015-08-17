@@ -19,6 +19,16 @@ AliasTarget = Struct.new(:name, :type, :local_zone_id) do
     end
   end
 
+  # Public: Produce a hash representing this alias target
+  #
+  # Returns the hash
+  def to_hash
+    {
+      "name" => name,
+      "type" => type
+    }.reject { |k, v| v.nil? }
+  end
+
   # Public: Produce the hosted_zone_id for this alias
   #
   # Returns the hosted_zone_id
