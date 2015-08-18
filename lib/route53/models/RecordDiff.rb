@@ -10,6 +10,7 @@ module Cumulus
 
       ALIAS = Common::DiffChange::next_change_id
       CHANGED = Common::DiffChange::next_change_id
+      DEFAULT = Common::DiffChange::next_change_id
       IGNORED = Common::DiffChange::next_change_id
       TTL = Common::DiffChange::next_change_id
       VALUE = Common::DiffChange::next_change_id
@@ -24,10 +25,23 @@ module Cumulus
       attr_accessor :changes
 
       # Public: Static method that will create a diff that contains a message but is
+      # ignored when syncing because it is a default record.
+      #
+      # message - the message to display
+      # aws     - the aws configuration for the record
+      #
+      # Returns the diff
+      def self.default(message, aws)
+        diff = RecordDiff.new(DEFAULT, aws)
+        diff.message = message
+        diff
+      end
+
+      # Public: Static method that will create a diff that contains a message but is
       # ignored when syncing.
       #
       # message - the message to display
-      # aws   - the aws configuration for the record
+      # aws     - the aws configuration for the record
       #
       # Returns the diff
       def self.ignored(message, aws)
@@ -64,6 +78,8 @@ module Cumulus
       def diff_string
         case @type
         when IGNORED
+          message
+        when DEFAULT
           message
         when CHANGED
           [
