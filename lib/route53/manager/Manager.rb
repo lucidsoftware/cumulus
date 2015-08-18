@@ -209,7 +209,7 @@ module Cumulus
             end
           end
 
-          records.flatten.map { |r| r.name = r.name.chomp("."); r }
+          records.flatten.map { |r| r.name = r.name.chomp(".").sub(/\\052/, "*"); r }
         end
       end
 
