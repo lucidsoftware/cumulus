@@ -3,34 +3,39 @@
   "private": false,
   "comment": "An example comment",
   "zone-id": "Z23N6K3FTHCHPS",
-  "ignored": [
-    "^example-ignored"
-  ],
-  "records": [
-    {
-      "name": "sub",
-      "type": "A",
-      "ttl": 300,
-      "value": [
-        "127.0.0.1",
-        "123.4.5.6"
-      ]
-    },
-    {
-      "name": "sub",
-      "type": "TXT",
-      "ttl": 300,
-      "value": [
-        "Sample Text"
-      ]
-    },
-    {
-      "name": "asdf",
-      "type": "A",
-      "alias": {
-        "type": "elb",
-        "name": "elb-name"
+  "records": {
+    "ignored": [
+      "^example-ignored"
+    ],
+    "includes": [
+      "example-includes"
+    ],
+    "inlines": [
+      {
+        "name": "sub",
+        "type": "A",
+        "ttl": 300,
+        "value": [
+          "127.0.0.1",
+          "123.4.5.6"
+        ]
+      },
+      {
+        "name": "sub",
+        "type": "TXT",
+        "ttl": 300,
+        "value": [
+          "Sample Text"
+        ]
+      },
+      {
+        "name": "asdf",
+        "type": "A",
+        "alias": {
+          "type": "elb",
+          "name": "elb-name"
+        }
       }
-    }
-  ]
+    ]
+  }
 }
