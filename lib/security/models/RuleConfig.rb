@@ -115,16 +115,14 @@ module Cumulus
             "subnets" => [],
           }.reject { |k, v| v.nil? }
         end
-        subnet_hashes = if !@subnets.empty?
-          [{
+        subnet_hashes = @subnets.map do |subnet|
+          {
             "security-groups" => [],
             "protocol" => protocol,
             "from-port" => @from,
             "to-port" => @to,
-            "subnets" => @subnets
-          }.reject { |k, v| v.nil? }]
-        else
-          []
+            "subnets" => [subnet]
+          }.reject { |k, v| v.nil? }
         end
         security_hashes + subnet_hashes
       end
