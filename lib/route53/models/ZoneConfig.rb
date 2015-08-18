@@ -1,4 +1,5 @@
 require "conf/Configuration"
+require "route53/loader/Loader"
 require "route53/models/RecordConfig"
 require "route53/models/RecordDiff"
 require "route53/models/Vpc"
@@ -29,8 +30,13 @@ module Cumulus
           @private = json["private"]
           @vpc = if @private then json["vpc"].map { |v| Vpc.new(v["id"], v["region"]) } else [] end
           @comment = json["comment"]
-          @records = json["records"].map { |j| RecordConfig.new(j, @domain, json["zone-id"]) }
-          @ignored = if json["ignored"].nil? then [] else json["ignored"] end
+
+          includes = if json["records"]["includes"].nil? then [] else json["records"]["includes"] end
+          includes = includes.flat_map(&Loader.method(:includes_file))
+          @records = (json["records"]["inlines"] + includes).map do |j|
+            RecordConfig.new(j, @domain, json["zone-id"])
+          end
+          @ignored = if json["records"]["ignored"].nil? then [] else json["records"]["ignored"] end
         end
       end
 
@@ -60,8 +66,11 @@ module Cumulus
           "private" => @private,
           "vpc" => if @vpc.nil? then nil else @vpc.map(&:to_hash) end,
           "comment" => @comment,
-          "records" => @records.map(&:to_hash),
-          "ignored" => if @ignored.nil? then [] else @ignored end,
+          "records" => {
+            "ignored" => if @ignored.nil? then [] else @ignored end,
+            "includes" => [],
+            "inlines" => @records.map(&:to_hash),
+          },
         }.reject { |k, v| v.nil? })
       end
 

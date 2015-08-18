@@ -39,6 +39,9 @@
 	},
 	"route53": {
 		"print-all-ignored": true,
+		"includes": {
+			"directory": "conf/route53/includes"
+		},
 		"zones": {
 			"directory": "conf/route53/zones"
 		}

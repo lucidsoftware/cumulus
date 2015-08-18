@@ -9,7 +9,9 @@
   ],
   "comment": "An example comment",
   "zone-id": "Z23N6K3FTHCHPS",
-  "records": [
+  "records": {
+    "inlines": [
 
-  ]
+    ]
+  }
 }
