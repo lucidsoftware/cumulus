@@ -118,7 +118,6 @@ module Cumulus
 
     # Public: Inner class that contains Route53 configuration options
     class Route53Config
-      attr_reader :ignored
       attr_reader :zones_directory
 
       # Public: Constructor
@@ -126,7 +125,6 @@ module Cumulus
       #                 passed values from the "route53" node of configuration.json
       # absolute_path - a method that, given a path, will produce an absolute path
       def initialize(json, &absolute_path)
-        @ignored = json["ignored"]
         @zones_directory = absolute_path.call(json["zones"]["directory"])
       end
     end

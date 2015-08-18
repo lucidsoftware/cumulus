@@ -30,6 +30,7 @@ module Cumulus
           @vpc = if @private then json["vpc"].map { |v| Vpc.new(v["id"], v["region"]) } else [] end
           @comment = json["comment"]
           @records = json["records"].map { |j| RecordConfig.new(j, @domain, json["zone-id"]) }
+          @ignored = if json["ignored"].nil? then [] else json["ignored"] end
         end
       end
 
@@ -60,6 +61,7 @@ module Cumulus
           "vpc" => if @vpc.nil? then nil else @vpc.map(&:to_hash) end,
           "comment" => @comment,
           "records" => @records.map(&:to_hash),
+          "ignored" => if @ignored.nil? then [] else @ignored end,
         }.reject { |k, v| v.nil? })
       end
 
@@ -119,7 +121,7 @@ module Cumulus
               diffs << RecordDiff.ignored("Default NS record is supplied in AWS, but not locally. It will be ignored when syncing.", record)
             elsif @domain == record.name and record.type == "SOA"
               diffs << RecordDiff.ignored("Default SOA record is supplied in AWS, but not locally. It will be ignored when syncing.", record)
-            elsif !Configuration.instance.route53.ignored.find_index { |i| !record.name.match(i).nil? }.nil?
+            elsif !@ignored.find_index { |i| !record.name.match(i).nil? }.nil?
               diffs << RecordDiff.ignored("Record (#{record.type}) #{record.name} is ignored by your blacklist", aws)
             else
               diffs << RecordDiff.unmanaged(record)
