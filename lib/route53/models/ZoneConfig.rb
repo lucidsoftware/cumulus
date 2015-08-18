@@ -118,9 +118,9 @@ module Cumulus
         aws.each do |key, record|
           if !local.include?(key)
             if @domain == record.name and record.type == "NS"
-              diffs << RecordDiff.ignored("Default NS record is supplied in AWS, but not locally. It will be ignored when syncing.", record)
+              diffs << RecordDiff.default("Default NS record is supplied in AWS, but not locally. It will be ignored when syncing.", record)
             elsif @domain == record.name and record.type == "SOA"
-              diffs << RecordDiff.ignored("Default SOA record is supplied in AWS, but not locally. It will be ignored when syncing.", record)
+              diffs << RecordDiff.default("Default SOA record is supplied in AWS, but not locally. It will be ignored when syncing.", record)
             elsif !@ignored.find_index { |i| !record.name.match(i).nil? }.nil?
               diffs << RecordDiff.ignored("Record (#{record.type}) #{record.name} is ignored by your blacklist", aws)
             else

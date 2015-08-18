@@ -1,4 +1,6 @@
+require "conf/Configuration"
 require "common/models/Diff"
+require "route53/models/RecordDiff"
 require "util/Colors"
 
 module Cumulus
@@ -65,10 +67,18 @@ module Cumulus
             "\tAWS doesn't allow you to change whether a zone is private."
           ].join("\n")
         when RECORD
-          [
-            "Records:",
-            @changed_records.map { |r| "\t#{r}" }
-          ].flatten.join("\n")
+          if Configuration.instance.route53.print_all_ignored
+            [
+              "Records:",
+              @changed_records.map { |r| "\t#{r}" }
+            ].flatten.join("\n")
+          else
+            [
+              "Records:",
+              @changed_records.reject { |r| r.type == RecordChange::IGNORED }.map { |r| "\t#{r}" },
+              "\tYour blacklist ignored #{@changed_records.select { |r| r.type == RecordChange::IGNORED }.size} records."
+            ].flatten.join("\n")
+          end
         when VPC
           [
             "VPCs:",

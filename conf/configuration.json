@@ -38,6 +38,7 @@
 		}
 	},
 	"route53": {
+		"print-all-ignored": true,
 		"zones": {
 			"directory": "conf/route53/zones"
 		}
