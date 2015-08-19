@@ -96,7 +96,7 @@ Cumulus's security group module has the following usage:
 cumulus security-group [diff|help|list|migrate|sync] <asset>
 {% endhighlight %}
 
-Security groups can be diffed listend and synced (migration is covered in the [following section](#migration)). The three actions to the following:
+Security groups can be diffed, listed, and synced (migration is covered in the [following section](#migration)). The three actions to the following:
 
 * `diff` - Shows the differences between the local definition and the AWS security group configuration. If `<asset>` is specified, Cumulus will diff only the security group with that name.
 * `list` - Lists the names of all the security groups defined in local configuration
