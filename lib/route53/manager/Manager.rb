@@ -78,10 +78,20 @@ module Cumulus
           when ZoneChange::RECORD
             update_records(
               local.id,
-              diff.changed_records.reject { |r| r.type == RecordChange::IGNORED }
+              diff.changed_records.reject do |r|
+                r.type == RecordChange::IGNORED or r.type == RecordChange::DEFAULT
+              end
             )
-            diff.changed_records.select { |r| r.type == RecordChange::IGNORED }.each do |record_diff|
-              puts "\tIgnoring record #{record_diff.aws_name}"
+
+            ignored = diff.changed_records.select { |r| r.type == RecordChange::IGNORED }
+            if Configuration.instance.route53.print_all_ignored
+              ignored.each do |record_diff|
+                puts "\tIgnoring record #{record_diff.aws_name}"
+              end
+            else
+              if ignored.size > 0
+                puts "\tYour blacklist ignored #{ignored.size} records."
+              end
             end
           end
         end
