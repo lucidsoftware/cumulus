@@ -131,7 +131,7 @@ module Cumulus
             elsif @domain == record.name and record.type == "SOA"
               diffs << RecordDiff.default("Default SOA record is supplied in AWS, but not locally. It will be ignored when syncing.", record)
             elsif !@ignored.find_index { |i| !record.name.match(i).nil? }.nil?
-              diffs << RecordDiff.ignored("Record (#{record.type}) #{record.name} is ignored by your blacklist", aws)
+              diffs << RecordDiff.ignored("Record (#{record.type}) #{record.name} is ignored by your blacklist", record)
             else
               diffs << RecordDiff.unmanaged(record)
             end
