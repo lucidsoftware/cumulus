@@ -1,32 +1,35 @@
 require "json"
 
 module Cumulus
-  # Public: Contains the configuration values set in the configuration.json file.
-  # Provides a Singleton that can be accessed throughout the application.
-  class Configuration
+  # Public: A module that contains helper methods for the configuration classes.
+  #
+  # When mixing in this module, make sure your class has a @node instance variable
+  # for what node in the json it expect to get config from, ie. "s3" or "iam"
+  module Config
+    @@json = nil
+    @@project_root = nil
 
-    attr_reader :colors_enabled
-    attr_reader :iam, :autoscaling, :route53, :security
-    attr_reader :region
+    class << self
+      def json
+        @@json
+      end
 
-    # Internal: Constructor. Sets up the `instance` variable, which is the access
-    # point for the Singleton.
-    #
-    # project_root  - The String path to the directory the project is running in
-    # file_path     - The String path from `project_root` to the configuration
-    #                 file
-    def initialize(project_root, file_path)
-      @project_root = project_root;
-      json = JSON.parse(File.read(absolute_path(file_path)))
-      @colors_enabled = json["colors-enabled"]
-      @region = json["region"]
-      @iam = IamConfig.new(json["iam"], &self.method(:absolute_path))
-      @autoscaling = AutoScalingConfig.new(json["autoscaling"], &self.method(:absolute_path))
-      @route53 = Route53Config.new(json["route53"], &self.method(:absolute_path))
-      @security = SecurityConfig.new(json["security"], &self.method(:absolute_path))
+      def json=(value)
+        @@json = value
+      end
+
+      def project_root
+        @@project_root
+      end
+
+      def project_root=(value)
+        @@project_root = value
+      end
     end
 
-    # Public: Take a path relative to the project root and turn it into an
+    private
+
+    # Internal: Take a path relative to the project root and turn it into an
     # absolute path
     #
     # relative_path - The String path from `project_root` to the desired file
@@ -36,8 +39,73 @@ module Cumulus
       if relative_path.start_with?("/")
         relative_path
       else
-        File.join(@project_root, relative_path)
+        File.join(@@project_root, relative_path)
       end
+    end
+
+    # Internal: Handle any KeyErrors that occur while getting a configuration value
+    # by printing out a message describing the missing key and exiting.
+    #
+    # key     - the full key to get ex. `s3.buckets.directory`
+    # handler - a block that will do additional processing on the key. If nil,
+    #           the value is returned as is.
+    #
+    # Returns the configuration value if successful
+    def conf(key, &handler)
+      value = nil
+      key.split(".").each do |part|
+        if value
+          value = value.fetch(part)
+        else
+          value = @@json.fetch(part)
+        end
+      end
+
+      if handler
+        handler.call(value)
+      else
+        value
+      end
+    rescue KeyError
+      puts "Your configuration file is missing $.#{key}."
+      exit
+    end
+
+    # Internal: A version of `conf` that will apply the `absolute_path` method to
+    # the configuration value.
+    #
+    # key - the full key to get. ex. `s3.buckets.directory`
+    #
+    # Returns the configuration value as an absolute path
+    def conf_abs_path(key)
+      conf(key) { |value| absolute_path(value) }
+    end
+  end
+
+  # Public: Contains the configuration values set in the configuration.json file.
+  # Provides a Singleton that can be accessed throughout the application.
+  class Configuration
+    include Config
+
+    attr_reader :colors_enabled
+    attr_reader :iam, :autoscaling, :route53, :s3, :security
+    attr_reader :region
+
+    # Internal: Constructor. Sets up the `instance` variable, which is the access
+    # point for the Singleton.
+    #
+    # project_root  - The String path to the directory the project is running in
+    # file_path     - The String path from `project_root` to the configuration
+    #                 file
+    def initialize(project_root, file_path)
+      Config.project_root = project_root;
+      Config.json = JSON.parse(File.read(absolute_path(file_path)))
+      @colors_enabled = conf "colors-enabled"
+      @region = conf "region"
+      @iam = IamConfig.new
+      @autoscaling = AutoScalingConfig.new
+      @route53 = Route53Config.new
+      @security = SecurityConfig.new
     end
 
     class << self
@@ -64,6 +132,7 @@ module Cumulus
 
     # Public: Inner class that contains IAM configuration options
     class IamConfig
+      include Config
 
       attr_reader :groups_directory
       attr_reader :policy_document_directory
@@ -76,25 +145,22 @@ module Cumulus
       attr_reader :users_directory
 
       # Public: Constructor.
-      #
-      # json          - a hash that contains IAM configuration values. IamConfig expects
-      #                 to be passed values from the "iam" node of configuration.json
-      # absolute_path - a method that, given a path, will produce an absolute path
-      def initialize(json, &absolute_path)
-        @groups_directory = absolute_path.call(json["groups"]["directory"])
-        @policy_document_directory = absolute_path.call(json["roles"]["policy-document-directory"])
-        @policy_prefix = json["policies"]["prefix"]
-        @policy_suffix = json["policies"]["suffix"]
-        @policy_version = json["policies"]["version"]
-        @roles_directory = absolute_path.call(json["roles"]["directory"])
-        @static_policy_directory = absolute_path.call(json["policies"]["static"]["directory"])
-        @template_policy_directory = absolute_path.call(json["policies"]["templates"]["directory"])
-        @users_directory = absolute_path.call(json["users"]["directory"])
+      def initialize
+        @groups_directory = conf_abs_path "iam.groups.directory"
+        @policy_document_directory = conf_abs_path "iam.roles.policy-document-directory"
+        @policy_prefix = conf "iam.policies.prefix"
+        @policy_suffix = conf "iam.policies.suffix"
+        @policy_version = conf "iam.policies.version"
+        @roles_directory = conf_abs_path "iam.roles.directory"
+        @static_policy_directory = conf_abs_path "iam.policies.static.directory"
+        @template_policy_directory = conf_abs_path "iam.policies.templates.directory"
+        @users_directory = conf_abs_path "iam.users.directory"
       end
     end
 
     # Public: Inner class that contains AutoScaling configuration options
     class AutoScalingConfig
+      include Config
 
       attr_reader :groups_directory
       attr_reader :override_launch_config_on_sync
@@ -102,53 +168,44 @@ module Cumulus
       attr_reader :template_policy_directory
 
       # Public: Constructor.
-      #
-      # json          - a hash that contains AutoScaling configuration values.
-      #                 AutoScalingConfig expects to be passed values from the
-      #                 "autoscaling" node of configuration.json
-      # absolute_path - a method that, given a path, will produce an absolute path
-      def initialize(json, &absolute_path)
-        @groups_directory = absolute_path.call(json["groups"]["directory"])
-        @override_launch_config_on_sync = json["groups"]["override-launch-config-on-sync"]
-        @static_policy_directory = absolute_path.call(json["policies"]["static"]["directory"])
-        @template_policy_directory = absolute_path.call(json["policies"]["templates"]["directory"])
+      def initialize
+        @groups_directory = conf_abs_path "autoscaling.groups.directory"
+        @override_launch_config_on_sync = conf "autoscaling.groups.override-launch-config-on-sync"
+        @static_policy_directory = conf_abs_path "autoscaling.policies.static.directory"
+        @template_policy_directory = conf_abs_path "autoscaling.policies.templates.directory"
       end
 
     end
 
     # Public: Inner class that contains Route53 configuration options
     class Route53Config
+      include Config
+
       attr_reader :includes_directory
       attr_reader :print_all_ignored
       attr_reader :zones_directory
 
       # Public: Constructor
-      # json          - a hash that contains Route53 configuration values. Route53 expects to be
-      #                 passed values from the "route53" node of configuration.json
-      # absolute_path - a method that, given a path, will produce an absolute path
-      def initialize(json, &absolute_path)
-        @includes_directory = absolute_path.call(json["includes"]["directory"])
-        @print_all_ignored = json["print-all-ignored"]
-        @zones_directory = absolute_path.call(json["zones"]["directory"])
+      def initialize
+        @includes_directory = conf_abs_path "route53.includes.directory"
+        @print_all_ignored = conf "route53.print-all-ignored"
+        @zones_directory = conf_abs_path "route53.zones.directory"
       end
     end
 
     # Public: Inner class that contains Security Group configuration options
     class SecurityConfig
+      include Config
 
       attr_reader :groups_directory
       attr_reader :outbound_default_all_allowed
       attr_reader :subnets_file
 
       # Public: Constructor.
-      #
-      # json          - a hash that contains Security Group configuration values. SecurityConfig
-      #                 expects to be passed values from the "security" node of configuration.json
-      # absolute_path - a method that, given a path, will produce an absolute path
-      def initialize(json, &absolute_path)
-        @groups_directory = absolute_path.call(json["groups"]["directory"])
-        @outbound_default_all_allowed = json["outbound-default-all-allowed"]
-        @subnets_file = absolute_path.call(json["subnets-file"])
+      def initialize
+        @groups_directory = conf_abs_path "security.groups.directory"
+        @outbound_default_all_allowed = conf "security.outbound-default-all-allowed"
+        @subnets_file = conf_abs_path "security.subnets-file"
       end
 
     end
