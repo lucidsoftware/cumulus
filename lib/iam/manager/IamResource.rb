@@ -12,8 +12,8 @@ module Cumulus
     class IamResource
       @@diff = Proc.new do |name, diffs|
         if diffs.size > 0
-          if diffs.size == 1 and (diffs[0].type == DiffChange::ADD or
-            diffs[0].type == DiffChange::UNMANAGED)
+          if diffs.size == 1 and (diffs[0].type == Common::DiffChange::ADD or
+            diffs[0].type == Common::DiffChange::UNMANAGED)
             puts diffs[0]
           else
             puts "#{name} has the following changes:"
@@ -177,7 +177,7 @@ module Cumulus
       # resource  - the resource to update
       # diffs     - the diff objects to be used when updating the resource
       def update(resource, diffs)
-        if diffs.size == 1 and diffs[0].type == DiffChange::ADD
+        if diffs.size == 1 and diffs[0].type == Common::DiffChange::ADD
           update_policy(resource, diffs[0].local.generated_policy_name, diffs[0].local.policy)
           if !diffs[0].local.attached_policies.empty?
             update_attached(resource, diffs[0].local.attached_policies, [])
@@ -231,9 +231,9 @@ module Cumulus
       def sync_difference(name, diffs)
         aws = Hash[aws_resources.map { |aws| [aws.name, aws] }]
         if diffs.size > 0
-          if diffs[0].type == DiffChange::UNMANAGED
+          if diffs[0].type == Common::DiffChange::UNMANAGED
             puts diffs[0]
-          elsif diffs[0].type == DiffChange::ADD
+          elsif diffs[0].type == Common::DiffChange::ADD
             puts Colors.added("creating #{name}...")
             resource = create(diffs[0])
             update(resource, diffs)

@@ -52,7 +52,7 @@ module Cumulus
       def update(resource, diffs)
         super(resource, diffs)
 
-        if diffs.size == 1 and diffs[0].type == DiffChange::ADD
+        if diffs.size == 1 and diffs[0].type == Common::DiffChange::ADD
           puts Colors.blue("\tadding users...")
           add_users(resource, diffs[0].local.users)
         else
