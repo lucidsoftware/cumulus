@@ -9,23 +9,40 @@ module Cumulus
 
       # Public: Static method that will get a distribution from AWS by its cname.
       #
-      # origin - the cname of the distribution to get
+      # cname - the cname of the distribution to get
       #
       # Returns the Aws::CloudFront::Types::DistributionSummary
       def get_aws(cname)
-        if distributions[cname].nil?
+        if cname_distributions[cname].nil?
           puts "No CloudFront distribution named #{cname}"
           exit
         else
-          distributions[cname]
+          cname_distributions[cname]
         end
+      end
+
+      # Public: Provides a mapping of cloudfront distributions to their id. Lazily loads resources.
+      #
+      # Returns the distributions mapped to their ids
+      def id_distributions
+        Hash[distributions.flatten.map { |dist| [dist.id, dist] }]
       end
 
       private
 
       # Internal: Provide a mapping of CloudFront distributions to their cnames. Lazily loads resources.
+      #           Distributions without cnames are not included
       #
       # Returns the distributions mapped to their cnames
+      def cname_distributions
+        Hash[distributions.flat_map do |dist|
+          dist.aliases.items.map { |a| [a, dist] }
+        end]
+      end
+
+      # Internal: Provides a list of cloudfront distributions. Lazily loads resources.
+      #
+      # Returns the distributions
       def distributions
         @distributions ||= init_distributions
       end
@@ -50,9 +67,7 @@ module Cumulus
           end
         end
 
-        Hash[distributions.flatten.flat_map do |dist|
-          dist.aliases.items.map { |a| [a, dist] }
-        end]
+        distributions.flatten
       end
     end
   end
