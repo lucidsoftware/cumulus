@@ -1,0 +1,85 @@
+{
+  "id": "DistributionID",
+  "aliases": [ // optional
+    "cname1",
+    "cname2"
+  ],
+  "origins": [
+    {
+      "id": "OriginId",
+      "domain-name": "OriginDomain",
+      "origin-path": "",
+      "custom-origin-config": { // this or s3-origin-access-identity must be defined
+        "http-port": 80,
+        "https-port": 443,
+        "protocol-policy": "match-viewer" // http-only or match-viewer
+      }
+    },
+    {
+      "id": "OriginId2",
+      "domain-name": "OriginDomain2",
+      "origin-path": "",
+      "s3-origin-access-identity": "OriginAccessIdentity" // this or custom-origin-config must be defined
+    }
+  ],
+  "default-cache-behavior": {
+    "target-origin-id": "OriginId",
+    "forward-query-strings": true,
+    "forwarded-cookies": "whitelist", // none, whitelist, all
+    "forwarded-cookies-whitelist": [ // optional unless forwarded-cookies is whitelist
+      "cookie1",
+      "cookie2"
+    ],
+    "forward-headers": [  // optional
+      "header1"
+    ],
+    "trusted-signers": [  // optional
+      "self"
+    ],
+    "viewer-protocol-policy": "https-only", // allow-all, https-only,redirect-to-https
+    "min-ttl": 86400,
+    "max-ttl": 31536000,
+    "default-ttl": 86400,
+    "smooth-streaming": true,
+    "allowed-methods": [ // GET, HEAD, POST, PUT, PATCH, OPTIONS, DELETE
+      "HEAD",
+      "GET"
+    ],
+    "cached-methods": [ // GET, HEAD, POST, PUT, PATCH, OPTIONS, DELETE
+      "HEAD",
+      "GET"
+    ]
+  },
+  "cache-behaviors": [ // optional
+    {
+      "path-pattern": "*.txt",
+      "target-origin-id": "OriginId",
+      "forward-query-strings": false,
+      "forwarded-cookies": "none", // none, whitelist, all
+      "forwarded-cookies-whitelist": [ // optional unless forwarded-cookies is whitelist
+
+      ],
+      "forward-headers": [ // optional
+
+      ],
+      "trusted-signers": [ // optional
+
+      ],
+      "viewer-protocol-policy": "https-only", // allow-all, https-only, redirect-to-https
+      "min-ttl": 86400,
+      "max-ttl": 31536000,
+      "default-ttl": 86400,
+      "smooth-streaming": true,
+      "allowed-methods": [ // GET, HEAD, POST, PUT, PATCH, OPTIONS, DELETE
+        "HEAD",
+        "GET"
+      ],
+      "cached-methods": [ // GET, HEAD, POST, PUT, PATCH, OPTIONS, DELETE
+        "HEAD",
+        "GET"
+      ]
+    }
+  ],
+  "comment": "Created with Cumulus",
+  "enabled": false
+}

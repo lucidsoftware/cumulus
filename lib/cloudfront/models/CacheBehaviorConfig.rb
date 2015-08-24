@@ -39,16 +39,16 @@ module Cumulus
           @target_origin_id = json["target-origin-id"]
           @forward_query_strings = json["forward-query-strings"]
           @forwarded_cookies = json["forwarded-cookies"]
-          @forwarded_cookies_whitelist = if json["forwarded-cookies-whitelist"].nil? then [] else json["forwarded-cookies-whitelist"] end
-          @forward_headers = if json["forward-headers"].nil? then [] else json["forward-headers"] end
-          @trusted_signers = if json["trusted-signers"].nil? then [] else json["trusted-signers"] end
+          @forwarded_cookies_whitelist = json["forwarded-cookies-whitelist"] || []
+          @forward_headers = json["forward-headers"] || []
+          @trusted_signers = json["trusted-signers"] || []
           @viewer_protocol_policy = json["viewer-protocol-policy"]
           @min_ttl = json["min-ttl"]
           @max_ttl = json["max-ttl"]
           @default_ttl = json["default-ttl"]
           @smooth_streaming = json["smooth-streaming"]
-          @allowed_methods = json["allowed-methods"]
-          @cached_methods = json["cached-methods"]
+          @allowed_methods = json["allowed-methods"] || []
+          @cached_methods = json["cached-methods"] || []
         end
       end
 
@@ -57,10 +57,11 @@ module Cumulus
       # Returns the hash
       def to_hash
         {
+          "path-pattern" => @path_pattern,
           "target-origin-id" => @target_origin_id,
           "forward-query-strings" => @forward_query_strings,
-          "forward-cookies" => @forward_cookies,
-          "forward-cookies-whitelist" => @forwarded_cookies_whitelist,
+          "forwarded-cookies" => @forwarded_cookies,
+          "forwarded-cookies-whitelist" => @forwarded_cookies_whitelist,
           "forward-headers" => @forward_headers,
           "trusted-signers" => @trusted_signers,
           "viewer-protocol-policy" => @viewer_protocol_policy,

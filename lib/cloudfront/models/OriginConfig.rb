@@ -47,7 +47,7 @@ module Cumulus
           "domain-name" => @domain_name,
           "origin-path" => @origin_path,
           "s3-origin-access-identity" => @s3_access_origin_identity,
-          "custom-origin-config" => @custom_origin_config.to_hash
+          "custom-origin-config" => if @custom_origin_config.nil? then nil else @custom_origin_config.to_hash end
         }.reject { |k, v| v.nil? }
       end
 

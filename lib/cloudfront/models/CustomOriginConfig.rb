@@ -24,9 +24,9 @@ module Cumulus
 
       def to_hash
         {
-          "http-port" => @http_port,
-          "https-port" => @https_port,
-          "protocol-policy" => @protocol_policy,
+          "http-port" => self.http_port,
+          "https-port" => self.https_port,
+          "protocol-policy" => self.protocol_policy,
         }.reject { |k, v| v.nil? }
       end
     end

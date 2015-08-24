@@ -9,9 +9,9 @@ module Cumulus
   module CloudFront
     # Public: An object representing configuration for a distribution
     class DistributionConfig
+      attr_accessor :id
       attr_reader :file_name
       attr_reader :name
-      attr_reader :id
       attr_reader :aliases
       attr_reader :origins
       attr_reader :default_cache_behavior
@@ -26,8 +26,8 @@ module Cumulus
         @file_name = name
         if !json.nil?
           @id = json["id"]
-          @name = @id
-          @aliases = json["aliases"]
+          @name = if @id.nil? then @file_name else @id end
+          @aliases = json["aliases"] || []
           @origins = json["origins"].map { |o| OriginConfig.new(o) }
           @default_cache_behavior = CacheBehaviorConfig.new(json["default-cache-behavior"], true)
           @cache_behaviors = if json["cache-behaviors"].nil? then [] else json["cache-behaviors"].map { |cb| CacheBehaviorConfig.new(cb) } end
@@ -43,7 +43,6 @@ module Cumulus
         JSON.pretty_generate({
           "id" => @id,
           "aliases" => @aliases,
-          "default-root-object" => @default_root_object,
           "origins" => @origins.map(&:to_hash),
           "default-cache-behavior" => @default_cache_behavior.to_hash,
           "cache-behaviors" => @cache_behaviors.map(&:to_hash),

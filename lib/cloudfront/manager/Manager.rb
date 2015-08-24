@@ -12,7 +12,7 @@ module Cumulus
     class Manager < Common::Manager
       def initialize
         super()
-        @create_asset = false
+        @create_asset = true
         @cloudfront = Aws::CloudFront::Client.new(region: Configuration.instance.region)
       end
 
@@ -79,6 +79,38 @@ module Cumulus
           @cloudfront.update_distribution(update_params)
         end
 
+      end
+
+      def create(local)
+        create_config = {
+          distribution_config: {
+            caller_reference: local.file_name,
+            aliases: {
+              quantity: local.aliases.size,
+              items: if local.aliases.empty? then nil else local.aliases end
+            },
+            origins: {
+              quantity: local.origins.size,
+              items: if local.origins.empty? then nil else local.origins.map(&:to_aws) end
+            },
+            default_cache_behavior: local.default_cache_behavior.to_aws,
+            cache_behaviors: {
+              quantity: local.cache_behaviors.size,
+              items: if local.cache_behaviors.empty? then nil else local.cache_behaviors.map(&:to_aws) end
+            },
+            comment: local.comment,
+            enabled: local.enabled
+          }
+        }
+
+        local.id = @cloudfront.create_distribution(create_config).distribution.id
+
+        # Save the updated local config with id
+        File.open("#{Configuration.instance.cloudfront.distributions_directory}/#{local.file_name}.json", "w") { |f| f.write(local.pretty_json) }
+        puts "Distribution #{local.file_name} created with id #{local.id}"
+
+      rescue => e
+        puts "Failed to create distribution #{local.file_name}\n#{e}"
       end
 
     end
