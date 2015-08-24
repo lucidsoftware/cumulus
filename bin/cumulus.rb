@@ -195,8 +195,8 @@ module Modules
 
   # Public: Run the Cloudfront module
   def self.cloudfront
-    if ARGV.size < 2 or (ARGV[1] != "help" and ARGV[1] != "diff" and ARGV[1] != "list")
-      puts "Usage: cumulus cloudfront [diff|help|list] <asset>"
+    if ARGV.size < 2 or (ARGV[1] != "help" and ARGV[1] != "diff" and ARGV[1] != "list" and ARGV[1] != "sync")
+      puts "Usage: cumulus cloudfront [diff|help|list|sync] <asset>"
       exit
     end
 
@@ -208,6 +208,7 @@ module Modules
       puts "Commands"
       puts "\tdiff\t- print out differences between local configuration and AWS (supplying the id of the distribution will diff only that distribution)"
       puts "\tlist\t- list the locally defined distributions"
+      puts "\sync\t- sync local cloudfront distribution configuration with AWS (supplying the id of the distribution will sync only that distribution)"
       exit
     end
 
@@ -222,6 +223,12 @@ module Modules
         cloudfront.diff
       else
         cloudfront.diff_one(ARGV[2])
+      end
+    elsif ARGV[1] == "sync"
+      if ARGV.size == 2
+        cloudfront.sync
+      else
+        cloudfront.sync_one(ARGV[2])
       end
     end
 

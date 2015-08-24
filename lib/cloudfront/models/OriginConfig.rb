@@ -51,6 +51,26 @@ module Cumulus
         }.reject { |k, v| v.nil? }
       end
 
+      def to_aws
+        {
+          id: @id,
+          domain_name: @domain_name,
+          origin_path: @origin_path,
+          s3_origin_config: if @s3_access_origin_identity.nil? then nil else
+            {
+              origin_access_identity: @s3_access_origin_identity
+            }
+          end,
+          custom_origin_config: if @custom_origin_config.nil? then nil else
+            {
+              http_port: @custom_origin_config.http_port,
+              https_port: @custom_origin_config.https_port,
+              origin_protocol_policy: @custom_origin_config.protocol_policy
+            }
+          end
+        }
+      end
+
       # Public: Produce an array of differences between this local configuration and the
       # configuration in AWS
       #

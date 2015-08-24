@@ -21,11 +21,20 @@ module Cumulus
         end
       end
 
-      # Public: Provides a mapping of cloudfront distributions to their id. Lazily loads resources.
+      # Public: Provides a mapping of cloudfront distribution configs to their id. Lazily loads resources.
       #
-      # Returns the distributions mapped to their ids
+      # Returns the distribution configs mapped to their ids
       def id_distributions
-        Hash[distributions.flatten.map { |dist| [dist.id, dist] }]
+        @full_distributions ||= Hash[distributions.map { |dist| [dist.id, dist] }]
+      end
+
+      # Internal: Load the full config for a distribution from AWS
+      #
+      # Returns an AWS DistributionConfig
+      def load_distribution_config(distribution_id)
+        @@client.get_distribution_config({
+          id: distribution_id
+        }).data
       end
 
       private

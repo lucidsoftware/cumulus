@@ -28,6 +28,12 @@ module Cumulus
         @aws_resources ||= CloudFront::id_distributions
       end
 
+      def full_distribution(distribution_id)
+        @full_aws_configs ||= Hash.new
+
+        @full_aws_configs[distribution_id] ||= CloudFront::load_distribution_config(distribution_id)
+      end
+
       def unmanaged_diff(aws)
         DistributionDiff.unmanaged(aws)
       end
@@ -37,11 +43,42 @@ module Cumulus
       end
 
       def diff_resource(local, aws)
-        local.diff(aws)
+        local.diff(full_distribution(aws.id).distribution_config)
       end
 
       def update(local, diffs)
-        puts Colors.blue("\tupdates disabled")
+        if !diffs.empty?
+          full_aws_response = full_distribution(local.id)
+
+          aws_config = full_aws_response.distribution_config
+
+          updated_config = {
+            aliases: {
+              quantity: local.aliases.size,
+              items: if local.aliases.empty? then nil else local.aliases end
+            },
+            origins: {
+              quantity: local.origins.size,
+              items: if local.origins.empty? then nil else local.origins.map(&:to_aws) end
+            },
+            default_cache_behavior: local.default_cache_behavior.to_aws,
+            cache_behaviors: {
+              quantity: local.cache_behaviors.size,
+              items: if local.cache_behaviors.empty? then nil else local.cache_behaviors.map(&:to_aws) end
+            },
+            comment: local.comment,
+            enabled: local.enabled
+          }
+
+          update_params = {
+            id: local.id,
+            if_match: full_aws_response.etag,
+            distribution_config: aws_config.to_h.merge(updated_config)
+          }
+
+          @cloudfront.update_distribution(update_params)
+        end
+
       end
 
     end

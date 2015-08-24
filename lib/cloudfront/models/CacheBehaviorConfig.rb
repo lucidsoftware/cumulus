@@ -73,6 +73,48 @@ module Cumulus
         }.reject { |k, v| v.nil? }
       end
 
+      # Public: Get the config in the format needed for AWS
+      #
+      # Returns the hash
+      def to_aws
+        {
+          path_pattern: @path_pattern,
+          target_origin_id: @target_origin_id,
+          forwarded_values: {
+            query_string: @forward_query_strings,
+            cookies: {
+              forward: @forwarded_cookies,
+              whitelisted_names: {
+                quantity: @forwarded_cookies_whitelist.size,
+                items: if @forwarded_cookies_whitelist.empty? then nil else @forwarded_cookies_whitelist end
+              }
+            },
+            headers: {
+              quantity: @forward_headers.size,
+              items: if @forward_headers.empty? then nil else @forward_headers end
+            }
+          },
+          trusted_signers: {
+            enabled: !@trusted_signers.empty?,
+            quantity: @trusted_signers.size,
+            items: if @trusted_signers.empty? then nil else @trusted_signers end
+          },
+          viewer_protocol_policy: @viewer_protocol_policy,
+          min_ttl: @min_ttl,
+          max_ttl: @max_ttl,
+          default_ttl: @default_ttl,
+          smooth_streaming: @smooth_streaming,
+          allowed_methods: {
+            quantity: @allowed_methods.size,
+            items: if @allowed_methods.empty? then nil else @allowed_methods end,
+            cached_methods: {
+              quantity: @cached_methods.size,
+              items: if @cached_methods.empty? then nil else @cached_methods end
+            }
+          }
+        }
+      end
+
       def name
         if @default
           "Default Cache"
