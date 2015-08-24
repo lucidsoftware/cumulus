@@ -27,8 +27,8 @@ module Cumulus
       # local           - the local configuration for the zone
       #
       # Returns the diff
-      def self.custom(changes, local)
-        diff = OriginDiff.new(CUSTOM, nil, local)
+      def self.custom(changes, aws, local)
+        diff = OriginDiff.new(CUSTOM, aws, local)
         diff.custom_changes = changes
         diff
       end
@@ -50,13 +50,13 @@ module Cumulus
         when S3
           aws_value = (@aws.s3_origin_config.origin_access_identity rescue nil)
           [
-            "s3-origin-access-identity:",
+            "s3 origin access identity:",
             Colors.aws_changes("\tAWS - #{aws_value}"),
             Colors.local_changes("\tLocal - #{@local.s3_access_origin_identity}"),
           ].join("\n")
         when CUSTOM
           [
-            "custom-origin-config:",
+            "custom origin config:",
             (@custom_changes.flat_map do |c|
               c.to_s.lines.map { |l| "\t#{l.chomp}"}
             end).join("\n"),
@@ -73,12 +73,7 @@ module Cumulus
       end
 
       def local_name
-        case @type
-        when ADD
-          @local.id
-        when UNMANAGED
-          @aws.id
-        end
+        @local.id
       end
 
       def aws_name

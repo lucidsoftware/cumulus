@@ -41,13 +41,13 @@ module Cumulus
       # Public: Get the config as a hash
       #
       # Returns the hash
-      def to_hash
+      def to_local
         {
           "id" => @id,
           "domain-name" => @domain_name,
           "origin-path" => @origin_path,
           "s3-origin-access-identity" => @s3_access_origin_identity,
-          "custom-origin-config" => if @custom_origin_config.nil? then nil else @custom_origin_config.to_hash end
+          "custom-origin-config" => if @custom_origin_config.nil? then nil else @custom_origin_config.to_local end
         }.reject { |k, v| v.nil? }
       end
 
@@ -102,11 +102,11 @@ module Cumulus
         if @custom_origin_config.nil?
           if !aws.custom_origin_config.nil?
             custom_diffs = CustomOriginConfig.new(nil, nil, nil).diff(aws.custom_origin_config)
-            diffs << OriginDiff.custom(custom_diffs, self) if !custom_diffs.empty?
+            diffs << OriginDiff.custom(custom_diffs, aws, self) if !custom_diffs.empty?
           end
         else
           custom_diffs = @custom_origin_config.diff(aws.custom_origin_config)
-          diffs << OriginDiff.custom(custom_diffs, self) if !custom_diffs.empty?
+          diffs << OriginDiff.custom(custom_diffs, aws, self) if !custom_diffs.empty?
         end
 
         diffs.flatten

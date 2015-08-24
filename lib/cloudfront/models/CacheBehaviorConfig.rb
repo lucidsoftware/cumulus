@@ -55,7 +55,7 @@ module Cumulus
       # Public: Get the config as a hash
       #
       # Returns the hash
-      def to_hash
+      def to_local
         {
           "path-pattern" => @path_pattern,
           "target-origin-id" => @target_origin_id,

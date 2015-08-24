@@ -43,9 +43,9 @@ module Cumulus
         JSON.pretty_generate({
           "id" => @id,
           "aliases" => @aliases,
-          "origins" => @origins.map(&:to_hash),
-          "default-cache-behavior" => @default_cache_behavior.to_hash,
-          "cache-behaviors" => @cache_behaviors.map(&:to_hash),
+          "origins" => @origins.map(&:to_local),
+          "default-cache-behavior" => @default_cache_behavior.to_local,
+          "cache-behaviors" => @cache_behaviors.map(&:to_local),
           "comment" => @comment,
           "enabled" => @enabled,
         }.reject { |k, v| v.nil? })

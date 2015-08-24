@@ -22,7 +22,7 @@ module Cumulus
         diffs
       end
 
-      def to_hash
+      def to_local
         {
           "http-port" => self.http_port,
           "https-port" => self.https_port,

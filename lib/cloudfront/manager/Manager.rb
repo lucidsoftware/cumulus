@@ -12,7 +12,6 @@ module Cumulus
     class Manager < Common::Manager
       def initialize
         super()
-        @create_asset = true
         @cloudfront = Aws::CloudFront::Client.new(region: Configuration.instance.region)
       end
 

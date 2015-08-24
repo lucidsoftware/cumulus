@@ -71,12 +71,16 @@ module Cumulus
         when ORIGINS
           [
             "origins:",
-            (@changed_origins.map do |o|
-              [
-                "\t#{o.local_name}",
-                o.to_s.lines.map { |l| "\t\t#{l}".chomp("\n")}
-              ]
-            end)
+            @changed_origins.map do |o|
+              if o.type == ADD or o.type == UNMANAGED
+                o.to_s.lines.map { |l| "\t#{l}".chomp("\n")}
+              else
+                [
+                  "\t#{o.local_name}",
+                  o.to_s.lines.map { |l| "\t\t#{l}".chomp("\n")}
+                ].join("\n")
+              end
+            end
           ].flatten.join("\n")
         when CACHE_DEFAULT
           [

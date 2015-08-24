@@ -4,7 +4,7 @@ require "util/Colors"
 module Cumulus
   module CloudFront
 
-  	# Public: The types of changes that can be made to zones
+    # Public: The types of changes that can be made to cache behaviors
     module CacheBehaviorChange
       include Common::DiffChange
 
