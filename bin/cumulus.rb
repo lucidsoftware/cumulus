@@ -195,8 +195,8 @@ module Modules
 
   # Public: Run the Cloudfront module
   def self.cloudfront
-    if ARGV.size < 2 or (ARGV[1] != "help" and ARGV[1] != "diff" and ARGV[1] != "list" and ARGV[1] != "sync")
-      puts "Usage: cumulus cloudfront [diff|help|list|sync] <asset>"
+    if ARGV.size < 2 or (ARGV[1] != "help" and ARGV[1] != "diff" and ARGV[1] != "list" and ARGV[1] != "sync" and ARGV[1] != "invalidate")
+      puts "Usage: cumulus cloudfront [diff|help|invalidate|list|sync] <asset>"
       exit
     end
 
@@ -204,11 +204,12 @@ module Modules
       puts "cloudfront: Manage CloudFront"
       puts "\tDiff and sync CloudFront configuration with AWS."
       puts
-      puts "Usage: cumulus cloudfront [diff|help|list] <asset>"
+      puts "Usage: cumulus cloudfront [diff|help|invalidate|list] <asset>"
       puts "Commands"
-      puts "\tdiff\t- print out differences between local configuration and AWS (supplying the id of the distribution will diff only that distribution)"
-      puts "\tlist\t- list the locally defined distributions"
-      puts "\sync\t- sync local cloudfront distribution configuration with AWS (supplying the id of the distribution will sync only that distribution)"
+      puts "\tdiff\t\t- print out differences between local configuration and AWS (supplying the id of the distribution will diff only that distribution)"
+      puts "\tinvalidate\t- create an invalidation.  Must supply the name of the invalidation to run"
+      puts "\tlist\t\t- list the locally defined distributions"
+      puts "\tsync\t\t- sync local cloudfront distribution configuration with AWS (supplying the id of the distribution will sync only that distribution)"
       exit
     end
 
@@ -229,6 +230,13 @@ module Modules
         cloudfront.sync
       else
         cloudfront.sync_one(ARGV[2])
+      end
+    elsif ARGV[1] == "invalidate"
+      if ARGV.size != 3
+        puts "Must specify one invalidation to run"
+        exit
+      else
+        cloudfront.invalidate(ARGV[2])
       end
     end
 

@@ -1,0 +1,7 @@
+{
+  "distribution-id": "DistributionID",
+  "paths": [
+    "/path1", // must begin with a /
+    "/folder/*" // can contain wildcard
+  ]
+}

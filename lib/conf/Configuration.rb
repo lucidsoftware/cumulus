@@ -216,10 +216,12 @@ module Cumulus
       include Config
 
       attr_reader :distributions_directory
+      attr_reader :invalidations_directory
 
       # Public: Inner class that contains CloudFront configuration options
       def initialize
         @distributions_directory = conf_abs_path "cloudfront.distributions.directory"
+        @invalidations_directory = conf_abs_path "cloudfront.invalidations.directory"
       end
     end
 

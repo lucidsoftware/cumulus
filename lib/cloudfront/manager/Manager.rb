@@ -112,6 +112,28 @@ module Cumulus
         puts "Failed to create distribution #{local.file_name}\n#{e}"
       end
 
+      def invalidate(invalidation_name)
+
+        invalidation = Loader.invalidation(invalidation_name)
+
+        # Use a combination of the current time and md5 of paths to prevent
+        # identical invalidations from being ran too often
+        time_throttle = (Time.now.to_i / 60 / 5)
+        md5 = Digest::MD5.hexdigest(invalidation.paths.join)[0..5]
+
+        @cloudfront.create_invalidation({
+          distribution_id: invalidation.distribution_id,
+          invalidation_batch: {
+            paths: {
+              quantity: invalidation.paths.size,
+              items: if invalidation.paths.empty? then nil else invalidation.paths end
+            },
+            caller_reference: "#{invalidation_name}-#{md5}-#{time_throttle}"
+          }
+        })
+
+      end
+
     end
   end
 end
