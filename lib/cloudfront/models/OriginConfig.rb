@@ -90,7 +90,7 @@ module Cumulus
 
         # If s3 origin is defined here but not aws
         if !aws.s3_origin_config.nil?
-          if @s3_access_origin_identity != aws.s3_origin_config.s3_access_origin_identity
+          if @s3_access_origin_identity != aws.s3_origin_config.origin_access_identity
             diffs << OriginDiff.new(OriginChange::S3, aws, self)
           end
         else
