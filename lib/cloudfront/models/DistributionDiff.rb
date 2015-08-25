@@ -1,4 +1,5 @@
 require "common/models/Diff"
+require "common/models/ListChange"
 require "util/Colors"
 
 module Cumulus
@@ -27,8 +28,6 @@ module Cumulus
       attr_accessor :default_cache
       attr_accessor :cache
 
-      ListChange = Struct.new(:added, :removed, :modified)
-
       # Public: Static method that produces a diff representing changes in origins
       #
       # changes - the OriginDiffs
@@ -56,7 +55,7 @@ module Cumulus
 
       def self.caches(removed, added, diffs, local)
         diff = DistributionDiff.new(CACHES, nil, local)
-        diff.cache = ListChange.new(removed, added, diffs)
+        diff.cache = Common::ListChange.new(removed, added, diffs)
         diff
       end
 

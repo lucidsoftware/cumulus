@@ -1,4 +1,5 @@
 require "common/models/Diff"
+require "common/models/ListChange"
 require "util/Colors"
 
 module Cumulus
@@ -29,8 +30,6 @@ module Cumulus
     class CacheBehaviorDiff < Common::Diff
       include CacheBehaviorChange
 
-      ListChange = Struct.new(:added, :removed)
-
       attr_accessor :cookies
       attr_accessor :headers
       attr_accessor :signers
@@ -46,7 +45,7 @@ module Cumulus
       # Returns the diff
       def self.cookies_whitelist(added_cookies, removed_cookies, local)
         diff = CacheBehaviorDiff.new(COOKIES_WHITELIST, nil, local)
-        diff.cookies = ListChange.new(added_cookies, removed_cookies)
+        diff.cookies = Common::ListChange.new(added_cookies, removed_cookies)
         diff
       end
 
@@ -59,7 +58,7 @@ module Cumulus
       # Returns the diff
       def self.headers(added_headers, removed_headers, local)
         diff = CacheBehaviorDiff.new(HEADERS, nil, local)
-        diff.headers = ListChange.new(added_headers, removed_headers)
+        diff.headers = Common::ListChange.new(added_headers, removed_headers)
         diff
       end
 
@@ -72,7 +71,7 @@ module Cumulus
       # Returns the diff
       def self.signers(added_signers, removed_signers, local)
         diff = CacheBehaviorDiff.new(SIGNERS, nil, local)
-        diff.signers = ListChange.new(added_signers, removed_signers)
+        diff.signers = Common::ListChange.new(added_signers, removed_signers)
         diff
       end
 
@@ -85,7 +84,7 @@ module Cumulus
       # Returns the diff
       def self.allowed_methods(added_allowed_methods, removed_allowed_methods, local)
         diff = CacheBehaviorDiff.new(METHODS_ALLOWED, nil, local)
-        diff.allowed_methods = ListChange.new(added_allowed_methods, removed_allowed_methods)
+        diff.allowed_methods = Common::ListChange.new(added_allowed_methods, removed_allowed_methods)
         diff
       end
 
@@ -98,7 +97,7 @@ module Cumulus
       # Returns the diff
       def self.cached_methods(added_cached_methods, removed_cached_methods, local)
         diff = CacheBehaviorDiff.new(METHODS_CACHED, nil, local)
-        diff.cached_methods = ListChange.new(added_cached_methods, removed_cached_methods)
+        diff.cached_methods = Common::ListChange.new(added_cached_methods, removed_cached_methods)
         diff
       end
 
