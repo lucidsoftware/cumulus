@@ -88,7 +88,7 @@ module Cumulus
     include Config
 
     attr_reader :colors_enabled
-    attr_reader :iam, :autoscaling, :route53, :s3, :security
+    attr_reader :iam, :autoscaling, :route53, :s3, :security, :cloudfront
     attr_reader :region
 
     # Internal: Constructor. Sets up the `instance` variable, which is the access
@@ -106,6 +106,7 @@ module Cumulus
       @autoscaling = AutoScalingConfig.new
       @route53 = Route53Config.new
       @security = SecurityConfig.new
+      @cloudfront = CloudFrontConfig.new
     end
 
     class << self
@@ -208,6 +209,18 @@ module Cumulus
         @subnets_file = conf_abs_path "security.subnets-file"
       end
 
+    end
+
+    # Public: Inner class that contains cloudfront configuration options
+    class CloudFrontConfig
+      include Config
+
+      attr_reader :distributions_directory
+
+      # Public: Inner class that contains CloudFront configuration options
+      def initialize
+        @distributions_directory = conf_abs_path "cloudfront.distributions.directory"
+      end
     end
 
   end

@@ -7,7 +7,7 @@ module Modules
   def self.iam
     if ARGV.size < 2 or
       (ARGV.size == 2 and ARGV[1] != "help") or
-      (ARGV.size >= 3 and ((ARGV[1] != "groups" and ARGV[1] != "roles" and ARGV[1] != "users") or (ARGV[2] != "diff" and ARGV[2] != "list" and ARGV[2] != "migrate" and ARGV[2] != "sync")))
+      (ARGV.size >= 3 and ((ARGV[1] != "groups" and ARGV[1] != "roles" and ARGV[1] != "users" and ARGV[1]) or (ARGV[2] != "diff" and ARGV[2] != "list" and ARGV[2] != "migrate" and ARGV[2] != "sync")))
       puts "Usage: cumulus iam [help|groups|roles|users] [diff|list|migrate|sync] <asset>"
       exit
     end
@@ -192,6 +192,48 @@ module Modules
     end
 
   end
+
+  # Public: Run the Cloudfront module
+  def self.cloudfront
+    if ARGV.size < 2 or (ARGV[1] != "help" and ARGV[1] != "diff" and ARGV[1] != "list" and ARGV[1] != "sync")
+      puts "Usage: cumulus cloudfront [diff|help|list|sync] <asset>"
+      exit
+    end
+
+    if ARGV[1] == "help"
+      puts "cloudfront: Manage CloudFront"
+      puts "\tDiff and sync CloudFront configuration with AWS."
+      puts
+      puts "Usage: cumulus cloudfront [diff|help|list] <asset>"
+      puts "Commands"
+      puts "\tdiff\t- print out differences between local configuration and AWS (supplying the id of the distribution will diff only that distribution)"
+      puts "\tlist\t- list the locally defined distributions"
+      puts "\sync\t- sync local cloudfront distribution configuration with AWS (supplying the id of the distribution will sync only that distribution)"
+      exit
+    end
+
+    require "cloudfront/manager/Manager"
+
+    cloudfront = Cumulus::CloudFront::Manager.new
+
+    if ARGV[1] == "list"
+      cloudfront.list
+    elsif ARGV[1] == "diff"
+      if ARGV.size == 2
+        cloudfront.diff
+      else
+        cloudfront.diff_one(ARGV[2])
+      end
+    elsif ARGV[1] == "sync"
+      if ARGV.size == 2
+        cloudfront.sync
+      else
+        cloudfront.sync_one(ARGV[2])
+      end
+    end
+
+  end
+
 end
 
 # check for the aws ruby gem
@@ -205,8 +247,8 @@ rescue LoadError
 end
 
 if ARGV.size == 0 or (ARGV[0] != "iam" and ARGV[0] != "help" and ARGV[0] != "autoscaling" and
-  ARGV[0] != "route53" and ARGV[0] != "security-groups")
-  puts "Usage: cumulus [autoscaling|help|iam|route53|security-groups]"
+  ARGV[0] != "route53" and ARGV[0] != "security-groups" and ARGV[0] != "cloudfront")
+  puts "Usage: cumulus [autoscaling|cloudfront|help|iam|route53|security-groups]"
   exit
 end
 
@@ -216,6 +258,7 @@ if ARGV[0] == "help"
   puts
   puts "Modules"
   puts "\tautoscaling\t- Manages configuration for EC2 AutoScaling"
+  puts "\tcloudfront\t- Manages configuration for cloudfront distributions"
   puts "\tiam\t\t- Compiles IAM roles and policies that are defined with configuration files and syncs the resulting IAM roles and policies with AWS"
   puts "\troute53\t\t- Manages configuration for Route53"
   puts "\tsecurity-groups\t- Manages configuration for EC2 Security Groups"
@@ -264,6 +307,8 @@ if ARGV[0] == "iam"
   Modules.iam
 elsif ARGV[0] == "autoscaling"
   Modules.autoscaling
+elsif ARGV[0] == "cloudfront"
+  Modules.cloudfront
 elsif ARGV[0] == "route53"
   Modules.route53
 elsif ARGV[0] == "security-groups"
