@@ -30,7 +30,7 @@ module Cumulus
           @aliases = json["aliases"] || []
           @origins = json["origins"].map { |o| OriginConfig.new(o) }
           @default_cache_behavior = CacheBehaviorConfig.new(json["default-cache-behavior"], true)
-          @cache_behaviors = if json["cache-behaviors"].nil? then [] else json["cache-behaviors"].map { |cb| CacheBehaviorConfig.new(cb) } end
+          @cache_behaviors = (json["cache-behaviors"] || []).map { |cb| CacheBehaviorConfig.new(cb) }
           @comment = json["comment"]
           @enabled = json["enabled"]
         end
