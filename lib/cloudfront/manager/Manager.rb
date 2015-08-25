@@ -45,6 +45,29 @@ module Cumulus
         local.diff(full_distribution(aws.id).distribution_config)
       end
 
+      # Migrate AWS CloudFront distributions to local config
+      def migrate
+        distributions_dir = "#{@migration_root}/distributions"
+
+        if !Dir.exists?(@migration_root)
+          Dir.mkdir(@migration_root)
+        end
+        if !Dir.exists?(distributions_dir)
+          Dir.mkdir(distributions_dir)
+        end
+
+        aws_resources.each_key do |dist_id|
+          puts "Processing #{dist_id}..."
+          full_config = full_distribution(dist_id).distribution_config
+
+          config = DistributionConfig.new(dist_id)
+          config.populate(dist_id, full_config)
+
+          puts "Writing #{dist_id} configuration to file"
+          File.open("#{distributions_dir}/#{dist_id}.json", "w") { |f| f.write(config.pretty_json) }
+        end
+      end
+
       def update(local, diffs)
         if !diffs.empty?
           full_aws_response = full_distribution(local.id)

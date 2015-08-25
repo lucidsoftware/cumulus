@@ -33,9 +33,7 @@ module Cumulus
       def initialize(json = nil, default = false)
         if !json.nil?
           @default = default
-          if !default
-            @path_pattern = json["path-pattern"]
-          end
+          @path_pattern = json["path-pattern"] if !default
           @target_origin_id = json["target-origin-id"]
           @forward_query_strings = json["forward-query-strings"]
           @forwarded_cookies = json["forwarded-cookies"]
@@ -50,6 +48,24 @@ module Cumulus
           @allowed_methods = json["allowed-methods"] || []
           @cached_methods = json["cached-methods"] || []
         end
+      end
+
+      def populate(aws, default = false)
+        @default = default
+        @path_pattern = aws.path_pattern if !default
+        @target_origin_id = aws.target_origin_id
+        @forward_query_strings = aws.forwarded_values.query_string
+        @forwarded_cookies = aws.forwarded_values.cookies.forward
+        @forwarded_cookies_whitelist = if aws.forwarded_values.cookies.whitelisted_names.nil? then [] else aws.forwarded_values.cookies.whitelisted_names.items end
+        @forward_headers = if aws.forwarded_values.headers.nil? then [] else aws.forwarded_values.headers.items end
+        @trusted_signers = if aws.trusted_signers.enabled then aws.trusted_signers.items else [] end
+        @viewer_protocol_policy = aws.viewer_protocol_policy
+        @min_ttl = aws.min_ttl
+        @max_ttl = aws.max_ttl
+        @default_ttl = aws.default_ttl
+        @smooth_streaming = aws.smooth_streaming
+        @allowed_methods = aws.allowed_methods.items
+        @cached_methods = aws.allowed_methods.cached_methods.items
       end
 
       # Public: Get the config as a hash

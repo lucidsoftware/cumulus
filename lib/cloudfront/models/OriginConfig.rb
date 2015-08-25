@@ -38,6 +38,23 @@ module Cumulus
         end
       end
 
+      def populate(aws)
+        @id = aws.id
+        @domain_name = aws.domain_name
+        @origin_path = aws.origin_path
+        @s3_access_origin_identity = if aws.s3_origin_config.nil? then nil else aws.s3_origin_config.origin_access_identity end
+        @custom_origin_config = if aws.custom_origin_config.nil?
+          nil
+        else
+          CustomOriginConfig.new(
+            aws.custom_origin_config.http_port,
+            aws.custom_origin_config.https_port,
+            aws.custom_origin_config.origin_protocol_policy
+          )
+        end
+        @name = @id
+      end
+
       # Public: Get the config as a hash
       #
       # Returns the hash
