@@ -38,6 +38,21 @@ module Cumulus
         end
       end
 
+      def populate!(aws)
+        @id = aws.id
+        @domain_name = aws.domain_name
+        @origin_path = aws.origin_path
+        @s3_access_origin_identity = if aws.s3_origin_config then aws.s3_origin_config.origin_access_identity end
+        @custom_origin_config = if aws.custom_origin_config
+          CustomOriginConfig.new(
+            aws.custom_origin_config.http_port,
+            aws.custom_origin_config.https_port,
+            aws.custom_origin_config.origin_protocol_policy
+          )
+        end
+        @name = @id
+      end
+
       # Public: Get the config as a hash
       #
       # Returns the hash
@@ -90,7 +105,7 @@ module Cumulus
 
         # If s3 origin is defined here but not aws
         if !aws.s3_origin_config.nil?
-          if @s3_access_origin_identity != aws.s3_origin_config.s3_access_origin_identity
+          if @s3_access_origin_identity != aws.s3_origin_config.origin_access_identity
             diffs << OriginDiff.new(OriginChange::S3, aws, self)
           end
         else

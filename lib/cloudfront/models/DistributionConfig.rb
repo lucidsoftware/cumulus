@@ -36,6 +36,26 @@ module Cumulus
         end
       end
 
+      def populate!(id, aws)
+        @id = id
+        @name = id
+        @aliases = aws.aliases.items
+        @origins = aws.origins.items.map do |origin|
+          config = OriginConfig.new()
+          config.populate!(origin)
+          config
+        end
+        @default_cache_behavior = CacheBehaviorConfig.new()
+        @default_cache_behavior.populate!(aws.default_cache_behavior, true)
+        @cache_behaviors = aws.cache_behaviors.items.map do |cache_behavior|
+          config = CacheBehaviorConfig.new()
+          config.populate!(cache_behavior)
+          config
+        end
+        @comment = aws.comment
+        @enabled = aws.enabled
+      end
+
       # Public: Get the config as a prettified JSON string.
       #
       # Returns the JSON string
@@ -48,7 +68,7 @@ module Cumulus
           "cache-behaviors" => @cache_behaviors.map(&:to_local),
           "comment" => @comment,
           "enabled" => @enabled,
-        }.reject { |k, v| v.nil? })
+        })
       end
 
       # Public: Produce an array of differences between this local configuration and the
