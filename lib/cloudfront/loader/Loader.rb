@@ -19,11 +19,11 @@ module Cumulus
         Common::BaseLoader::resources(@@distributions_dir, &DistributionConfig.method(:new))
       end
 
-      # Public: Load an invalidation configuration as an InvalidationConfig object
+      # Public loads all of the invalidation configurations as InvalidationConfig objects
       #
-      # Returns a single InvalidationConfig
-      def self.invalidation(invalidation_name)
-        Common::BaseLoader::resource(invalidation_name, @@invalidations_dir, &InvalidationConfig.method(:new))
+      # Returns an array of InvalidationConfig
+      def self.invalidations
+        Common::BaseLoader::resources(@@invalidations_dir, &InvalidationConfig.method(:new))
       end
 
     end

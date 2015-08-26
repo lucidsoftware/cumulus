@@ -207,7 +207,7 @@ module Modules
       puts "Usage: cumulus cloudfront [diff|help|invalidate|list] <asset>"
       puts "Commands"
       puts "\tdiff\t\t- print out differences between local configuration and AWS (supplying the id of the distribution will diff only that distribution)"
-      puts "\tinvalidate\t- create an invalidation.  Must supply the name of the invalidation to run"
+      puts "\tinvalidate\t- create an invalidation.  Must supply the name of the invalidation to run.  Specifying 'list' as an argument lists the local invalidation configurations"
       puts "\tlist\t\t- list the locally defined distributions"
       puts "\tmigrate\t\t- produce Cumulus CloudFront distribution configuration from current AWS configuration"
       puts "\tsync\t\t- sync local cloudfront distribution configuration with AWS (supplying the id of the distribution will sync only that distribution)"
@@ -237,7 +237,11 @@ module Modules
         puts "Specify one invalidation to run"
         exit
       else
-        cloudfront.invalidate(ARGV[2])
+        if ARGV[2] == "list"
+          cloudfront.list_invalidations
+        else
+          cloudfront.invalidate(ARGV[2])
+        end
       end
     elsif ARGV[1] == "migrate"
       cloudfront.migrate

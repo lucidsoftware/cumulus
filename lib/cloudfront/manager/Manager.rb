@@ -135,9 +135,17 @@ module Cumulus
         puts "Failed to create distribution #{local.file_name}\n#{e}"
       end
 
+      def invalidations
+        @invalidations ||= Hash[Loader.invalidations.map { |local| [local.name, local] }]
+      end
+
+      def list_invalidations
+        puts invalidations.keys.join(" ")
+      end
+
       def invalidate(invalidation_name)
 
-        invalidation = Loader.invalidation(invalidation_name)
+        invalidation = invalidations[invalidation_name]
 
         # Use a combination of the current time and md5 of paths to prevent
         # identical invalidations from being ran too often

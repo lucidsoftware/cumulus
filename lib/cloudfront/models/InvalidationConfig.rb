@@ -6,7 +6,7 @@ module Cumulus
     class InvalidationConfig
       attr_reader :distribution_id
       attr_reader :paths
-
+      attr_reader :name
 
       # Public: Constructor
       #
