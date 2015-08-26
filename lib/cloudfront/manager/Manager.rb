@@ -61,7 +61,7 @@ module Cumulus
           full_config = full_distribution(dist_id).distribution_config
 
           config = DistributionConfig.new(dist_id)
-          config.populate(dist_id, full_config)
+          config.populate!(dist_id, full_config)
 
           puts "Writing #{dist_id} configuration to file"
           File.open("#{distributions_dir}/#{dist_id}.json", "w") { |f| f.write(config.pretty_json) }
