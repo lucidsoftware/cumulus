@@ -50,7 +50,7 @@ module Cumulus
         end
       end
 
-      def populate(aws, default = false)
+      def populate!(aws, default = false)
         @default = default
         @path_pattern = aws.path_pattern if !default
         @target_origin_id = aws.target_origin_id

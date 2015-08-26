@@ -36,20 +36,20 @@ module Cumulus
         end
       end
 
-      def populate(id, aws)
+      def populate!(id, aws)
         @id = id
         @name = id
         @aliases = aws.aliases.items
         @origins = aws.origins.items.map do |origin|
           config = OriginConfig.new()
-          config.populate(origin)
+          config.populate!(origin)
           config
         end
         @default_cache_behavior = CacheBehaviorConfig.new()
-        @default_cache_behavior.populate(aws.default_cache_behavior, true)
+        @default_cache_behavior.populate!(aws.default_cache_behavior, true)
         @cache_behaviors = aws.cache_behaviors.items.map do |cache_behavior|
           config = CacheBehaviorConfig.new()
-          config.populate(cache_behavior)
+          config.populate!(cache_behavior)
           config
         end
         @comment = aws.comment
