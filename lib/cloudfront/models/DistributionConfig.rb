@@ -10,7 +10,6 @@ module Cumulus
     # Public: An object representing configuration for a distribution
     class DistributionConfig
       attr_accessor :id
-      attr_reader :file_name
       attr_reader :name
       attr_reader :aliases
       attr_reader :origins
@@ -23,10 +22,9 @@ module Cumulus
       #
       # json - a hash containing the JSON configuration for the distribution
       def initialize(name, json = nil)
-        @file_name = name
+        @name = name
         if !json.nil?
           @id = json["id"]
-          @name = if @id.nil? then @file_name else @id end
           @aliases = json["aliases"] || []
           @origins = json["origins"].map { |o| OriginConfig.new(o) }
           @default_cache_behavior = CacheBehaviorConfig.new(json["default-cache-behavior"], true)

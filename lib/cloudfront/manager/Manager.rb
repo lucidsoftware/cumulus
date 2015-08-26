@@ -106,7 +106,7 @@ module Cumulus
       def create(local)
         create_config = {
           distribution_config: {
-            caller_reference: local.file_name,
+            caller_reference: local.name,
             aliases: {
               quantity: local.aliases.size,
               items: if local.aliases.empty? then nil else local.aliases end
@@ -128,11 +128,11 @@ module Cumulus
         local.id = @cloudfront.create_distribution(create_config).distribution.id
 
         # Save the updated local config with id
-        File.open("#{Configuration.instance.cloudfront.distributions_directory}/#{local.file_name}.json", "w") { |f| f.write(local.pretty_json) }
-        puts "Distribution #{local.file_name} created with id #{local.id}"
+        File.open("#{Configuration.instance.cloudfront.distributions_directory}/#{local.name}.json", "w") { |f| f.write(local.pretty_json) }
+        puts "Distribution #{local.name} created with id #{local.id}"
 
       rescue => e
-        puts "Failed to create distribution #{local.file_name}\n#{e}"
+        puts "Failed to create distribution #{local.name}\n#{e}"
       end
 
       def invalidations
