@@ -1,0 +1,70 @@
+{
+  "region": "us-east-1",
+  "permissions": {
+    "cors": {
+      "template": "example-cors",
+      "vars": {}
+    },
+    "policy": {
+      "template": "example-policy",
+      "vars": {
+        "bucket": "example-bucket"
+      }
+    },
+    "grants": [
+      {
+        "name": "loggly",
+        "email": "aws.loggly.com",
+        // possible values - all, list, update, view-permissions, edit-permissions
+        "permissions": ["list"]
+      }
+    ]
+  },
+  "website": {
+    "enabled": true,
+    // you can also use the redirect key to redirect all requests to the specified host name
+    "index": "test-key",
+    "error": "error-key"
+  },
+  "logging": {
+    "enabled": true,
+    "target-bucket": "logging-bucket",
+    "prefix": "logs/"
+  },
+  "notifications": [
+    {
+      "name": "example-notification",
+      "triggers": [
+        "ObjectCreated:*"
+      ],
+      "prefix": "a",
+      "suffix": "z",
+      "type": "sns",
+      "target": "example-topic"
+    }
+  ],
+  "lifecycle": [
+    {
+      "name": "lifecycle-rule",
+      "prefix": "a",
+      "days-until-glacier": 10,
+      "days-until-delete": 100,
+      "past-versions": {
+        "days-until-glacier": 5,
+        "days-until-delete": 120
+      }
+    }
+  ],
+  "versioning": true,
+  "replication": {
+    "iam-role": "a-role",
+    "prefixes": [ // leave out prefixes if you want to include the whole bucket
+      "a",
+      "z"
+    ],
+    "destination": "backup-bucket"
+  },
+  "tags": {
+    "a key": "a value"
+  }
+}

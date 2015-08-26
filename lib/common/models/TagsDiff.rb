@@ -32,7 +32,15 @@ module Cumulus
       #
       # Returns a hash of tags
       def aws_tags
-        @aws_tags ||= Hash[@aws.tags.map { |tag| [tag.key, tag.value] }]
+        @aws_tags ||= Hash[aws_tags_list.map { |tag| [tag.key, tag.value] }]
+      end
+
+      # Internal: Override this method if tags are not found on the tags attribute of
+      # the aws object.
+      #
+      # Returns the tags
+      def aws_tags_list
+        @aws.tags
       end
     end
   end

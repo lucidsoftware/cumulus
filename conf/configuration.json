@@ -46,6 +46,17 @@
 			"directory": "conf/route53/zones"
 		}
 	},
+	"s3": {
+		"buckets": {
+			"cors": {
+				"directory": "conf/s3/cors"
+			},
+			"directory": "conf/s3/buckets",
+			"policies": {
+				"directory": "conf/s3/policies"
+			}
+		}
+	},
 	"security": {
 		"groups": {
 			"directory": "conf/security/groups"

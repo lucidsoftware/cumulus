@@ -107,6 +107,7 @@ module Cumulus
       @route53 = Route53Config.new
       @security = SecurityConfig.new
       @cloudfront = CloudFrontConfig.new
+      @s3 = S3Config.new
     end
 
     class << self
@@ -191,6 +192,23 @@ module Cumulus
         @includes_directory = conf_abs_path "route53.includes.directory"
         @print_all_ignored = conf "route53.print-all-ignored"
         @zones_directory = conf_abs_path "route53.zones.directory"
+      end
+    end
+
+    # Public: Inner class that contains S3 configuration options
+    class S3Config
+      include Config
+
+      attr_reader :buckets_directory
+      attr_reader :cors_directory
+      attr_reader :policies_directory
+
+      # Public: Constructor
+      def initialize
+        @node = "s3"
+        @buckets_directory = conf_abs_path "s3.buckets.directory"
+        @cors_directory = conf_abs_path "s3.buckets.cors.directory"
+        @policies_directory = conf_abs_path "s3.buckets.policies.directory"
       end
     end
 
