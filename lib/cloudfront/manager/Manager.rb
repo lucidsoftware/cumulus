@@ -126,7 +126,7 @@ module Cumulus
           invalidation_batch: {
             paths: {
               quantity: invalidation.paths.size,
-              items: if invalidation.paths.empty? then nil else invalidation.paths end
+              items: if !invalidation.paths.empty? then invalidation.paths end
             },
             caller_reference: "#{invalidation_name}-#{md5}-#{time_throttle}"
           }

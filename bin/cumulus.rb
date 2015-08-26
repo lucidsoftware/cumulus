@@ -233,7 +233,7 @@ module Modules
       end
     elsif ARGV[1] == "invalidate"
       if ARGV.size != 3
-        puts "Must specify one invalidation to run"
+        puts "Specify one invalidation to run"
         exit
       else
         cloudfront.invalidate(ARGV[2])

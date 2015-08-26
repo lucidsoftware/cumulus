@@ -1,3 +1,5 @@
+require "json"
+
 module Cumulus
   module CloudFront
     # Public: An object representing configuration for a CloudFront invalidation
@@ -10,10 +12,23 @@ module Cumulus
       #
       # json - a hash containing the JSON configuration for the invalidation
       def initialize(name, json = nil)
-        if !json.nil?
+        if json
           @name = name
-          @distribution_id = json["distribution-id"]
-          @paths = json["paths"]
+
+          begin
+            @distribution_id = json.fetch("distribution-id")
+          rescue KeyError
+            puts "Must supply 'distribution-id' in invalidation config"
+            exit
+          end
+
+          begin
+            @paths = json.fetch("paths")
+          rescue KeyError
+            puts "Must supply 'paths' in invalidation config"
+            exit
+          end
+
         end
       end
 
