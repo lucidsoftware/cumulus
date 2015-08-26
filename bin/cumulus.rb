@@ -219,7 +219,11 @@ module Modules
     cloudfront = Cumulus::CloudFront::Manager.new
 
     if ARGV[1] == "list"
-      cloudfront.list
+      if ARGV.size == 2
+        cloudfront.list
+      elsif ARGV[2] == "invalidations"
+        cloudfront.list_invalidations
+      end
     elsif ARGV[1] == "diff"
       if ARGV.size == 2
         cloudfront.diff
