@@ -28,9 +28,9 @@ module Cumulus
         @full_distributions ||= Hash[distributions.map { |dist| [dist.id, dist] }]
       end
 
-      # Internal: Load the full config for a distribution from AWS
+      # Public: Load the full config for a distribution from AWS
       #
-      # Returns an AWS DistributionConfig
+      # Returns an Aws::CloudFront::Types::GetDistributionConfigResult
       def load_distribution_config(distribution_id)
         @@client.get_distribution_config({
           id: distribution_id

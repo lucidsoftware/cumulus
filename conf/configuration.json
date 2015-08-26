@@ -56,6 +56,9 @@
 	"cloudfront": {
 		"distributions": {
 			"directory": "conf/cloudfront/distributions"
+		},
+		"invalidations": {
+			"directory": "conf/cloudfront/invalidations"
 		}
 	},
 	"region": "us-east-1"
