@@ -28,7 +28,7 @@ function _cumulus {
             COMPREPLY=( $(compgen -W "$configs" -- $cur) )
           fi
           if [ "$prev" == "invalidate" ]; then
-            configs=$(cumulus cloudfront list invalidations)
+            configs=$(cumulus cloudfront invalidate list)
             COMPREPLY=( $(compgen -W "$configs" -- $cur) )
           fi
         ;;
@@ -56,7 +56,7 @@ function _cumulus {
               COMPREPLY=( $(compgen -W "autoscaling help iam cloudfront route53 security-groups" -- $cur) )
             ;;
             cloudfront)
-              COMPREPLY=( $(compgen -W "diff list migrate sync invalidate" -- $cur) )
+              COMPREPLY=( $(compgen -W "diff invalidate list migrate sync" -- $cur) )
             ;;
             route53)
               COMPREPLY=( $(compgen -W "diff list migrate sync" -- $cur) )
