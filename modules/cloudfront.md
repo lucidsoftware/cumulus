@@ -26,26 +26,12 @@ Each distribution is defined in its own file, and the folder distributions are l
     * `http-port` - the http port for the custom origin
     * `https-port` the https port for the custom origin
     * `protocol-policy` - the policy to use when serving content from the origin valid values include `"http-only"` and `"match-viewer"`
-* `default-cache-behavior` - a JSON object that defines how items from an origin may be cached in CloudFront when a request matches no other cache behavior. It has the following properties:
-  * `target-origin-id` - the ID of the origin this cache behavior will apply to e.g. `"www.example.com"`
-  * `forward-query-strings` - a true/false value indicating if query strings will be forwarded to the origin. If false, requests to `object1` and `object1?a=b` will serve the same resopnse
-  * `forwarded-cookies` - defines which cookies will be forwarded to the origin. Valid values are `"none"`, `"whitelist"` and `"all"`
-  * `forwarded-cookies-whitelist` - if `forwarded-cookies` is `"whitelist"` this array will determine which cookies are forwarded to the origin. Otherwise, this can be left empty or omitted
-  * `forward-headers` - an array of header names that are forwarded to the origin e.g. `["Authorization", "Origin"]`
-  * `trusted-signers` - an array of trusted signers that can sign content delivered by cloudfront. If omitted or empty, will disable trusted signing for this cache behavior
-  * `viewer-protocol-policy` - the policy to enforce on a viewer for this cache behavior. Valid values include `"allow-all"`, `"https-only"`, and `"redirect-to-https"`
-  * `min-ttl` - the minimum TTL (in seconds) a cached item in this behavior will have, regardless of what is specified on the item e.g. `0`
-  * `default-ttl` - the default TTL (in seconds) a cached item in this behavior will have if it is not specified on the item
-  * `max-ttl` - the maximum TTL (in seconds) a cached item in this behavior will have, regardless of what is specified on the item
-  * `smooth-streaming` - a true/false value indicating if smooth streaming is enabled for this behavior
-  * `allowed-methods` - an array defining the HTTP methods that are allowed in this behavior. Methods can include `"HEAD"`, `"GET"`, `"POST"`, `"PUT"`, `"OPTIONS"`, `"DELETE"`, and `"PATCH"`
-  * `cached-methods` - a subset of `allowed-methods` defining the HTTP methods that are cached in this behavior
-* `cache-behaviors` - an optional array of JSON objects defining the cache behaviors this distribution has. The order these behaviors are defined is the order in which they are checked to see if a requests matches. The properties of the JSON object are the same as for `default-cache-behavior` with the addition of one property:
-  * `path-pattern` - the pattern the path of the request must have to use this cache behavior e.g. `"*.txt"`. Paths that do not match will use the `default-cache-behavior` configuration
+* `default-cache-behavior` - a JSON object that defines how items from an origin may be cached in CloudFront when a request matches no other cache behavior. see [Cache Behaviors](#cache-behaviors) for details on how it is configured.
+* `cache-behaviors` - an optional array of JSON objects defining the cache behaviors this distribution has. The order these behaviors are defined is the order in which they are checked to see if a requests matches. The properties of the JSON object are discussed in [Cache Behaviors](#cache-behaviors)
 * `comment` - the comment describing your distribution
 * `enabled` - a true/false value indicating if your distribution is enabled
 
-Here is an example of a distribution with a custom origin and only default cache behavior:
+Here is an example of a distribution with a custom origin:
 
 {% highlight json %}
 {
@@ -62,40 +48,65 @@ Here is an example of a distribution with a custom origin and only default cache
       }
     }
   ],
-  "default-cache-behavior": {
-    "target-origin-id": "Custom-www.example.com",
-    "forward-query-strings": true,
-    "forwarded-cookies": "whitelist",
-    "forwarded-cookies-whitelist": [
-      "SESSION",
-    ],
-    "forward-headers": [
-      "Origin"
-    ],
-    "trusted-signers": [
-      "self"
-    ],
-    "viewer-protocol-policy": "https-only",
-    "min-ttl": 0,
-    "max-ttl": 31536000,
-    "default-ttl": 86400,
-    "smooth-streaming": false,
-    "allowed-methods": [
-      "HEAD",
-      "GET",
-      "OPTIONS"
-    ],
-    "cached-methods": [
-      "HEAD",
-      "GET"
-    ]
-  },
+  "default-cache-behavior": {...},
   "comment": "Created with Cumulus",
   "enabled": false
 }
 {% endhighlight %}
 
-And here is another example, this time with an S3 origin and another cache behavior which caches all .PNG requests for a year, and other requests for a day
+### Cache Behaviors
+
+A cache behavior controls how itemes accessed using the distribution are cached. Cache Behaviors have the following properties:
+
+* `target-origin-id` - the ID of the origin this cache behavior will apply to e.g. `"www.example.com"`
+* `path-pattern` - the pattern the path of the request must have to use this cache behavior e.g. `"*.txt"`. Paths that do not match will use the `default-cache-behavior` configuration.  When configuring the `default-cache-behavior` this property should be left out or set to `null`
+* `forward-query-strings` - a true/false value indicating if query strings will be forwarded to the origin. If false, requests to `object1` and `object1?a=b` will serve the same response
+* `forwarded-cookies` - defines which cookies will be forwarded to the origin. Valid values are `"none"`, `"whitelist"` and `"all"`
+* `forwarded-cookies-whitelist` - if `forwarded-cookies` is `"whitelist"` this array will determine which cookies are forwarded to the origin. Otherwise, this can be left empty or omitted
+* `forward-headers` - an array of header names that are forwarded to the origin e.g. `["Authorization", "Origin"]`
+* `trusted-signers` - an array of trusted signers that can sign content delivered by cloudfront. If omitted or empty, will disable trusted signing for this cache behavior
+* `viewer-protocol-policy` - the policy to enforce on a viewer for this cache behavior. Valid values include `"allow-all"`, `"https-only"`, and `"redirect-to-https"`
+* `min-ttl` - the minimum TTL (in seconds) a cached item in this behavior will have, regardless of what is specified on the item e.g. `0`
+* `default-ttl` - the default TTL (in seconds) a cached item in this behavior will have if it is not specified on the item
+* `max-ttl` - the maximum TTL (in seconds) a cached item in this behavior will have, regardless of what is specified on the item
+* `smooth-streaming` - a true/false value indicating if smooth streaming is enabled for this behavior
+* `allowed-methods` - an array defining the HTTP methods that are allowed in this behavior. Methods can include `"HEAD"`, `"GET"`, `"POST"`, `"PUT"`, `"OPTIONS"`, `"DELETE"`, and `"PATCH"`
+* `cached-methods` - a subset of `allowed-methods` defining the HTTP methods that are cached in this behavior
+
+Here is an example cache behavior configuration that could be used for the `default-cache-behavior`:
+
+{% highlight json %}
+{
+  "target-origin-id": "Custom-www.example.com",
+  "forward-query-strings": true,
+  "forwarded-cookies": "whitelist",
+  "forwarded-cookies-whitelist": [
+    "SESSION",
+  ],
+  "forward-headers": [
+    "Origin"
+  ],
+  "trusted-signers": [
+    "self"
+  ],
+  "viewer-protocol-policy": "https-only",
+  "min-ttl": 0,
+  "max-ttl": 31536000,
+  "default-ttl": 86400,
+  "smooth-streaming": false,
+  "allowed-methods": [
+    "HEAD",
+    "GET",
+    "OPTIONS"
+  ],
+  "cached-methods": [
+    "HEAD",
+    "GET"
+  ]
+}
+{% endhighlight %}
+
+Here is a full example of a distribution config with an S3 origin and another cache behavior which caches all .PNG requests for a year, and other requests for a day
 
 {% highlight json %}
 {
@@ -158,7 +169,7 @@ And here is another example, this time with an S3 origin and another cache behav
 }
 {% endhighlight %}
 
-It should be noted that Cumulus will create a new CloudFront distribution if you omit the `"id"` parameter. After creation, the configuration used to create the distribution will be updated with the id of the created distribution to prevent it from being created again on accident.
+It should be noted that Cumulus will create a new CloudFront distribution if you omit the `"id"` parameter the next time the configuration is synced. After creation, the configuration used to create the distribution will be updated with the id of the created distribution to prevent it from being created again on accident.
 
 There are some configuration options for web distributions that Cumulus does not handle because we do not use them at Lucid or do not want them managed by Cumulus at this time. These include:
 
@@ -195,7 +206,7 @@ If your environment is anything like ours, you have dozens of distributions, and
 Invalidation
 ------------
 
-Cumulus supports creating CloudFront invalidations using files in the [configurable](#configuration) invalidations directory.  Invalidations use a combination of the current time,  name of the file, and md5 of the specified paths to ensure that an invalidation on a distribution is not ran more than once in a 5 minute window. This is to prevent accidentally creating invalidations in quick succession, and can be easily overridden by changing the name of the file containing the invalidation config, changing the paths to invalidate, or waiting for the next 5 minute window i.e. if the first run was at 1:49, the next one can be ran at 1:50.
+Cumulus supports creating CloudFront invalidations using files in the [configurable](#configuration) invalidations directory.  Invalidations use a combination of the current time,  name of the file, and md5 of the specified paths to ensure that an invalidation on a distribution is not ran more than once in a 5 minute window. This is to prevent accidentally creating invalidations in quick succession, and can be easily overridden by changing the name of the file containing the invalidation config, changing the paths to invalidate, or waiting for the next 5 minute window. For example, if an invalidation was run at 1:49, it could not be ran again until 1:50 unless you changed the paths or renamed it.
 
 Invalidation configurations are JSON objects with the following attributes:
 * `distribution-id` - the id of the cloudfront distribution to run an invalidation on
