@@ -125,10 +125,6 @@ module Cumulus
         @aws.id
       end
 
-      def local_name
-        @local.file_name
-      end
-
     end
 
   end

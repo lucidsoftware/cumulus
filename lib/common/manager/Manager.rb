@@ -36,7 +36,7 @@ module Cumulus
       #
       # name - the name of the resource to diff
       def diff_one(name)
-        local = local_resources.reject { |n, l| l.name != name }
+        local = local_resources.reject { |key, l| l.name != name }
         each_difference(local, false) { |name, diffs| print_difference(name, diffs) }
       end
 
@@ -54,7 +54,7 @@ module Cumulus
       #
       # name - the name of the resource to sync
       def sync_one(name)
-        local = local_resources.reject { |n, l| l.name != name }
+        local = local_resources.reject { |key, l| l.name != name }
         each_difference(local, false) { |name, diffs| sync_difference(name, diffs) }
       end
 
@@ -68,15 +68,15 @@ module Cumulus
       #                     diffs
       def each_difference(locals, include_unmanaged, &f)
         if include_unmanaged
-          aws_resources.each do |name, resource|
-            f.call(name, [unmanaged_diff(resource)]) if !locals.include?(name)
+          aws_resources.each do |key, resource|
+            f.call(key, [unmanaged_diff(resource)]) if !locals.include?(key)
           end
         end
-        locals.each do |name, resource|
-          if !aws_resources.include?(name)
+        locals.each do |key, resource|
+          if !aws_resources.include?(key)
             f.call(resource.name, [added_diff(resource)])
           else
-            f.call(resource.name, diff_resource(resource, aws_resources[name]))
+            f.call(resource.name, diff_resource(resource, aws_resources[key]))
           end
         end
       end
