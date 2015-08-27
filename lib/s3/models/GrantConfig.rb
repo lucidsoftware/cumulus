@@ -30,6 +30,25 @@ module Cumulus
         end
       end
 
+      # Public: A static method that will produce the AWS version of the
+      # permission.
+      #
+      # cumulus_permission - the string permission to convert
+      #
+      # Returns the converted permission string
+      def self.to_aws_permission(cumulus_permission)
+        case cumulus_permission
+        when "update"
+          "WRITE"
+        when "list"
+          "READ"
+        when "edit-permissions"
+          "WRITE_ACP"
+        when "view-permissions"
+          "READ_ACP"
+        end
+      end
+
       # Public: Constructor
       #
       # json - a hash representing the JSON configuration. Expects to be passed
@@ -38,6 +57,7 @@ module Cumulus
         if json
           @name = json["name"]
           @email = json["email"]
+          @id = json["id"]
           @permissions = json["permissions"].sort
           if @permissions.include?("all")
             @permissions = (@permissions + ["list", "update", "view-permissions", "edit-permissions"] - ["all"]).uniq.sort
@@ -64,6 +84,41 @@ module Cumulus
         end
         @email = aws.grantee.email_address
         @permissions = GrantConfig.to_cumulus_permission(aws.permission)
+      end
+
+      # Public: Produce an AWS compatible array of hashes representing this
+      # GrantConfig.
+      #
+      # Returns the array of hashes.
+      def to_aws
+        @permissions.map do |permission|
+          if @name == "AuthenticatedUsers"
+            type = "Group"
+            uri = "http://acs.amazonaws.com/groups/global/AuthenticatedUsers"
+          elsif @name == "Everyone"
+            type = "Group"
+            uri = "http://acs.amazonaws.com/groups/global/AllUsers"
+          elsif @name == "LogDelivery"
+            type = "Group"
+            uri = "http://acs.amazonaws.com/groups/s3/LogDelivery"
+          elsif @email
+            type = "AmazonCustomerByEmail"
+          else
+            type = "CanonicalUser"
+            display_name = @name
+          end
+
+          {
+            grantee: {
+              display_name: if !@email then @name end,
+              email_address: if @email then @email end,
+              id: if !@email then @id end,
+              type: type,
+              uri: uri,
+            }.reject { |k, v| v.nil? },
+            permission: GrantConfig.to_aws_permission(permission)
+          }
+        end
       end
 
       # Public: Produce an array of differences between this local configuration

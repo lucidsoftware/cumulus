@@ -8,11 +8,13 @@ module AwsExtensions
       #
       # Returns the array of LifecycleConfig
       def to_cumulus
-        Hash[rules.map do |rule|
+        Hash[rules.reject { |r| r.status.downcase != "enabled" }.map do |rule|
           cumulus = Cumulus::S3::LifecycleConfig.new
           cumulus.populate!(rule)
           [cumulus.name, cumulus]
         end]
+      rescue Aws::S3::Errors::NoSuchLifecycleConfiguration
+        {}
       end
     end
   end

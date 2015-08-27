@@ -13,21 +13,25 @@
     },
     "grants": [
       {
-        "name": "loggly",
-        "email": "aws.loggly.com",
+        "name": "your-account",
+        // this is the account's canonical id
+        "id": "328ead623599bb1a2fc207d606cec78f54d201ed6e19db5f056a406bac48b77c",
         // possible values - all, list, update, view-permissions, edit-permissions
         "permissions": ["list"]
+      },
+      {
+        "name": "loggly",
+        "email": "aws@loggly.com",
+        "permissions": ["list", "update"]
       }
     ]
   },
   "website": {
-    "enabled": true,
     // you can also use the redirect key to redirect all requests to the specified host name
     "index": "test-key",
     "error": "error-key"
   },
   "logging": {
-    "enabled": true,
     "target-bucket": "logging-bucket",
     "prefix": "logs/"
   },

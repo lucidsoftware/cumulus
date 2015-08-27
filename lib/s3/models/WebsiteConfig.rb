@@ -1,7 +1,6 @@
 module Cumulus
   module S3
     class WebsiteConfig
-      attr_reader :enabled
       attr_reader :error
       attr_reader :index
       attr_reader :redirect
@@ -12,7 +11,6 @@ module Cumulus
       #        the 'website' node of S3 configuration.
       def initialize(json = nil)
         if json
-          @enabled = json["enabled"] || false
           @redirect = json["redirect"]
           @index = json["index"]
           @error = json["error"]
@@ -24,10 +22,32 @@ module Cumulus
       #
       # aws - the aws object to populate from
       def populate!(aws)
-        @enabled = !aws.safe_index.nil? || !aws.safe_redirection.nil?
         @index = aws.safe_index
         @error = aws.safe_error
         @redirect = aws.safe_redirection
+      end
+
+      # Public: Produce a hash that is compatible with AWS website configuration.
+      #
+      # Returns the website configuration in AWS format
+      def to_aws
+        if @index
+          {
+            error_document: {
+              key: @error
+            },
+            index_document: {
+              suffix: @index
+            },
+          }
+        else
+          {
+            redirect_all_requests_to: {
+              host_name: if @redirect then @redirect.split("://")[1] end,
+              protocol: if @redirect then @redirect.split("://")[0] end
+            }
+          }
+        end
       end
 
       # Public: Check WebsiteConfig equality with other objects
@@ -37,7 +57,6 @@ module Cumulus
       # Returns whether this WebsiteConfig is equal to `other`
       def ==(other)
         if !other.is_a? WebsiteConfig or
-            @enabled != other.enabled or
             @redirect != other.redirect or
             @index != other.index or
             @error != other.error
@@ -57,9 +76,7 @@ module Cumulus
       end
 
       def to_s
-        if !@enabled
-          "Not enabled"
-        elsif @redirect
+        if @redirect
           "Redirect all traffic to #{@redirect}"
         elsif @index
           if @error

@@ -25,6 +25,8 @@ module AwsExtensions
       # Returns the associated Aws::S3::Types::ReplicationConfiguration
       def replication
         Cumulus::S3::client.get_bucket_replication({bucket: name}).replication_configuration
+      rescue Aws::S3::Errors::ReplicationConfigurationNotFoundError
+        nil
       end
     end
   end

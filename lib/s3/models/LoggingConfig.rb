@@ -1,7 +1,6 @@
 module Cumulus
   module S3
     class LoggingConfig
-      attr_reader :enabled
       attr_reader :target_bucket
       attr_reader :prefix
 
@@ -11,9 +10,8 @@ module Cumulus
       #        the 'logging' node of S3 configuration.
       def initialize(json = nil)
         if json
-          @enabled = json["enabled"] || false
           @target_bucket = json["target-bucket"]
-          @prefix = json["prefix"]
+          @prefix = json["prefix"] || ""
         end
       end
 
@@ -22,12 +20,18 @@ module Cumulus
       #
       # aws - the aws object to populate from
       def populate!(aws)
-        @enabled = aws.enabled
+        @target_bucket = aws.logging_enabled.target_bucket
+        @prefix = aws.logging_enabled.target_prefix
+      end
 
-        if @enabled
-          @target_bucket = aws.logging_enabled.target_bucket
-          @prefix = aws.logging_enabled.target_prefix
-        end
+      # Public: Produce a hash that is compatible with AWS logging configuration.
+      #
+      # Returns the logging configuration in AWS format
+      def to_aws
+        {
+          target_bucket: @target_bucket,
+          target_prefix: @prefix
+        }
       end
 
       # Public: Check LoggingConfig equality with other objects
@@ -37,7 +41,6 @@ module Cumulus
       # Returns whether this LoggingConfig is equal to `other`
       def ==(other)
         if !other.is_a? LoggingConfig or
-            @enabled != other.enabled or
             @target_bucket != other.target_bucket or
             @prefix != other.prefix
           false
@@ -56,9 +59,7 @@ module Cumulus
       end
 
       def to_s
-        if !@enabled
-          "Not enabled"
-        elsif @target_bucket and @prefix
+        if @target_bucket and @prefix
           "Target bucket: #{@target_bucket} with prefix #{@prefix}"
         elsif @target_bucket
           "Target bucket: #{@target_bucket}"

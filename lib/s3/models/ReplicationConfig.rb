@@ -1,4 +1,5 @@
 require "s3/models/ReplicationDiff"
+require "iam/IAM"
 
 module Cumulus
   module S3
@@ -17,6 +18,34 @@ module Cumulus
           @iam_role = json["iam-role"]
           @prefixes = json["prefixes"] || []
         end
+      end
+
+      # Public: Produce an AWS hash representing this ReplicationConfig
+      #
+      # Returns the hash
+      def to_aws
+        {
+          role: IAM.get_role_arn(@iam_role),
+          rules: if @prefixes.empty?
+            [{
+              prefix: "",
+              status: "Enabled",
+              destination: {
+                bucket: "arn:aws:s3:::#{@destination}"
+              }
+            }]
+          else
+            @prefixes.map do |prefix|
+              {
+                prefix: prefix,
+                status: "Enabled",
+                destination: {
+                  bucket: "arn:aws:s3:::#{@destination}"
+                }
+              }
+            end
+          end
+        }
       end
 
       # Public: Produce an array of differences between this local configuration

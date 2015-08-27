@@ -40,6 +40,31 @@ module Cumulus
         @past_days_until_delete = aws.noncurrent_version_expiration.noncurrent_days rescue nil
       end
 
+      # Public: Produce an AWS hash representing this LifecycleConfig.
+      #
+      # Returns the hash.
+      def to_aws
+        {
+          id: @name,
+          prefix: @prefix,
+          status: "Enabled",
+          transition: if @days_until_glacier then {
+            days: @days_until_glacier,
+            storage_class: "GLACIER"
+          } end,
+          expiration: if @days_until_delete then {
+            days: @days_until_delete
+          } end,
+          noncurrent_version_transition: if @past_days_until_glacier then {
+            noncurrent_days: @past_days_until_glacier,
+            storage_class: "GLACIER"
+          } end,
+          noncurrent_version_expiration: if @past_days_until_delete then {
+            noncurrent_days: @past_days_until_delete
+          } end
+        }.reject { |k, v| v.nil? }
+      end
+
       # Public: Produce an array of differences between this local configuration
       # and the configuration in AWS
       #

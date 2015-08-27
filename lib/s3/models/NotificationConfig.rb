@@ -1,4 +1,7 @@
+require "lambda/Lambda"
 require "s3/models/NotificationDiff"
+require "sns/SNS"
+require "sqs/SQS"
 
 module Cumulus
   module S3
@@ -44,6 +47,40 @@ module Cumulus
           @type = "sns"
           @target = aws.topic_arn[(aws.topic_arn.rindex(":") + 1)..-1]
         end
+      end
+
+      # Public: Produce an AWS compatible hash for this NotificationConfig.
+      #
+      # Returns the hash.
+      def to_aws
+        if @type == "sns"
+          topic_arn = SNS.get_aws(@target)
+        elsif @type == "sqs"
+          queue_arn = SQS.get_arn(@target)
+        elsif @type == "lambda"
+          lambda_function_arn = Lambda.get_aws(@target).function_arn
+        end
+        {
+          id: @name,
+          events: @triggers,
+          topic_arn: topic_arn,
+          queue_arn: queue_arn,
+          lambda_function_arn: lambda_function_arn,
+          filter: {
+            key: {
+              filter_rules: [
+                if @prefix then {
+                  name: "prefix",
+                  value: @prefix
+                } end,
+                if @suffix then {
+                  name: "suffix",
+                  value: @suffix
+                } end
+              ].reject { |e| e.nil? }
+            }
+          }
+        }.reject { |k, v| v.nil? }
       end
 
       # Public: Produce an array of differences between this local configuration

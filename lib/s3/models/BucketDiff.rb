@@ -103,8 +103,8 @@ module Cumulus
         when LOGGING
           [
             "Logging Settings:",
-            Colors.aws_changes("\tAWS\t- #{@aws.logging.to_cumulus}"),
-            Colors.local_changes("\tLocal\t- #{@local.logging}")
+            Colors.aws_changes("\tAWS\t- #{if @aws.logging.to_cumulus then @aws.logging.to_cumulus else "Not enabled" end}"),
+            Colors.local_changes("\tLocal\t- #{if @local.logging then @local.logging else "Not enabled" end}")
           ].join("\n")
         when NOTIFICATIONS
           [
@@ -129,8 +129,8 @@ module Cumulus
         when WEBSITE
           [
             "S3 Website Settings:",
-            Colors.aws_changes("\tAWS\t- #{@aws.website.to_cumulus}"),
-            Colors.local_changes("\tLocal\t- #{@local.website}"),
+            Colors.aws_changes("\tAWS\t- #{if @aws.website.to_cumulus then @aws.website.to_cumulus else "Not enabled" end}"),
+            Colors.local_changes("\tLocal\t- #{if @local.website then @local.website else "Not enabled" end}"),
           ].join("\n")
         end
       end
@@ -147,14 +147,14 @@ module Cumulus
       #
       # Returns an array of CORSRules
       def removed_cors
-        @aws.cors.rules - @local.cors
+        @aws.cors.rules - (@local.cors || [])
       end
 
       # Public: Get the CORS rules to add.
       #
       # Returns an array of CORSRules.
       def added_cors
-        @local.cors - @aws.cors.rules
+        (@local.cors || []) - @aws.cors.rules
       end
 
       private

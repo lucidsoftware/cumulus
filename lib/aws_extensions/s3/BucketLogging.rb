@@ -7,16 +7,11 @@ module AwsExtensions
       #
       # Returns a LoggingConfig
       def to_cumulus
-        cumulus = Cumulus::S3::LoggingConfig.new
-        cumulus.populate!(self)
-        cumulus
-      end
-
-      # Public: Get whether logging is enabled
-      #
-      # Returns whether logging is enabled
-      def enabled
-        !logging_enabled.nil?
+        if logging_enabled
+          cumulus = Cumulus::S3::LoggingConfig.new
+          cumulus.populate!(self)
+          cumulus
+        end
       end
     end
   end

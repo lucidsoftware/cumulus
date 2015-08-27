@@ -51,6 +51,7 @@ module Cumulus
     # Public: An object representing configuration for an S3 bucket
     class BucketConfig
       attr_reader :cors
+      attr_reader :grants
       attr_reader :lifecycle
       attr_reader :logging
       attr_reader :name
@@ -106,7 +107,7 @@ module Cumulus
       def diff(aws)
         diffs = []
 
-        if @region != Hash[aws.tagging.safe_tags.map { |t| [t.key, t.value] }]
+        if @tags != Hash[aws.tagging.safe_tags.map { |t| [t.key, t.value] }]
           diffs << BucketDiff.new(BucketChange::TAGS, aws, self)
         end
         if @policy != aws.policy.policy_string
@@ -140,7 +141,9 @@ module Cumulus
           diffs << BucketDiff.lifecycle_changes(lifecycle_diffs, self)
         end
 
-        replication_diffs = diff_replication(@replication, aws.replication.to_cumulus)
+        aws_replication = aws.replication
+        if aws_replication then aws_replication = aws_replication.to_cumulus end
+        replication_diffs = diff_replication(@replication, aws_replication)
         if !replication_diffs.empty?
           diffs << BucketDiff.replication_changes(replication_diffs, self)
         end

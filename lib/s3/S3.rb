@@ -43,6 +43,17 @@ module Cumulus
         exit
       end
 
+      # Public: Get the full data for a bucket. Lazily loads resources only once.
+      #
+      # bucket_name - the name of the bucket to get
+      #
+      # Returns the full bucket
+      def full_bucket(bucket_name)
+        @full_buckets ||= Hash.new
+
+        @full_buckets[bucket_name] ||= Aws::S3::Bucket.new(name: bucket_name, client: @@client)
+      end
+
       # Public: Provide a mapping of S3 buckets to their names. Lazily loads resources.
       #
       # Returns the buckets mapped to their names
