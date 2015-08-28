@@ -69,6 +69,7 @@ function _cumulus {
             ;;
             s3)
               COMPREPLY=( $(compgen -W "diff list migrate sync" -- $cur) )
+            ;;
             security-groups)
               COMPREPLY=( $(compgen -W "diff list migrate sync" -- $cur) )
             ;;
