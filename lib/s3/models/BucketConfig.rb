@@ -144,7 +144,7 @@ module Cumulus
           end
         end
 
-        [@new_policy_key, @new_cors_key]
+        return @new_policy_key, @new_cors_key
       end
 
       # Public: Produce a pretty JSON version of this BucketConfig.

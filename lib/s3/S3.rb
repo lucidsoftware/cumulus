@@ -6,9 +6,7 @@ module Cumulus
   module S3
     class << self
       def client(region = nil)
-        @clients ||= {
-          "us-east-1" => Aws::S3::Client.new(region: "us-east-1", force_path_style: true)
-        }
+        @clients ||= {}
         if !region then region = "us-east-1" end
         @clients[region] ||= Aws::S3::Client.new(region: region, force_path_style: true)
       end

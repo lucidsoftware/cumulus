@@ -62,7 +62,7 @@ module Cumulus
           @id = json["id"]
           @permissions = json["permissions"].sort
           if @permissions.include?("all")
-            @permissions = (@permissions + @@all_permissions - ["all"]).uniq.sort
+            @permissions = @@all_permissions
           end
         end
       end

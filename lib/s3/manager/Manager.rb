@@ -29,14 +29,14 @@ module Cumulus
           puts "Processing #{resource.name}..."
           full_aws = S3.full_bucket(resource.name)
           config = BucketConfig.new(resource.name)
-          new_keys = config.populate!(full_aws, cors, policies)
+          new_policy_key, new_cors_key = config.populate!(full_aws, cors, policies)
 
           puts "Writing #{resource.name} configuration to file..."
-          if new_keys[0]
-            File.open("#{policy_dir}/#{new_keys[0]}.json", "w") { |f| f.write(policies[new_keys[0]]) }
+          if new_policy_key
+            File.open("#{policy_dir}/#{new_policy_key}.json", "w") { |f| f.write(policies[new_policy_key]) }
           end
-          if new_keys[1]
-            File.open("#{cors_dir}/#{new_keys[1]}.json", "w") { |f| f.write(cors[new_keys[1]]) }
+          if new_cors_key
+            File.open("#{cors_dir}/#{new_cors_key}.json", "w") { |f| f.write(cors[new_cors_key]) }
           end
           File.open("#{buckets_dir}/#{resource.name}.json", "w") { |f| f.write(config.pretty_json) }
         end
