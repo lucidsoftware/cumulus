@@ -38,6 +38,12 @@ function _cumulus {
             COMPREPLY=( $(compgen -W "$configs" -- $cur) )
           fi
         ;;
+        s3)
+          if [ "$prev" == "diff" ] || [ "$prev" == "sync" ]; then
+            configs=$(cumulus s3 list)
+            COMPREPLY=( $(compgen -W "$configs" -- $cur) )
+          fi
+        ;;
         security-groups)
           if [ "$prev" == "diff" ] || [ "$prev" == "sync" ]; then
             configs=$(cumulus security-groups list)
@@ -61,6 +67,8 @@ function _cumulus {
             route53)
               COMPREPLY=( $(compgen -W "diff list migrate sync" -- $cur) )
             ;;
+            s3)
+              COMPREPLY=( $(compgen -W "diff list migrate sync" -- $cur) )
             security-groups)
               COMPREPLY=( $(compgen -W "diff list migrate sync" -- $cur) )
             ;;
