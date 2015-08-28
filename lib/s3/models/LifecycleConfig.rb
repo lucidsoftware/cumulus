@@ -65,6 +65,23 @@ module Cumulus
         }.reject { |k, v| v.nil? }
       end
 
+      # Public: Converts this LifecycleConfig to a hash that matches Cumulus
+      # configuration.
+      #
+      # Returns the hash.
+      def to_h
+        {
+          "name" => @name,
+          "prefix" => @prefix,
+          "days-until-glacier" => @days_until_glacier,
+          "days-until-delete" => @days_until_delete,
+          "past-versions" => if @past_days_until_glacier or @past_days_until_delete then {
+            "days-until-glacier" => @past_days_until_glacier,
+            "days-until-delete" => @past_days_until_delete,
+          }.reject { |k, v| v.nil? } end,
+        }.reject { |k, v| v.nil? }
+      end
+
       # Public: Produce an array of differences between this local configuration
       # and the configuration in AWS
       #

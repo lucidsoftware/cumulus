@@ -12,6 +12,16 @@ module AwsExtensions
           "Max Age Seconds: #{max_age_seconds}"
         ].reject { |s| s.nil? }.join(", ")
       end
+
+      def to_h
+        {
+          "origins" => allowed_origins,
+          "methods" => allowed_methods,
+          "headers" => allowed_headers,
+          "exposed-headers" => expose_headers,
+          "max-age-seconds" => max_age_seconds
+        }
+      end
     end
   end
 end

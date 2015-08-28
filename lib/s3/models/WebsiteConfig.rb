@@ -43,11 +43,27 @@ module Cumulus
         else
           {
             redirect_all_requests_to: {
-              host_name: if @redirect then @redirect.split("://")[1] end,
-              protocol: if @redirect then @redirect.split("://")[0] end
+              host_name: if @redirect and @redirect.include?("://")
+                  @redirect.split("://")[1]
+                else
+                  @redirect
+                end,
+              protocol: if @redirect and @redirect.include?("://") then @redirect.split("://")[0] end
             }
           }
         end
+      end
+
+      # Public: Converts this WebsiteConfig to a hash that matches Cumulus
+      # configuration.
+      #
+      # Returns the hash
+      def to_h
+        {
+          error: @error,
+          index: @index,
+          redirect: @redirect,
+        }.reject { |k, v| v.nil? }
       end
 
       # Public: Check WebsiteConfig equality with other objects

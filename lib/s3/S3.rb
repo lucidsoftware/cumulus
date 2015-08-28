@@ -5,10 +5,10 @@ require "aws-sdk"
 module Cumulus
   module S3
     class << self
-      @@client = Aws::S3::Client.new(region: Configuration.instance.region)
-
-      def client
-        @@client
+      def client(region = nil)
+        @clients ||= {}
+        if !region then region = "us-east-1" end
+        @clients[region] ||= Aws::S3::Client.new(region: region, force_path_style: true)
       end
 
       @@zone_ids = {
@@ -49,9 +49,11 @@ module Cumulus
       #
       # Returns the full bucket
       def full_bucket(bucket_name)
+        @monkey_patched ||= monkey_patch_bucket
         @full_buckets ||= Hash.new
 
-        @full_buckets[bucket_name] ||= Aws::S3::Bucket.new(name: bucket_name, client: @@client)
+        bucket = buckets[bucket_name]
+        @full_buckets[bucket_name] ||= Aws::S3::Bucket.new(name: bucket_name, client: client(bucket.location))
       end
 
       # Public: Provide a mapping of S3 buckets to their names. Lazily loads resources.
@@ -63,11 +65,18 @@ module Cumulus
 
       private
 
+      # Internal: Monkey patch Bucket so it can get its location
+      def monkey_patch_bucket
+        require "aws_extensions/s3/Bucket"
+        Aws::S3::Types::Bucket.send(:include, AwsExtensions::S3::Types::Bucket)
+        true
+      end
+
       # Internal: Load the buckets and map them to their names.
       #
       # Returns the buckets mapped to their names
       def init_buckets
-        Hash[@@client.list_buckets.buckets.map { |bucket| [bucket.name, bucket] }]
+        Hash[client.list_buckets.buckets.map { |bucket| [bucket.name, bucket] }]
       end
     end
   end

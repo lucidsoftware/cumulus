@@ -83,6 +83,20 @@ module Cumulus
         }.reject { |k, v| v.nil? }
       end
 
+      # Public: Produce an AWS compatible hash for this NotificationConfig.
+      #
+      # Returns the hash
+      def to_h
+        {
+          name: @name,
+          triggers: @triggers.map { |t| t[3..-1] }, # substring off the "s3:"
+          prefix: @prefix,
+          suffix: @suffix,
+          type: @type,
+          target: @target,
+        }.reject { |k, v| v.nil? }
+      end
+
       # Public: Produce an array of differences between this local configuration
       # and the configuration in AWS
       #

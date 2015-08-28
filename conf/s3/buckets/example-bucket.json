@@ -2,8 +2,7 @@
   "region": "us-east-1",
   "permissions": {
     "cors": {
-      "template": "example-cors",
-      "vars": {}
+      "template": "example-cors"
     },
     "policy": {
       "template": "example-policy",
