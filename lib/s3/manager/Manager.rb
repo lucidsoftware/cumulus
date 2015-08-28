@@ -1,6 +1,7 @@
 require "common/manager/Manager"
 require "conf/Configuration"
 require "s3/loader/Loader"
+require "s3/models/BucketConfig"
 require "s3/models/BucketDiff"
 require "s3/S3"
 require "util/Colors"
@@ -10,6 +11,37 @@ require "aws-sdk"
 module Cumulus
   module S3
     class Manager < Common::Manager
+      def migrate
+        buckets_dir = "#{@migration_root}/buckets"
+        cors_dir = "#{@migration_root}/cors"
+        policy_dir = "#{@migration_root}/policies"
+
+        [@migration_root, buckets_dir, cors_dir, policy_dir].each do |dir|
+          if !Dir.exists?(dir)
+            Dir.mkdir(dir)
+          end
+        end
+
+        cors = {}
+        policies = {}
+
+        aws_resources.each_value do |resource|
+          puts "Processing #{resource.name}..."
+          full_aws = S3.full_bucket(resource.name)
+          config = BucketConfig.new(resource.name)
+          new_keys = config.populate!(full_aws, cors, policies)
+
+          puts "Writing #{resource.name} configuration to file..."
+          if new_keys[0]
+            File.open("#{policy_dir}/#{new_keys[0]}.json", "w") { |f| f.write(policies[new_keys[0]]) }
+          end
+          if new_keys[1]
+            File.open("#{cors_dir}/#{new_keys[1]}.json", "w") { |f| f.write(cors[new_keys[1]]) }
+          end
+          File.open("#{buckets_dir}/#{resource.name}.json", "w") { |f| f.write(config.pretty_json) }
+        end
+      end
+
       def resource_name
         "Bucket"
       end
@@ -31,6 +63,7 @@ module Cumulus
       end
 
       def diff_resource(local, aws)
+        puts "diffing #{local.name}"
         full_aws = S3.full_bucket(aws.name)
         local.diff(full_aws)
       end

@@ -48,6 +48,18 @@ module Cumulus
         }
       end
 
+      # Public: Converts this ReplicationConfig to a hash that matches Cumulus
+      # configuration.
+      #
+      # Returns the hash
+      def to_h
+        {
+          "iam-role" => @iam_role,
+          "prefixes" => if !@prefixes.empty? then @prefixes end,
+          "destination" => @destination,
+        }.reject { |k, v| v.nil? }
+      end
+
       # Public: Produce an array of differences between this local configuration
       # and the configuration in AWS
       #

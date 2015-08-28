@@ -34,6 +34,17 @@ module Cumulus
         }
       end
 
+      # Public: Convert this LoggingConfig to a hash that matches Cumulus
+      # configuration.
+      #
+      # Returns the hash
+      def to_h
+        {
+          "target-bucket" => @target_bucket,
+          "prefix" => @prefix,
+        }.reject { |k, v| v.nil? }
+      end
+
       # Public: Check LoggingConfig equality with other objects
       #
       # other - the other object to check

@@ -3,6 +3,8 @@ require "s3/models/GrantDiff"
 module Cumulus
   module S3
     class GrantConfig
+      @@all_permissions = ["list", "update", "view-permissions", "edit-permissions"].sort
+
       attr_reader :email
       attr_reader :name
       attr_reader :permissions
@@ -18,7 +20,7 @@ module Cumulus
       def self.to_cumulus_permission(aws_permission)
         case aws_permission
         when "FULL_CONTROL"
-          ["update", "list", "edit-permissions", "view-permissions"]
+          @@all_permissions
         when "WRITE"
           ["update"]
         when "READ"
@@ -60,7 +62,7 @@ module Cumulus
           @id = json["id"]
           @permissions = json["permissions"].sort
           if @permissions.include?("all")
-            @permissions = (@permissions + ["list", "update", "view-permissions", "edit-permissions"] - ["all"]).uniq.sort
+            @permissions = (@permissions + @@all_permissions - ["all"]).uniq.sort
           end
         end
       end
@@ -84,6 +86,7 @@ module Cumulus
         end
         @email = aws.grantee.email_address
         @permissions = GrantConfig.to_cumulus_permission(aws.permission)
+        @id = aws.grantee.id
       end
 
       # Public: Produce an AWS compatible array of hashes representing this
@@ -119,6 +122,19 @@ module Cumulus
             permission: GrantConfig.to_aws_permission(permission)
           }
         end
+      end
+
+      # Public: Converts this GrantConfig to a hash that matches Cumulus
+      # configuration.
+      #
+      # Returns the hash
+      def to_h
+        {
+          name: @name,
+          id: @id,
+          email: @email,
+          permissions: if @permissions.sort == @@all_permissions then ["all"] else @permissions.sort end,
+        }.reject { |k, v| v.nil? }
       end
 
       # Public: Produce an array of differences between this local configuration

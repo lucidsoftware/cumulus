@@ -36,7 +36,11 @@ module AwsExtensions
       #
       # Returns the value
       def safe_redirection
-        "#{redirect_all_requests_to.protocol}://#{redirect_all_requests_to.host_name}"
+        if redirect_all_requests_to.protocol
+          "#{redirect_all_requests_to.protocol}://#{redirect_all_requests_to.host_name}"
+        else
+          redirect_all_requests_to.host_name
+        end
       rescue Aws::S3::Errors::NoSuchWebsiteConfiguration, NoMethodError
         nil
       end

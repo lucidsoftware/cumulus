@@ -21,10 +21,14 @@ require "s3/models/ReplicationConfig"
 require "s3/models/ReplicationDiff"
 require "s3/models/WebsiteConfig"
 
+require "json"
+
 module Cumulus
   module S3
     # Monkey patch the bucket so that it can get the bucket's replication configuration
     Aws::S3::Bucket.send(:include, AwsExtensions::S3::Bucket)
+    # Also monkey patch buckets so they can get their location
+    Aws::S3::Bucket.send(:include, AwsExtensions::S3::Types::Bucket)
     # Monkey patch BucketPolicy so you can get the policy without an exception
     Aws::S3::BucketPolicy.send(:include, AwsExtensions::S3::BucketPolicy)
     # Monkey patch BucketCors for the same reason
@@ -71,17 +75,17 @@ module Cumulus
         @name = name
         if json
           @region = json["region"]
-          @tags = json["tags"]
+          @tags = json["tags"] || {}
           if json["permissions"]["cors"]
             @cors = Loader.cors_policy(
               json["permissions"]["cors"]["template"],
-              json["permissions"]["cors"]["vars"]
+              json["permissions"]["cors"]["vars"] || {}
             )
           end
           if json["permissions"]["policy"]
             @policy = Loader.bucket_policy(
               json["permissions"]["policy"]["template"],
-              json["permissions"]["policy"]["vars"]
+              json["permissions"]["policy"]["vars"] || {}
             )
           end
           if json["permissions"]["grants"]
@@ -98,6 +102,76 @@ module Cumulus
         end
       end
 
+      # Public: Populate this BucketConfig from the values in an AWS bucket.
+      #
+      # aws      - the aws resource
+      # cors     - a hash of the names of cors policies to the string value of those policies
+      # policies - a hash of the names of policies to the string value of those policies
+      #
+      # Returns the key names of the new policy or cors policy so they can be written
+      # to file immediately
+      def populate!(aws, cors, policies)
+        @region = aws.location
+        @grants = aws.acl.to_cumulus
+        @website = aws.website.to_cumulus
+        @logging = aws.logging.to_cumulus
+        @notifications = aws.notification.to_cumulus
+        @lifecycle = aws.lifecycle.to_cumulus
+        @versioning = aws.versioning.enabled
+        @replication = aws.replication.to_cumulus rescue nil
+        @tags = Hash[aws.tagging.safe_tags.map { |t| [t.key, t.value] }]
+
+        policy = aws.policy.policy_string
+        if policy and policy != ""
+          policy = JSON.pretty_generate(JSON.parse(policy))
+          if policies.has_value? policy
+            @policy_name = policies.key(policy)
+          else
+            @policy_name = "#{@name}-policy"
+            policies[@policy_name] = policy
+            @new_policy_key = @policy_name
+          end
+        end
+
+        cors_string = JSON.pretty_generate(aws.cors.rules.map(&:to_h))
+        if cors_string and !aws.cors.rules.empty?
+          if cors.has_value? cors_string
+            @cors_name = cors.key(cors_string)
+          else
+            @cors_name = "#{@name}-cors"
+            cors[@cors_name] = cors_string
+            @new_cors_key = @cors_name
+          end
+        end
+
+        [@new_policy_key, @new_cors_key]
+      end
+
+      # Public: Produce a pretty JSON version of this BucketConfig.
+      #
+      # Returns the pretty JSON string.
+      def pretty_json
+        JSON.pretty_generate({
+          region: @region,
+          permissions: {
+            policy: if @policy_name then {
+              template: @policy_name,
+            } end,
+            cors: if @cors_name then {
+              template: @cors_name,
+            } end,
+            grants: @grants.values.map(&:to_h)
+          }.reject { |k, v| v.nil? },
+          website: if @website then @website.to_h end,
+          logging: if @logging then @logging.to_h end,
+          notifications: if !@notifications.empty? then @notifications.values.map(&:to_h) end,
+          lifecycle: if !@lifecycle.empty? then @lifecycle.values.map(&:to_h) end,
+          versioning: @versioning,
+          replication: if @replication then @replication.to_h end,
+          tags: @tags,
+        }.reject { |k, v| v.nil? })
+      end
+
       # Public: Produce an array of differences between this local configuration and the
       # configuration in AWS
       #
@@ -110,10 +184,10 @@ module Cumulus
         if @tags != Hash[aws.tagging.safe_tags.map { |t| [t.key, t.value] }]
           diffs << BucketDiff.new(BucketChange::TAGS, aws, self)
         end
-        if @policy != aws.policy.policy_string
+        if @policy != aws.policy.policy_string and !(@policy.nil? and aws.policy.policy_string == "")
           diffs << BucketDiff.new(BucketChange::POLICY, aws, self)
         end
-        if @cors != aws.cors.rules
+        if @cors != aws.cors.rules and !(@cors.nil? and aws.cors.rules == [])
           diffs << BucketDiff.new(BucketChange::CORS, aws, self)
         end
         if @website != aws.website.to_cumulus
