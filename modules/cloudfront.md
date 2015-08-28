@@ -191,7 +191,7 @@ Cumulus's CloudFront module has the following usage:
 cumulus cloudfront [diff|help|invalidate|list|migrate|sync] <asset>
 {% endhighlight %}
 
-Distributions can be diffed, listed, and synced (migration is covered in the [following section](#migration)). The three actions to the following:
+Distributions can be diffed, listed, and synced, and invalidated (migration is covered in the [following section](#migration)). The four actions do the following:
 
 * `diff` - Shows the differences between the local definition and the AWS CloudFront configuration. If `<asset>` is specified, Cumulus will diff only the distribution defined in that file.
 * `list` - Lists the names of the files that contain distribution definitions
@@ -211,6 +211,12 @@ Cumulus supports creating CloudFront invalidations using files in the [configura
 Invalidation configurations are JSON objects with the following attributes:
 * `distribution-id` - the id of the cloudfront distribution to run an invalidation on
 * `paths` - an array of paths to invalidate on the distribution. Items must start with a `/` and may contain the wildcard `*` e.g. `["/*.jpg", "/index.html"]`
+
+To run an invalidation that has been saved under `invalidations/invalidate-bucket-2.json` you would run the command:
+
+{% highlight bash %}
+cumulus cloudfront invalidate invalidate-bucket-2
+{% endhighlight %}
 
 Configuration
 -------------
