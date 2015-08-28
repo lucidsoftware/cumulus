@@ -1,0 +1,15 @@
+[
+  {
+    "headers": [
+      "Authorization"
+    ],
+    "methods": [
+      "GET"
+    ],
+    "origins": [
+      "*"
+    ],
+    "exposed-headers": [],
+    "max-age-seconds": 3000
+  }
+]

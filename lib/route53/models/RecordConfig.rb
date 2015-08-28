@@ -13,7 +13,7 @@ module Cumulus
     # Monkey patch AliasTarget so we can call a method that will compare ELB DNS names correctly
     Aws::Route53::Types::AliasTarget.send(:include, AwsExtensions::Route53::AliasTarget)
     # Monkey patch Bucket so we can get the location of the bucket
-    Aws::S3::Types::Bucket.send(:include, AwsExtensions::S3::Bucket)
+    Aws::S3::Types::Bucket.send(:include, AwsExtensions::S3::Types::Bucket)
 
     # Public: An object representing configurationf for a single record in a zone
     class RecordConfig

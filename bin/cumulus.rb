@@ -249,6 +249,47 @@ module Modules
 
   end
 
+  # Public: Run the S3 module
+  def self.s3
+    if ARGV.size < 2 or (ARGV[1] != "help" and ARGV[1] != "diff" and ARGV[1] != "list" and ARGV[1] != "migrate" and ARGV[1] != "sync")
+      puts "Usage: cumulus s3 [diff|help|list|migrate|sync] <asset>"
+      exit
+    end
+
+    if ARGV[1] == "help"
+      puts "s3: Manage S3 Buckets"
+      puts "\tDiff and sync S3 bucket configuration with AWS."
+      puts
+      puts "Usage: cumulus s3 [diff|help|list|migrate|sync] <asset>"
+      puts
+      puts "Commands"
+      puts "\tdiff\t- print out differences between local configuration and AWS (supplying the name of the bucket will diff only that bucket)"
+      puts "\tlist\t- list the locally defined S3 buckets"
+      puts "\tmigrate\t- produce Cumulus S3 configuration from current AWS configuration"
+      puts "\tsync\t- sync local bucket definitions with AWS (supplying the name of the bucket will sync only that bucket)"
+      exit
+    end
+
+    require "s3/manager/Manager"
+    s3 = Cumulus::S3::Manager.new
+    if ARGV[1] == "diff"
+      if ARGV.size == 2
+        s3.diff
+      else
+        s3.diff_one(ARGV[2])
+      end
+    elsif ARGV[1] == "list"
+      s3.list
+    elsif ARGV[1] == "migrate"
+      s3.migrate
+    elsif ARGV[1] == "sync"
+      if ARGV.size == 2
+        s3.sync
+      else
+        s3.sync_one(ARGV[2])
+      end
+    end
+  end
 end
 
 # check for the aws ruby gem
@@ -257,13 +298,14 @@ begin
 rescue LoadError
   puts "Cumulus requires the gem 'aws-sdk'"
   puts "Please install 'aws-sdk':"
-  puts "\tgem install aws-sdk -v 2.1.2"
+  puts "\tgem install aws-sdk -v 2.1.15"
   exit
 end
 
 if ARGV.size == 0 or (ARGV[0] != "iam" and ARGV[0] != "help" and ARGV[0] != "autoscaling" and
-  ARGV[0] != "route53" and ARGV[0] != "security-groups" and ARGV[0] != "cloudfront")
-  puts "Usage: cumulus [autoscaling|cloudfront|help|iam|route53|security-groups]"
+  ARGV[0] != "route53" and ARGV[0] != "s3" and ARGV[0] != "security-groups" and
+  ARGV[0] != "cloudfront")
+  puts "Usage: cumulus [autoscaling|cloudfront|help|iam|route53|s3|security-groups]"
   exit
 end
 
@@ -276,6 +318,7 @@ if ARGV[0] == "help"
   puts "\tcloudfront\t- Manages configuration for cloudfront distributions"
   puts "\tiam\t\t- Compiles IAM roles and policies that are defined with configuration files and syncs the resulting IAM roles and policies with AWS"
   puts "\troute53\t\t- Manages configuration for Route53"
+  puts "\ts3\t\t- Manages configuration of S3 buckets"
   puts "\tsecurity-groups\t- Manages configuration for EC2 Security Groups"
 end
 
@@ -328,4 +371,6 @@ elsif ARGV[0] == "route53"
   Modules.route53
 elsif ARGV[0] == "security-groups"
   Modules.security
+elsif ARGV[0] == "s3"
+  Modules.s3
 end

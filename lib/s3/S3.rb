@@ -37,22 +37,31 @@ module Cumulus
       #
       # Returns the Aws::S3::Types::Bucket by that name
       def get_aws(name)
-        if buckets[name].nil?
-          puts "No S3 bucket named #{name}"
-          exit
-        else
-          buckets[name]
-        end
+        buckets.fetch(name)
+      rescue KeyError
+        puts "No S3 bucket named #{name}"
+        exit
       end
 
-      private
+      # Public: Get the full data for a bucket. Lazily loads resources only once.
+      #
+      # bucket_name - the name of the bucket to get
+      #
+      # Returns the full bucket
+      def full_bucket(bucket_name)
+        @full_buckets ||= Hash.new
 
-      # Internal: Provide a mapping of S3 buckets to their names. Lazily loads resources.
+        @full_buckets[bucket_name] ||= Aws::S3::Bucket.new(name: bucket_name, client: @@client)
+      end
+
+      # Public: Provide a mapping of S3 buckets to their names. Lazily loads resources.
       #
       # Returns the buckets mapped to their names
       def buckets
         @buckets ||= init_buckets
       end
+
+      private
 
       # Internal: Load the buckets and map them to their names.
       #
