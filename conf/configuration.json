@@ -55,7 +55,8 @@
 			"policies": {
 				"directory": "conf/s3/policies"
 			}
-		}
+		},
+		"print-progress": true
 	},
 	"security": {
 		"groups": {

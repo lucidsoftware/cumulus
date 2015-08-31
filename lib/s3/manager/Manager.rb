@@ -63,7 +63,9 @@ module Cumulus
       end
 
       def diff_resource(local, aws)
-        puts "diffing #{local.name}"
+        if Configuration.instance.s3.print_progress
+          puts "checking for differences in #{local.name}"
+        end
         full_aws = S3.full_bucket(aws.name)
         local.diff(full_aws)
       end
