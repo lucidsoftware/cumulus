@@ -202,6 +202,7 @@ module Cumulus
       attr_reader :buckets_directory
       attr_reader :cors_directory
       attr_reader :policies_directory
+      attr_reader :print_progress
 
       # Public: Constructor
       def initialize
@@ -209,6 +210,7 @@ module Cumulus
         @buckets_directory = conf_abs_path "s3.buckets.directory"
         @cors_directory = conf_abs_path "s3.buckets.cors.directory"
         @policies_directory = conf_abs_path "s3.buckets.policies.directory"
+        @print_progress = conf "s3.print-progress"
       end
     end
 
