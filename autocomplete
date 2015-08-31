@@ -59,7 +59,7 @@ function _cumulus {
               COMPREPLY=( $(compgen -W "diff list migrate sync" -- $cur) )
             ;;
             cumulus)
-              COMPREPLY=( $(compgen -W "autoscaling help iam cloudfront route53 security-groups" -- $cur) )
+              COMPREPLY=( $(compgen -W "autoscaling help iam cloudfront route53 s3 security-groups" -- $cur) )
             ;;
             cloudfront)
               COMPREPLY=( $(compgen -W "diff invalidate list migrate sync" -- $cur) )
