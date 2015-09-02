@@ -71,7 +71,7 @@ module Cumulus
         when ADD
           Colors.added("#{asset_type} #{local_name} #{add_string}")
         when UNMANAGED
-          Colors.unmanaged("#{asset_type} #{aws_name} is not managed by Cumulus.")
+          Colors.unmanaged("#{asset_type} #{aws_name} #{unmanaged_string}")
         else
           diff_string
         end
@@ -83,6 +83,14 @@ module Cumulus
       # Returns the string describing the action that will be taken.
       def add_string
         "will be created."
+      end
+
+      # Public: A method that produces the string that describes what will be done with unmanaged
+      # assets.  This can be overriden for the case that the UNMANAGED case does not ignore the asset.
+      #
+      # Returns the string describing the action that will be taken
+      def unmanaged_string
+        "is not managed by Cumulus."
       end
 
       def local_name
