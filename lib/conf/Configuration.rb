@@ -88,7 +88,7 @@ module Cumulus
     include Config
 
     attr_reader :colors_enabled
-    attr_reader :iam, :autoscaling, :route53, :s3, :security, :cloudfront
+    attr_reader :iam, :autoscaling, :route53, :s3, :security, :cloudfront, :elb
     attr_reader :region
 
     # Internal: Constructor. Sets up the `instance` variable, which is the access
@@ -108,6 +108,7 @@ module Cumulus
       @security = SecurityConfig.new
       @cloudfront = CloudFrontConfig.new
       @s3 = S3Config.new
+      @elb = ELBConfig.new
     end
 
     class << self
@@ -238,10 +239,24 @@ module Cumulus
       attr_reader :distributions_directory
       attr_reader :invalidations_directory
 
-      # Public: Inner class that contains CloudFront configuration options
       def initialize
         @distributions_directory = conf_abs_path "cloudfront.distributions.directory"
         @invalidations_directory = conf_abs_path "cloudfront.invalidations.directory"
+      end
+    end
+
+    # Public: Inner class that contains elb configuration options
+    class ELBConfig
+      include Config
+
+      attr_reader :load_balancers_directory
+      attr_reader :listeners_directory
+      attr_reader :policies_directory
+
+      def initialize
+        @load_balancers_directory = conf_abs_path "elb.load-balancers.directory"
+        @listeners_directory = conf_abs_path "elb.listeners.directory"
+        @policies_directory = conf_abs_path "elb.policies.directory"
       end
     end
 

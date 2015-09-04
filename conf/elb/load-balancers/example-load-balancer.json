@@ -1,0 +1,52 @@
+{
+  "listeners": {
+    "includes": {
+       "example-listener": {
+          "ssl-cert": "value"
+       }
+    },
+    "inlines": [
+      {
+        "load-balancer-protocol": "HTTP",
+        "load-balancer-port": 80,
+        "instance-protocol": "HTTP",
+        "instance-port": 9001
+      }
+    ]
+  },
+  "subnets": [
+    "named-subnet-1",
+    "subnet-1111111a"
+  ],
+  "security-groups": [
+    "sg-abc123de"
+  ],
+  "internal": true,
+  "tags": {
+    "tag-name": "tag-value"
+  },
+  "manage-instances": [
+    "instance-id-1"
+  ],
+  "health-check": {
+    "target": "HTTP:80/healthcheck.php",
+    "interval": 10,
+    "timeout": 8,
+    "healthy": 2,
+    "unhealthy": 5
+  },
+  "backend-policies": [
+    {
+      "port": 9001,
+      "policies": ["CustomPolicy1"]
+    }
+  ],
+  "cross-zone": true,
+  "access-log": {
+    "s3-bucket": "my-bucket",
+    "emit-interval": 5,
+    "bucket-prefix": ""
+  },
+  "connection-draining": 100,
+  "idle-timeout": 200
+}
