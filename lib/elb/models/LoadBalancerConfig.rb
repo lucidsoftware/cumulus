@@ -57,7 +57,7 @@ module Cumulus
             full_subnet = EC2::named_subnets[subnet] || EC2::id_subnets[subnet]
 
             if full_subnet.nil?
-              puts "#{subnet} is not a valid subnet name or id"
+              raise "#{subnet} is not a valid subnet name or id"
             else
               full_subnet
             end

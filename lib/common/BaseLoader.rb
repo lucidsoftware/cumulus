@@ -15,7 +15,7 @@ module Cumulus
       def self.resources(dir, &individual_loader)
         Dir.entries(dir)
         .reject { |f| f == "." or f == ".." or File.directory?(File.join(dir, f)) }
-        .map { |f| resource(f, dir, &individual_loader) }
+        .map { |f| resource(f, dir, &individual_loader) }.reject(&:nil?)
       end
 
       # Internal: Load the resource, passing the parsed JSON to the function passed
@@ -26,7 +26,13 @@ module Cumulus
       # loader  - the function that will handle the read json
       def self.resource(file, dir, &loader)
         name = file.end_with?(".json") ? file[0...-5] : file
-        loader.call(name, JSON.parse(load_file(file, dir)))
+
+        begin
+          loader.call(name, JSON.parse(load_file(file, dir)))
+        rescue => e
+          puts "Unable to load resource #{file}: #{e}"
+          nil
+        end
       end
 
       # Internal: Load the template, apply variables, and pass the parsed JSON to
