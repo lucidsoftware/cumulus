@@ -48,6 +48,15 @@ module Cumulus
         }.reject { |k, v| v.nil? }
       end
 
+      def populate!(aws)
+        @load_balancer_protocol = aws.listener.protocol
+        @load_balancer_port = aws.listener.load_balancer_port
+        @instance_protocol = aws.listener.instance_protocol
+        @instance_port = aws.listener.instance_port
+        @ssl_certificate_id = aws.listener.ssl_certificate_id
+        @policies = aws.policy_names
+      end
+
       # Public: Produce an array of differences between this local configuration and the
       # configuration in AWS
       #

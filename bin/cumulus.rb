@@ -294,7 +294,7 @@ module Modules
   # Public: Run the elb module
   def self.elb
     if ARGV.size < 2 or (ARGV[1] != "help" and ARGV[1] != "diff" and ARGV[1] != "list" and ARGV[1] != "sync" and ARGV[1] != "migrate")
-      puts "Usage: cumulus s3 [diff|help|list|migrate|sync] <asset>"
+      puts "Usage: cumulus elb [diff|help|list|migrate|sync] <asset>"
       exit
     end
 
@@ -309,7 +309,8 @@ module Modules
       puts "\tlist\t- list the locally defined ELBs"
       puts "\tsync\t- sync local ELB definitions with AWS (supplying the name of the elb will sync only that elb)"
       puts "\tmigrate\t- migrate AWS configuration to Cumulus"
-      puts "\t\tdefault-policies\t- migrate default ELB policies to Cumulus versions"
+      puts "\t\tdefault-policies- migrate default ELB policies from AWS to Cumulus"
+      puts "\t\telbs\t\t- migrate the current ELB configuration from AWS to Cumulus"
       exit
     end
 
@@ -332,6 +333,10 @@ module Modules
     elsif ARGV[1] == "migrate"
       if ARGV[2] == "default-policies"
         elb.migrate_default_policies
+      elsif ARGV[2] == "elbs"
+        elb.migrate_elbs
+      else
+        puts "Usage: cumulus elb migrate [default-policies|elbs]"
       end
     end
   end

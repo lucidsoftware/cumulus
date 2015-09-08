@@ -89,19 +89,55 @@ module Cumulus
       # Returns the JSON string
       def pretty_json
         JSON.pretty_generate({
-          "listeners" => @listeners.map(&:to_hash),
+          "listeners" => {
+            "includes" => {},
+            "inlines" => @listeners.map(&:to_hash)
+          },
           "subnets" => @subnets,
           "security-groups" => @security_groups,
           "internal" => @internal,
           "tags" => @tags,
           "manage-instances" => @manage_instances,
           "health-check" => @health_check.to_hash,
-          "backend-policies" => @backend_policies,
+          "backend-policies" => @backend_policies.map do |backend_policy|
+            {
+              "port" => backend_policy.instance_port,
+              "policies" => backend_policy.policy_names
+            }
+          end,
           "cross-zone" => @cross_zone,
           "access-log" => if @access_log then @access_log.to_hash else @access_log end,
           "connection-draining" => @connection_draining,
           "idle-timeout" => @idle_timeout,
         })
+      end
+
+      # Public: populates the fields of a LoadBalancerConfig from AWS config
+      #
+      # aws_elb - the elb
+      def populate!(aws_elb, aws_tags, aws_attributes)
+        @listeners = aws_elb.listener_descriptions.map do |l|
+          config = ListenerConfig.new
+          config.populate!(l)
+          config
+        end
+        @subnets = aws_elb.subnets.map do |subnet_id|
+          EC2::id_subnets[subnet_id].name || subnet_id
+        end
+        @security_groups = aws_elb.security_groups
+        @internal = aws_elb.scheme == "internal"
+        @tags = aws_tags.map do |tag|
+          [tag.key, tag.value]
+        end.to_h
+        @manage_instances = aws_elb.instances.map { |i| i.instance_id }
+        @health_check = HealthCheckConfig.new
+        @health_check.populate!(aws_elb.health_check)
+        @backend_policies = aws_elb.backend_server_descriptions
+        @cross_zone = aws_attributes.cross_zone_load_balancing.enabled
+        @access_log = AccessLogConfig.new
+        @access_log.populate!(aws_attributes.access_log)
+        @connection_draining = aws_attributes.connection_draining.enabled && aws_attributes.connection_draining.timeout
+        @idle_timeout = aws_attributes.connection_settings.idle_timeout
       end
 
       # Public: Produce an array of differences between this local configuration and the

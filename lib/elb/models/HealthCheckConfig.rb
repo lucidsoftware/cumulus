@@ -45,6 +45,14 @@ module Cumulus
         }
       end
 
+      def populate!(aws)
+        @target = aws.target
+        @interval = aws.interval
+        @timeout = aws.timeout
+        @healthy = aws.healthy_threshold
+        @unhealthy = aws.unhealthy_threshold
+      end
+
       # Public: Produce an array of differences between this local configuration and the
       # configuration in AWS
       #

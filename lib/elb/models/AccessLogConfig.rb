@@ -42,6 +42,13 @@ module Cumulus
         }.reject { |k, v| v.nil? }
       end
 
+      def populate!(aws)
+        @enabled = aws.enabled
+        @s3_bucket = aws.s3_bucket_name
+        @emit_interval = aws.emit_interval
+        @bucket_prefix = aws.s3_bucket_prefix
+      end
+
       # Public: Produce an array of differences between this local configuration and the
       # configuration in AWS
       #

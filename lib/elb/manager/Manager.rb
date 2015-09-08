@@ -46,7 +46,7 @@ module Cumulus
         local.diff(aws)
       end
 
-      # Migrates all of the default load balancer policies to cumulus versions
+      # Migrates all of the default load balancer policies to Cumulus versions
       def migrate_default_policies
         policies_dir = "#{@migration_root}/elb-default-policies"
 
@@ -65,6 +65,58 @@ module Cumulus
           puts "Processing #{policy_name}"
           File.open("#{policies_dir}/#{cumulus_name}.json", "w") { |f| f.write(json) }
         end
+      end
+
+      # Migrates all of the current AWS load balancers to Cumulus versions
+      def migrate_elbs
+        elbs_dir = "#{@migration_root}/elb-load-balancers"
+        policies_dir ="#{@migration_root}/elb-policies"
+
+        if !Dir.exists?(@migration_root)
+          Dir.mkdir(@migration_root)
+        end
+        if !Dir.exists?(elbs_dir)
+          Dir.mkdir(elbs_dir)
+        end
+        if !Dir.exists?(policies_dir)
+          Dir.mkdir(policies_dir)
+        end
+
+        ELB::elbs.map do |elb_name, elb|
+          puts "Migrating load balancer #{elb_name}"
+
+          local_elb = LoadBalancerConfig.new(elb_name)
+          tags = ELB::elb_tags(elb_name)
+          attributes = ELB::elb_attributes(elb_name)
+          local_elb.populate!(elb, tags, attributes)
+
+          # Migrate the backend and listener policies if they do not already
+          # exist locally and are not the default AWS policies
+          listener_policies = local_elb.listeners.flat_map { |l| l.policies }
+          backend_policies = local_elb.backend_policies.flat_map { |b| b.policy_names }
+
+          (listener_policies + backend_policies).uniq.map do |policy_name|
+            policy_file = "#{policies_dir}/#{policy_name}.json"
+            # If it is not already migrated and not a default policy, create it
+            if !File.file? policy_file
+              if !ELB::default_policies.has_key? policy_name
+                # Get the full policy description from the elb policies
+                full_policy = ELB::elb_policies(elb_name)[policy_name]
+
+                if full_policy.nil?
+                  puts "Unable to migrate policy #{policy_name}"
+                else
+                  puts "Migrating policy #{policy_name}"
+                  json = JSON.pretty_generate(full_policy.to_cumulus_hash)
+                  File.open(policy_file, "w") { |f| f.write(json) }
+                end
+              end
+            end
+          end
+
+          File.open("#{elbs_dir}/#{elb_name}.json", "w") { |f| f.write(local_elb.pretty_json) }
+        end
+
       end
 
       def update(local, diffs)

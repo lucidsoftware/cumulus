@@ -75,7 +75,7 @@ module Cumulus
       #
       # Returns the ELBs mapped to their dns names
       def elbs_to_dns_names
-        @elbs_to_dns_names ||= Hash[elbs.map { |ignored, elb| [elb.dns_name, elb] }]
+        @elbs_to_dns_names ||= Hash[elbs.map { |_, elb| [elb.dns_name, elb] }]
       end
 
       # Internal: Load ELBs and map them to their names.
