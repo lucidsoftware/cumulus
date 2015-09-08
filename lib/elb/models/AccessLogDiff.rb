@@ -22,33 +22,25 @@ module Cumulus
         "Access Log Config"
       end
 
-      def diff_string
+      def change_string
         case @type
         when ENABLED
-          [
-            "enabled:",
-            Colors.aws_changes("\tAWS - #{aws}"),
-            Colors.local_changes("\tLocal - #{local}"),
-          ].join("\n")
+          "enabled:"
         when BUCKET
-          [
-            "S3 bucket:",
-            Colors.aws_changes("\tAWS - #{aws}"),
-            Colors.local_changes("\tLocal - #{local}"),
-          ].join("\n")
+          "S3 bucket:"
         when EMIT
-          [
-            "emit interval:",
-            Colors.aws_changes("\tAWS - #{aws}"),
-            Colors.local_changes("\tLocal - #{local}"),
-          ].join("\n")
+          "emit interval:"
         when PREFIX
-          [
-            "bucket prefix:",
-            Colors.aws_changes("\tAWS - #{aws}"),
-            Colors.local_changes("\tLocal - #{local}"),
-          ].join("\n")
+          "bucket prefix:"
         end
+      end
+
+      def diff_string
+        [
+          change_string,
+          Colors.aws_changes("\tAWS - #{aws}"),
+          Colors.local_changes("\tLocal - #{local}"),
+        ].join("\n")
       end
     end
   end

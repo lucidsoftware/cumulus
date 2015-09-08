@@ -23,39 +23,27 @@ module Cumulus
         "Health Check Config"
       end
 
-      def diff_string
+      def change_string
         case @type
         when TARGET
-          [
-            "target:",
-            Colors.aws_changes("\tAWS - #{aws}"),
-            Colors.local_changes("\tLocal - #{local}"),
-          ].join("\n")
+          "target:"
         when INTERVAL
-          [
-            "interval:",
-            Colors.aws_changes("\tAWS - #{aws}"),
-            Colors.local_changes("\tLocal - #{local}"),
-          ].join("\n")
+          "interval:"
         when TIMEOUT
-          [
-            "timeout:",
-            Colors.aws_changes("\tAWS - #{aws}"),
-            Colors.local_changes("\tLocal - #{local}"),
-          ].join("\n")
+          "timeout:"
         when HEALTHY
-          [
-            "healthy threshold:",
-            Colors.aws_changes("\tAWS - #{aws}"),
-            Colors.local_changes("\tLocal - #{local}"),
-          ].join("\n")
+          "healthy threshold:"
         when UNHEALTHY
-          [
-            "unhealthy threshold:",
-            Colors.aws_changes("\tAWS - #{aws}"),
-            Colors.local_changes("\tLocal - #{local}"),
-          ].join("\n")
+          "unhealthy threshold:"
         end
+      end
+
+      def diff_string
+        [
+          change_string,
+          Colors.aws_changes("\tAWS - #{aws}"),
+          Colors.local_changes("\tLocal - #{local}"),
+        ].join("\n")
       end
     end
   end

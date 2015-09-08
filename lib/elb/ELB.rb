@@ -131,7 +131,7 @@ module Cumulus
       #
       # Returns an array of Aws::ElasticLoadBalancing::Types::PolicyDescription
       def init_default_policies
-        @@client.describe_load_balancer_policies().policy_descriptions
+        @@client.describe_load_balancer_policies.policy_descriptions
       end
 
       # Internal: Load the policies for a load balancer

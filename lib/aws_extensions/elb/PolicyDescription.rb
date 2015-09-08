@@ -6,9 +6,7 @@ module AwsExtensions
       def to_cumulus_hash
         {
           "type" => self.policy_type_name,
-          "attributes" => (self.policy_attribute_descriptions.map do |attribute|
-            [attribute.attribute_name, attribute.attribute_value]
-          end).to_h
+          "attributes" => Hash[self.policy_attribute_descriptions.map { |a| [a.attribute_name, a.attribute_value] }]
         }
       end
     end

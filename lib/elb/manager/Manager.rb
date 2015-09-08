@@ -58,11 +58,12 @@ module Cumulus
         end
 
         default_policies = ELB::default_policies
-        default_policies.to_a.map do |policy_name, policy|
+        default_policies.map do |policy_name, policy|
+          puts "Processing #{policy_name}"
+
           cumulus_name = "Cumulus-#{policy_name}"
           json = JSON.pretty_generate(policy.to_cumulus_hash)
 
-          puts "Processing #{policy_name}"
           File.open("#{policies_dir}/#{cumulus_name}.json", "w") { |f| f.write(json) }
         end
       end

@@ -41,14 +41,16 @@ module Cumulus
 
           # load the included listeners and templates
           @listeners = []
-          if json["listeners"]["includes"]
-            json["listeners"]["includes"].each do |template_json|
-              @listeners << Loader.listener(template_json["template"], template_json["vars"])
+          if json["listeners"]
+            if json["listeners"]["includes"]
+              json["listeners"]["includes"].each do |template_json|
+                @listeners << Loader.listener(template_json["template"], template_json["vars"])
+              end
             end
-          end
-          if json["listeners"]["inlines"]
-            json["listeners"]["inlines"].each do |inline|
-              @listeners << ListenerConfig.new(inline)
+            if json["listeners"]["inlines"]
+              json["listeners"]["inlines"].each do |inline|
+                @listeners << ListenerConfig.new(inline)
+              end
             end
           end
 

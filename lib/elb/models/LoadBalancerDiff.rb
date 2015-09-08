@@ -129,13 +129,13 @@ module Cumulus
         aws_backends = Hash[aws.map { |b| [b.instance_port, b.policy_names] }]
         local_backends = Hash[local.map { |b| [b.instance_port, b.policy_names] }]
 
-        added = local_backends.reject { |port, _| aws_backends.has_key? port }.to_a.map do |port, policies|
+        added = local_backends.reject { |port, _| aws_backends.has_key? port }.map do |port, policies|
           BackendChange.new(port, nil, policies)
         end
-        removed = aws_backends.reject { |port, _| local_backends.has_key? port }.to_a.map do |port, policies|
+        removed = aws_backends.reject { |port, _| local_backends.has_key? port }.map do |port, policies|
           BackendChange.new(port, policies, nil)
         end
-        modified = local_backends.reject { |port, _| !aws_backends.has_key? port }.to_a.map do |port, policies|
+        modified = local_backends.reject { |port, _| !aws_backends.has_key? port }.map do |port, policies|
           if aws_backends[port].sort != policies.sort
             BackendChange.new(port, aws_backends[port], policies)
           end

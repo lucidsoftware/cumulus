@@ -21,9 +21,8 @@ module Cumulus
       #
       # Returns a map of subnets mapped to the value of the "Name" tag
       def named_subnets
-        @named_subnets ||= Hash[subnets.map do |subnet|
-          [subnet.name, subnet]
-        end].reject { |k, v| k.nil? or v.nil? }
+        @named_subnets ||= Hash[subnets.map { |subnet| [subnet.name, subnet] }]
+          .reject { |k, v| k.nil? or v.nil? }
       end
 
       # Public:
@@ -39,7 +38,7 @@ module Cumulus
       #
       # Returns an array of Aws::EC2::Types::Subnet
       def init_subnets
-        @@client.describe_subnets().subnets
+        @@client.describe_subnets.subnets
       end
 
     end

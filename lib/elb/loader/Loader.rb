@@ -47,7 +47,7 @@ module Cumulus
           Aws::ElasticLoadBalancing::Types::PolicyDescription.new({
             policy_name: policy_name,
             policy_type_name: policy.fetch("type"),
-            policy_attribute_descriptions: policy.fetch("attributes").to_a.map do |key, value|
+            policy_attribute_descriptions: policy.fetch("attributes").map do |key, value|
               Aws::ElasticLoadBalancing::Types::PolicyAttributeDescription.new({
                 attribute_name: key,
                 attribute_value: value
