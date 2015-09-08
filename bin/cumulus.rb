@@ -326,7 +326,7 @@ module Modules
     elsif ARGV[1] == "sync"
       if ARGV.size == 2
         elb.sync
-      elsif ARGV[2] == "keilan"
+      else
         elb.sync_one(ARGV[2])
       end
     elsif ARGV[1] == "migrate"
@@ -362,7 +362,7 @@ if ARGV[0] == "help"
   puts "Modules"
   puts "\tautoscaling\t- Manages configuration for EC2 AutoScaling"
   puts "\tcloudfront\t- Manages configuration for cloudfront distributions"
-  puts "\elb\t\t- Manages configuration for elastic load balancers"
+  puts "\telb\t\t- Manages configuration for elastic load balancers"
   puts "\tiam\t\t- Compiles IAM roles and policies that are defined with configuration files and syncs the resulting IAM roles and policies with AWS"
   puts "\troute53\t\t- Manages configuration for Route53"
   puts "\ts3\t\t- Manages configuration of S3 buckets"

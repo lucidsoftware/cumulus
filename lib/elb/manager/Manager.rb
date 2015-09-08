@@ -88,14 +88,14 @@ module Cumulus
           when INSTANCES
             if local.manage_instances != false
               puts "Updating managed instances..."
-              update_instances(local.name, diff.instances)
+              update_instances(local.name, diff.instances.added, diff.instances.removed)
             end
           when HEALTH
             puts "Updating health check..."
             update_health_check(local.name, local.health_check)
           when BACKEND
             puts "Updating backend policies"
-            update_backend_policies(local.name, diff.backend_policies)
+            update_backend_policies(local.name, diff.backend_policies.added, diff.backend_policies.removed, diff.backend_policies.modified)
           when CROSS
             puts "Updating cross zone load balancing"
             attributes_changed = true
@@ -117,14 +117,49 @@ module Cumulus
       end
 
       def create(local)
-        puts "Creating #{local.pretty_json}"
+
+        # Create the load balancer with listeners, subnets, security groups, scheme, and tags
+        @elb.create_load_balancer({
+          load_balancer_name: local.name,
+          listeners: local.listeners.map(&:to_aws),
+          subnets: local.subnets.map { |subnet| subnet.subnet_id },
+          security_groups: local.security_groups,
+          scheme: if local.internal then "internal" end,
+          tags: local.tags.to_a.map do |tagKey, tagValue|
+            {
+              key: tagKey,
+              value: tagValue
+            }
+          end
+        })
+
+        # Set the policies for the attached listeners
+        local.listeners.each do |listener|
+          update_listener_policies(local.name, listener.load_balancer_port, listener.policies)
+        end
+
+        # Set the health check config
+        update_health_check(local.name, local.health_check)
+
+        # Set the attributes
+        update_attributes(local)
+
+        # Update the instances if they are managed
+        if local.manage_instances != false
+          update_instances(local.name, local.manage_instances)
+        end
+
+        # Set the backend policies
+        backend_added = local.backend_policies.map do |backend_policy|
+          LoadBalancerDiff::BackendChange.new(backend_policy.instance_port, nil, backend_policy.policy_names)
+        end
+        update_backend_policies(local.name, backend_added)
+
       end
 
       private
 
       # Internal - a helper for attempting to update a resource that may require a rollback
-      #   if an update failed, the system will exit 1 regardless if a rollback happened or
-      #   was successful
       #
       # resource_name - the name of the resource to print in the error messages
       # should_rollback - a boolean that indicates if a rollback should be attempted
@@ -147,7 +182,7 @@ module Cumulus
             end
           end
 
-          exit 1
+          raise e
         end
       end
 
@@ -361,14 +396,15 @@ module Cumulus
       # Internal: update the managed instances for a load balancer
       #
       # elb_name - then name of the load balancer to update
-      # instance_changes - a ListChange describing what was modified
-      def update_instances(elb_name, instance_changes)
+      # instances_added - the array of instances that were added
+      # instances_removed - the array of instances that were removed
+      def update_instances(elb_name, instances_added, instances_removed = [])
 
         # deregister instances that were removed
-        if !instance_changes.removed.empty?
+        if !instances_removed.empty?
           @elb.deregister_instances_from_load_balancer({
             load_balancer_name: elb_name,
-            instances: instance_changes.removed.map do |i|
+            instances: instances_removed.map do |i|
               {
                 instance_id: i
               }
@@ -377,10 +413,10 @@ module Cumulus
         end
 
         # register instances that were added
-        if !instance_changes.added.empty?
+        if !instances_added.empty?
           @elb.register_instances_with_load_balancer({
             load_balancer_name: elb_name,
-            instances: instance_changes.added.map do |i|
+            instances: instances_added.map do |i|
               {
                 instance_id: i
               }
@@ -403,11 +439,13 @@ module Cumulus
       # Internal: update the backend policies
       #
       # elb_name - the name of the load balancer to update
-      # backend_changes - a ListChange that gives details on what was changed
-      def update_backend_policies(elb_name, backend_changes)
+      # backend_added - the backend policies to be added
+      # backend_removed - the backend policies to be removed
+      # backend_modified - the backend policies to be modified
+      def update_backend_policies(elb_name, backend_added, backend_removed = [], backend_modified = [])
 
         # Update the created and modified policies
-        (backend_changes.added + backend_changes.modified).each do |backend|
+        (backend_added + backend_modified).each do |backend|
           # First make sure each policy exists
           backend.local_policies.each do |policy_name|
             ensure_policy_exists(elb_name, policy_name)
@@ -421,7 +459,7 @@ module Cumulus
         end
 
         # Update the deleted ones by setting policy names to []
-        backend_changes.removed.each do |backend|
+        backend_removed.each do |backend|
           @elb.set_load_balancer_policies_for_backend_server({
             load_balancer_name: elb_name,
             instance_port: backend.port,
