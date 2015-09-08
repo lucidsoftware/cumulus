@@ -42,8 +42,8 @@ module Cumulus
           # load the included listeners and templates
           @listeners = []
           if json["listeners"]["includes"]
-            json["listeners"]["includes"].each_pair do |name, vars|
-              @listeners << Loader.listener(name, vars)
+            json["listeners"]["includes"].each do |template_json|
+              @listeners << Loader.listener(template_json["template"], template_json["vars"])
             end
           end
           if json["listeners"]["inlines"]
@@ -90,7 +90,7 @@ module Cumulus
       def pretty_json
         JSON.pretty_generate({
           "listeners" => {
-            "includes" => {},
+            "includes" => [],
             "inlines" => @listeners.map(&:to_hash)
           },
           "subnets" => @subnets,

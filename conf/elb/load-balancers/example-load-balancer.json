@@ -1,10 +1,13 @@
 {
   "listeners": {
-    "includes": {
-       "example-listener": {
-          "ssl-cert": "value"
-       }
-    },
+    "includes": [
+      {
+         "template": "example-listener",
+         "vars": {
+            "ssl-cert": "value"
+         }
+      }
+    ],
     "inlines": [
       {
         "load-balancer-protocol": "HTTP",
@@ -38,7 +41,7 @@
   "backend-policies": [
     {
       "port": 9001,
-      "policies": ["CustomPolicy1"]
+      "policies": ["ExampleCustomPolicy"]
     }
   ],
   "cross-zone": true,
