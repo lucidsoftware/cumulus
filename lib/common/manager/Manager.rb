@@ -111,13 +111,13 @@ module Cumulus
           elsif diffs[0].type == DiffChange::ADD
             if @create_asset
               puts Colors.added("creating #{name}...")
-              create(diffs[0].local)
+              create(local_resources[name])
             else
               puts "not creating #{name}..."
             end
           else
             puts Colors.blue("updating #{name}...")
-            update(diffs[0].local, diffs)
+            update(local_resources[name], diffs)
           end
         end
       end

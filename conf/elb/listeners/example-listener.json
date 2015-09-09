@@ -1,0 +1,8 @@
+{
+  "load-balancer-protocol": "HTTPS",
+  "load-balancer-port": 443,
+  "instance-protocol": "HTTPS",
+  "instance-port": 443,
+  "ssl-certificate-id": "{{ssl-cert}}",
+  "policies": ["ELBSecurityPolicy-2015-05"]
+}

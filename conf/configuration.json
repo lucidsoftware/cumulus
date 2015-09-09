@@ -73,5 +73,16 @@
 			"directory": "conf/cloudfront/invalidations"
 		}
 	},
+	"elb": {
+		"load-balancers": {
+			"directory": "conf/elb/load-balancers"
+		},
+		"listeners": {
+			"directory": "conf/elb/listeners"
+		},
+		"policies": {
+			"directory": "conf/elb/policies"
+		}
+	},
 	"region": "us-east-1"
 }

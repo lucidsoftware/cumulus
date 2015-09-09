@@ -1,0 +1,6 @@
+{
+  "type": "ThePolicyType",
+  "attributes": {
+    "AttributeName": "AttributeValue"
+  }
+}

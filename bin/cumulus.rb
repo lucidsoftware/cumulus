@@ -290,6 +290,57 @@ module Modules
       end
     end
   end
+
+  # Public: Run the elb module
+  def self.elb
+    if ARGV.size < 2 or (ARGV[1] != "help" and ARGV[1] != "diff" and ARGV[1] != "list" and ARGV[1] != "sync" and ARGV[1] != "migrate")
+      puts "Usage: cumulus elb [diff|help|list|migrate|sync] <asset>"
+      exit
+    end
+
+    if ARGV[1] == "help"
+      puts "elb: Manage Elastic Load Balancers"
+      puts "\tDiff and sync ELB configuration with AWS."
+      puts
+      puts "Usage: cumulus elb [diff|help|list|migrate|sync] <asset>"
+      puts
+      puts "Commands"
+      puts "\tdiff\t- print out differences between local configuration and AWS (supplying the name of the elb will diff only that elb)"
+      puts "\tlist\t- list the locally defined ELBs"
+      puts "\tsync\t- sync local ELB definitions with AWS (supplying the name of the elb will sync only that elb)"
+      puts "\tmigrate\t- migrate AWS configuration to Cumulus"
+      puts "\t\tdefault-policies- migrate default ELB policies from AWS to Cumulus"
+      puts "\t\telbs\t\t- migrate the current ELB configuration from AWS to Cumulus"
+      exit
+    end
+
+    require "elb/manager/Manager"
+    elb = Cumulus::ELB::Manager.new
+    if ARGV[1] == "diff"
+      if ARGV.size == 2
+        elb.diff
+      else
+        elb.diff_one(ARGV[2])
+      end
+    elsif ARGV[1] == "list"
+      elb.list
+    elsif ARGV[1] == "sync"
+      if ARGV.size == 2
+        elb.sync
+      else
+        elb.sync_one(ARGV[2])
+      end
+    elsif ARGV[1] == "migrate"
+      if ARGV[2] == "default-policies"
+        elb.migrate_default_policies
+      elsif ARGV[2] == "elbs"
+        elb.migrate_elbs
+      else
+        puts "Usage: cumulus elb migrate [default-policies|elbs]"
+      end
+    end
+  end
+
 end
 
 # check for the aws ruby gem
@@ -304,8 +355,8 @@ end
 
 if ARGV.size == 0 or (ARGV[0] != "iam" and ARGV[0] != "help" and ARGV[0] != "autoscaling" and
   ARGV[0] != "route53" and ARGV[0] != "s3" and ARGV[0] != "security-groups" and
-  ARGV[0] != "cloudfront")
-  puts "Usage: cumulus [autoscaling|cloudfront|help|iam|route53|s3|security-groups]"
+  ARGV[0] != "cloudfront" and ARGV[0] != "elb")
+  puts "Usage: cumulus [autoscaling|cloudfront|elb|help|iam|route53|s3|security-groups]"
   exit
 end
 
@@ -316,6 +367,7 @@ if ARGV[0] == "help"
   puts "Modules"
   puts "\tautoscaling\t- Manages configuration for EC2 AutoScaling"
   puts "\tcloudfront\t- Manages configuration for cloudfront distributions"
+  puts "\telb\t\t- Manages configuration for elastic load balancers"
   puts "\tiam\t\t- Compiles IAM roles and policies that are defined with configuration files and syncs the resulting IAM roles and policies with AWS"
   puts "\troute53\t\t- Manages configuration for Route53"
   puts "\ts3\t\t- Manages configuration of S3 buckets"
@@ -367,6 +419,8 @@ elsif ARGV[0] == "autoscaling"
   Modules.autoscaling
 elsif ARGV[0] == "cloudfront"
   Modules.cloudfront
+elsif ARGV[0] == "elb"
+  Modules.elb
 elsif ARGV[0] == "route53"
   Modules.route53
 elsif ARGV[0] == "security-groups"
