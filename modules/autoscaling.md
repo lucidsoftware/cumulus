@@ -1,7 +1,7 @@
 ---
 layout: module
 title: Autoscaling Groups
-image: assets/img/autoscaling.png
+image: assets/img/ec2.png
 description: Create and manage autoscaling groups, scheduled actions, scaling policies and policy alarms with configuration.
 ---
 Overview
