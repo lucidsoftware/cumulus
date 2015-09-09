@@ -13,7 +13,7 @@ Load Balancer Definition
 
 Each load balancer is defined in its own file where the file name is the name of the load balancer. These files are located in a [configurable](#configuration) folder. Load balancers are JSON objects with the following attributes:
 
-* `listeners` - the configuration for the listeners on the load balancer. Listeners can be defined using templates and/or inline (see [listeners](#listeners). At least one listener between `includes` and `inlines` must be present for a valid load balancer configuration. Has the following properties:
+* `listeners` - the configuration for the listeners on the load balancer. Listeners can be defined using templates and/or inline (see [listeners](#listeners). A valid load balancer configuration has at least one listener in either `includes` or `inlines`. Has the following properties:
   * `includes` - an optional array of definitions for the template listeners to include. Each definition has the following properties:
     * `template` - the name of the template to include (without .json). The template should be located in the [configurable](#configuration) listeners directory.
     * `vars` - an object whose key-value pairs will override variables in the template
@@ -22,10 +22,10 @@ Each load balancer is defined in its own file where the file name is the name of
 * `security-groups` - an array of security group ids to apply to the load balancer
 * `internal` - a true/false value indicating if the load balancing is internal facing (has a scheme of "internal"). Cannot be updated after a load balancer is created
 * `tags` - an optional JSON object whose key/value pairs correspond to tag keys and values for the load balancer e.g. `{ "TagName": "TagValue" }`
-* `manage-instances` - if false or omitted, instances will not be registered or deregistered with the load blancer when you sync. It can also be an array of instance ids that will be synced where any instances missing from here will be deregistered from the load balancer, and any that are added will be registered to the load balancer
+* `manage-instances` - if false or omitted, instances will not be registered or deregistered with the load blancer when you sync. It can also be an array of instance ids that will be synced such that any instances missing from here will be deregistered from the load balancer, and any that are added will be registered to the load balancer
 * `health-check` - a JSON object that configures the health check parameters for the load balancer. It has the following properties:
   * `target` - the instance that will be checked on a health check. Must include protocol, port, and if protocol is HTTP or HTTPS, a path to ping. e.g. `"HTTP:80/checkhealth"`
-  * `interval` - the between health checks on an instance (in seconds)
+  * `interval` - the time between health checks on an instance (in seconds)
   * `timeout` - the amount of time (in seconds) to allow a health check to take before considering it a failed health check. Must be less than interval
   * `healthy` - the number of consecutive failures required before moving the instance to an Unhealthy state
   * `unhealthy` - the number of consecutive successes required before moving an instance to a Healthy state
