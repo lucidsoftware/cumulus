@@ -163,6 +163,13 @@ Load balancers can be diffed, listed, and synced (migration is covered in the [f
 * `list` - Lists the names of all of the locally defined load balancers
 * `sync` - Syncs local configuration with AWS. If `<asset>` is specified, Cumulus will sync only the load balancer with that name.
 
+Unlike Cumulus' other modules, when syncing with the ELB module a bad configuration can put your load balancers in a bad state because of the ELB API's inability to perform updates transactionally. To combat this, we will attempt to rollback to a more stable configuration if any of the following properties fail to sync:
+
+* `listeners`
+* `subnets`
+* `tags`
+
+Any time a rollback is required, it will be printed in the console with a message explaining what happened. Doing another diff to figure out which attributes were or were not updated is recommended, followed by properly configuring the load balancer and syncing again.
 
 Migration
 ---------
