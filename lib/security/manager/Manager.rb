@@ -3,6 +3,7 @@ require "conf/Configuration"
 require "security/loader/Loader"
 require "security/models/SecurityGroupConfig"
 require "security/models/SecurityGroupDiff"
+require "security/SecurityGroups"
 require "util/Colors"
 
 require "aws-sdk"
@@ -56,7 +57,7 @@ module Cumulus
       end
 
       def aws_resources
-        @aws_resources ||= init_aws_resources
+        @aws_resources ||= SecurityGroups::name_security_groups
       end
 
       def sg_ids_to_names
@@ -260,11 +261,6 @@ module Cumulus
             end
           })
         end
-      end
-
-      def init_aws_resources
-        aws = @ec2.describe_security_groups()
-        Hash[aws.security_groups.map { |a| [a.group_name, a] }]
       end
     end
   end
