@@ -131,9 +131,9 @@ module Cumulus
             SecurityGroups::id_security_groups[sg_id].group_name
         end
         @internal = aws_elb.scheme == "internal"
-        @tags = aws_tags.map do |tag|
+        @tags = Hash[aws_tags.map do |tag|
           [tag.key, tag.value]
-        end.to_h
+        end]
         @manage_instances = aws_elb.instances.map { |i| i.instance_id }
         @health_check = HealthCheckConfig.new
         @health_check.populate!(aws_elb.health_check)
