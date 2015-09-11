@@ -6,6 +6,7 @@ require "elb/models/AccessLogConfig"
 require "elb/loader/Loader"
 require "elb/ELB"
 require "ec2/EC2"
+require "security/SecurityGroups"
 
 require "json"
 
@@ -126,7 +127,9 @@ module Cumulus
         @subnets = aws_elb.subnets.map do |subnet_id|
           EC2::id_subnets[subnet_id].name || subnet_id
         end
-        @security_groups = aws_elb.security_groups
+        @security_groups = aws_elb.security_groups.map do |sg_id|
+            SecurityGroups::id_security_groups[sg_id].group_name
+        end
         @internal = aws_elb.scheme == "internal"
         @tags = aws_tags.map do |tag|
           [tag.key, tag.value]
@@ -161,8 +164,11 @@ module Cumulus
           diffs << LoadBalancerDiff.subnets(aws_subnets, @subnets)
         end
 
-        if @security_groups.sort != aws.security_groups.sort
-          diffs << LoadBalancerDiff.security_groups(aws.security_groups, @security_groups)
+        named_aws_security_groups = aws.security_groups.map do |sg_id|
+          SecurityGroups::id_security_groups[sg_id].group_name
+        end
+        if @security_groups.sort != named_aws_security_groups.sort
+          diffs << LoadBalancerDiff.security_groups(named_aws_security_groups, @security_groups)
         end
 
         aws_internal = (aws.scheme == "internal")
