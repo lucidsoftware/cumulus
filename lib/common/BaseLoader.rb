@@ -45,7 +45,7 @@ module Cumulus
       def self.template(file, dir, vars, &loader)
         template = load_file(file, dir)
         vars.each do |key, value|
-          template.gsub!("{{#{key}}}", value)
+          template.gsub!("{{#{key}}}", "#{value}")
         end
         json = JSON.parse(template)
 
