@@ -22,7 +22,7 @@
     "subnet-1111111a"
   ],
   "security-groups": [
-    "sg-abc123de"
+    "SecurityGroupName"
   ],
   "internal": true,
   "tags": {
