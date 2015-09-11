@@ -51,7 +51,7 @@ Here is an example of a group (excluding the common configuration):
     ...
   ]
 }
-{% endhighlight %}  
+{% endhighlight %}
 
 ### Role Definition
 
@@ -151,7 +151,7 @@ Sometimes many resources have policies that are almost the same, except for slig
     "s3:GetObject"
   ],
   "Resource": [
-    "arn:aws:s3:::{{bucket}}/*"
+    {% raw %}"arn:aws:s3:::{{bucket}}/*"{% endraw %}
   ]
 }
 {% endhighlight %}
