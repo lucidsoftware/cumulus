@@ -19,7 +19,7 @@ Each load balancer is defined in its own file where the file name is the name of
     * `vars` - an object whose key-value pairs will override variables in the template
   * `inlines` - inline definitions for templates. See [listeners](#listeners) for detailed information
 * `subnets` - an array of strings describing what subnets to attach the load balancer to. These can either be the subnet id or the value of the "Name" tag on the subnet (Cumulus will always try to use the "Name" tag to figure out which subnet is being used and default to treating the value as a subnet id)
-* `security-groups` - an array of security group ids to apply to the load balancer
+* `security-groups` - an array of security group names to apply to the load balancer
 * `internal` - a true/false value indicating if the load balancing is internal facing (has a scheme of "internal"). Cannot be updated after a load balancer is created
 * `tags` - an optional JSON object whose key/value pairs correspond to tag keys and values for the load balancer e.g. `{ "TagName": "TagValue" }`
 * `manage-instances` - if false or omitted, instances will not be registered or deregistered with the load blancer when you sync. It can also be an array of instance ids that will be synced such that any instances missing from here will be deregistered from the load balancer, and any that are added will be registered to the load balancer
@@ -68,7 +68,7 @@ Here is an example of a load balancer with all options configured:
     "subnet-1111111a"
   ],
   "security-groups": [
-    "sg-abc123de"
+    "SecurityGroup1"
   ],
   "internal": true,
   "tags": {
