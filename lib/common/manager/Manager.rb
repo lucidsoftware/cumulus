@@ -29,7 +29,7 @@ module Cumulus
 
       # Public: Print a diff between local configuration and configuration in AWS
       def diff
-        each_difference(local_resources, true) { |name, diffs| print_difference(name, diffs) }
+        each_difference(local_resources, true) { |key, diffs| print_difference(key, diffs) }
       end
 
       # Public: Print the diff between local configuration and AWS for a single resource
@@ -37,17 +37,17 @@ module Cumulus
       # name - the name of the resource to diff
       def diff_one(name)
         local = local_resources.reject { |key, l| l.name != name }
-        each_difference(local, false) { |name, diffs| print_difference(name, diffs) }
+        each_difference(local, false) { |key, diffs| print_difference(key, diffs) }
       end
 
       # Public: Print out the names of all resources managed by Cumulus
       def list
-        puts local_resources.map { |name, l| l.name }.join(" ")
+        puts local_resources.map { |key, l| l.name }.join(" ")
       end
 
       # Public: Sync local configuration to AWS
       def sync
-        each_difference(local_resources, true) { |name, diffs| sync_difference(name, diffs) }
+        each_difference(local_resources, true) { |key, diffs| sync_difference(key, diffs) }
       end
 
       # Public: Sync local configuration to AWS for a single resource
@@ -55,7 +55,7 @@ module Cumulus
       # name - the name of the resource to sync
       def sync_one(name)
         local = local_resources.reject { |key, l| l.name != name }
-        each_difference(local, false) { |name, diffs| sync_difference(name, diffs) }
+        each_difference(local, false) { |key, diffs| sync_difference(key, diffs) }
       end
 
       private
@@ -74,24 +74,24 @@ module Cumulus
         end
         locals.each do |key, resource|
           if !aws_resources.include?(key)
-            f.call(resource.name, [added_diff(resource)])
+            f.call(key, [added_diff(resource)])
           else
-            f.call(resource.name, diff_resource(resource, aws_resources[key]))
+            f.call(key, diff_resource(resource, aws_resources[key]))
           end
         end
       end
 
       # Internal: Print differences.
       #
-      # name  - the name of the resource to print
+      # key   - the name of the resource to print
       # diffs - the differences between local configuration and AWS
-      def print_difference(name, diffs)
+      def print_difference(key, diffs)
         if diffs.size > 0
           if diffs.size == 1 and (diffs[0].type == DiffChange::ADD or
             diffs[0].type == DiffChange::UNMANAGED)
             puts diffs[0]
           else
-            puts "#{resource_name} #{name} has the following changes:"
+            puts "#{resource_name} #{local_resources[key].name} has the following changes:"
             diffs.each do |diff|
               diff_string = diff.to_s.lines.map { |s| "\t#{s}" }.join
               puts diff_string
@@ -102,22 +102,22 @@ module Cumulus
 
       # Internal: Sync differences.
       #
-      # name  - the name of the resource to sync
+      # key   - the name of the resource to sync
       # diffs - the differences between local configuration and AWS
-      def sync_difference(name, diffs)
+      def sync_difference(key, diffs)
         if diffs.size > 0
           if diffs[0].type == DiffChange::UNMANAGED
             puts diffs[0]
           elsif diffs[0].type == DiffChange::ADD
             if @create_asset
-              puts Colors.added("creating #{name}...")
-              create(local_resources[name])
+              puts Colors.added("creating #{local_resources[key].name}...")
+              create(local_resources[key])
             else
-              puts "not creating #{name}..."
+              puts "not creating #{local_resources[key].name}..."
             end
           else
-            puts Colors.blue("updating #{name}...")
-            update(local_resources[name], diffs)
+            puts Colors.blue("updating #{local_resources[key].name}...")
+            update(local_resources[key], diffs)
           end
         end
       end
