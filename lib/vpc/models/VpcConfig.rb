@@ -99,13 +99,6 @@ module Cumulus
           diffs << endpoints_diff
         end
 
-        # Map the local address associations to id of real network interface
-        # Try to fetch by name first, then id
-        local_associations = Hash[@address_associations.map do |ip, ref|
-          interface = EC2::named_network_interfaces[ref] || EC2::id_network_interfaces[ref]
-          [ip, interface.network_interface_id]
-        end]
-
         aws_associations = EC2::vpc_addresses[aws.vpc_id]
         association_diff = VpcDiff.address_associations(aws_associations, @address_associations)
         if association_diff
