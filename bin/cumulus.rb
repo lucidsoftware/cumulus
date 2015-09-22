@@ -343,6 +343,54 @@ module Modules
 
 end
 
+# read in the optional path to the configuration file to use
+options = {
+  :config => "conf/configuration.json",
+  :root => nil,
+  :profile => nil
+}
+OptionParser.new do |opts|
+  opts.on("-c", "--config [FILE]", "Specify the configuration file to use") do |c|
+    options[:config] = c
+  end
+
+  opts.on("-r", "--root [DIR]", "Specify the project root to use") do |r|
+    options[:root] = r
+  end
+
+  opts.on("-p", "--aws-profile [NAME]", "Specify the AWS profile to use for API requests") do |p|
+    options[:profile] = p
+  end
+end.parse!
+
+# config parameters can also be read in from environment variables
+if !ENV["CUMULUS_CONFIG"].nil?
+  options[:config] = ENV["CUMULUS_CONFIG"]
+end
+
+if !ENV["CUMULUS_ROOT"].nil?
+  options[:root] = ENV["CUMULUS_ROOT"]
+end
+
+if !ENV["CUMULUS_AWS_PROFILE"].nil?
+  options[:profile] = ENV["CUMULUS_AWS_PROFILE"]
+end
+
+# set up the application path
+$LOAD_PATH.unshift(File.expand_path(
+  File.join(File.dirname(__FILE__), "../lib")
+))
+
+# set up configuration for the application
+require "conf/Configuration"
+project_root = File.expand_path(
+  File.join(File.dirname(__FILE__), "../")
+)
+if !options[:root].nil?
+  project_root = File.expand_path(options[:root])
+end
+Cumulus::Configuration.init(project_root, options[:config], options[:profile])
+
 # check for the aws ruby gem
 begin
   require 'aws-sdk'
@@ -373,45 +421,6 @@ if ARGV[0] == "help"
   puts "\ts3\t\t- Manages configuration of S3 buckets"
   puts "\tsecurity-groups\t- Manages configuration for EC2 Security Groups"
 end
-
-# read in the optional path to the configuration file to use
-options = {
-  :config => "conf/configuration.json",
-  :root => nil
-}
-OptionParser.new do |opts|
-  opts.on("-c", "--config [FILE]", "Specify the configuration file to use") do |c|
-    options[:config] = c
-  end
-
-  opts.on("-r", "--root [DIR]", "Specify the project root to use") do |r|
-    options[:root] = r
-  end
-end.parse!
-
-# config parameters can also be read in from environment variables
-if !ENV["CUMULUS_CONFIG"].nil?
-  options[:config] = ENV["CUMULUS_CONFIG"]
-end
-
-if !ENV["CUMULUS_ROOT"].nil?
-  options[:root] = ENV["CUMULUS_ROOT"]
-end
-
-# set up the application path
-$LOAD_PATH.unshift(File.expand_path(
-  File.join(File.dirname(__FILE__), "../lib")
-))
-
-# set up configuration for the application
-require "conf/Configuration"
-project_root = File.expand_path(
-  File.join(File.dirname(__FILE__), "../")
-)
-if !options[:root].nil?
-  project_root = File.expand_path(options[:root])
-end
-Cumulus::Configuration.init(project_root, options[:config])
 
 if ARGV[0] == "iam"
   Modules.iam

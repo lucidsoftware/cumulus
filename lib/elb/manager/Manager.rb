@@ -20,7 +20,7 @@ module Cumulus
 
       def initialize
         super()
-        @elb = Aws::ElasticLoadBalancing::Client.new(region: Configuration.instance.region)
+        @elb = ELB.client
       end
 
       def resource_name

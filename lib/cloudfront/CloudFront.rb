@@ -5,7 +5,9 @@ require "aws-sdk"
 module Cumulus
   module CloudFront
     class << self
-      @@client = Aws::CloudFront::Client.new(region: Configuration.instance.region)
+      @@client = Aws::CloudFront::Client.new(region: Configuration.instance.region, profile: Configuration.instance.profile)
+
+      attr_reader :client
 
       # Public: Static method that will get a distribution from AWS by its cname.
       #

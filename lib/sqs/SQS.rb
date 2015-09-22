@@ -5,7 +5,7 @@ require "aws-sdk"
 module Cumulus
   module SQS
     class << self
-      @@client = Aws::SQS::Client.new(region: Configuration.instance.region)
+      @@client = Aws::SQS::Client.new(region: Configuration.instance.region, profile: Configuration.instance.profile)
 
       # Public: Static method that will get the ARN of a Queue
       #
