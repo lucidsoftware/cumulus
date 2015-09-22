@@ -15,10 +15,12 @@ module Cumulus
       def initialize
         super()
         @aws = Aws::AutoScaling::Client.new(
-          region: Configuration.instance.region
+          region: Configuration.instance.region,
+          profile: Configuration.instance.profile
         )
         @cloudwatch = Aws::CloudWatch::Client.new(
-          region: Configuration.instance.region
+          region: Configuration.instance.region,
+          profile: Configuration.instance.profile
         )
       end
 

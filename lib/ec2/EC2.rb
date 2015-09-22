@@ -5,7 +5,7 @@ require "aws-sdk"
 module Cumulus
   module EC2
     class << self
-      @@client = Aws::EC2::Client.new(region: Configuration.instance.region)
+      @@client = Aws::EC2::Client.new(region: Configuration.instance.region, profile: Configuration.instance.profile)
 
       require "aws_extensions/ec2/Subnet"
       Aws::EC2::Types::Subnet.send(:include, AwsExtensions::EC2::Subnet)

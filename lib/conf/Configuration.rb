@@ -89,7 +89,7 @@ module Cumulus
 
     attr_reader :colors_enabled
     attr_reader :iam, :autoscaling, :route53, :s3, :security, :cloudfront, :elb
-    attr_reader :region
+    attr_reader :region, :profile
 
     # Internal: Constructor. Sets up the `instance` variable, which is the access
     # point for the Singleton.
@@ -97,9 +97,11 @@ module Cumulus
     # project_root  - The String path to the directory the project is running in
     # file_path     - The String path from `project_root` to the configuration
     #                 file
-    def initialize(project_root, file_path)
+    # profile       - The String profile name that will be used to make AWS API calls
+    def initialize(project_root, file_path, profile)
       Config.project_root = project_root;
       Config.json = JSON.parse(File.read(absolute_path(file_path)))
+      @profile = profile
       @colors_enabled = conf "colors-enabled"
       @region = conf "region"
       @iam = IamConfig.new
@@ -118,8 +120,8 @@ module Cumulus
       # project_root  - The String path to the directory the project is running in
       # file_path     - The String path from `project_root` to the configuration
       #                 file
-      def init(project_root, file_path)
-        instance = new(project_root, file_path)
+      def init(project_root, file_path, profile)
+        instance = new(project_root, file_path, profile)
         @@instance = instance
       end
 

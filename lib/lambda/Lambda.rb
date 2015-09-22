@@ -5,7 +5,7 @@ require "aws-sdk"
 module Cumulus
   module Lambda
     class << self
-      @@client = Aws::Lambda::Client.new(region: Configuration.instance.region)
+      @@client = Aws::Lambda::Client.new(region: Configuration.instance.region, profile: Configuration.instance.profile)
 
       # Public: Static method that will get a Lambda function from AWS by its
       # name
