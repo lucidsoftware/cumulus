@@ -53,9 +53,9 @@ module Cumulus
 
       # Public
       #
-      # Returns a Hash of Aws::EC2::Types::Vpc to a VPC's name
+      # Returns a Hash of Aws::EC2::Types::Vpc to a VPC's name or id if there is no name
       def named_vpcs
-        @vpc_names ||= Hash[vpcs.map { |vpc| [vpc.name, vpc] }]
+        @named_vpcs ||= Hash[vpcs.map { |vpc| [vpc.name || vpc.vpc_id, vpc] }]
           .reject { |k, v| k.nil? or v.nil? }
       end
 

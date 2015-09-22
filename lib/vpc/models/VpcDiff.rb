@@ -172,7 +172,7 @@ module Cumulus
       end
 
       def aws_name
-        @aws.name
+        @aws.name || @aws.vpc_id
       end
 
       def diff_string
