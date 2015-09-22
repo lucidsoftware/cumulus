@@ -13,7 +13,7 @@ module Cumulus
 
       def initialize
         super()
-        @vpc = Aws::EC2::Client.new(region: Configuration.instance.region)
+        @vpc = Aws::EC2::Client.new(region: Configuration.instance.region, profile: Configuration.instance.profile)
       end
 
       def resource_name
