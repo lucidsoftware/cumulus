@@ -88,7 +88,7 @@ module Cumulus
     include Config
 
     attr_reader :colors_enabled
-    attr_reader :iam, :autoscaling, :route53, :s3, :security, :cloudfront, :elb
+    attr_reader :iam, :autoscaling, :route53, :s3, :security, :cloudfront, :elb, :vpc
     attr_reader :region, :profile
 
     # Internal: Constructor. Sets up the `instance` variable, which is the access
@@ -111,6 +111,7 @@ module Cumulus
       @cloudfront = CloudFrontConfig.new
       @s3 = S3Config.new
       @elb = ELBConfig.new
+      @vpc = VpcConfig.new
     end
 
     class << self
@@ -259,6 +260,25 @@ module Cumulus
         @load_balancers_directory = conf_abs_path "elb.load-balancers.directory"
         @listeners_directory = conf_abs_path "elb.listeners.directory"
         @policies_directory = conf_abs_path "elb.policies.directory"
+      end
+    end
+
+    # Public: Inner class that contains elb configuration options
+    class VpcConfig
+      include Config
+
+      attr_reader :vpcs_directory
+      attr_reader :subnets_directory
+      attr_reader :route_tables_directory
+      attr_reader :policies_directory
+      attr_reader :routes_cidr_exclude_list
+
+      def initialize
+        @vpcs_directory = conf_abs_path "vpc.vpcs.directory"
+        @subnets_directory = conf_abs_path "vpc.subnets.directory"
+        @route_tables_directory = conf_abs_path "vpc.route-tables.directory"
+        @policies_directory = conf_abs_path "vpc.policies.directory"
+        @routes_cidr_exclude_list = conf "vpc.route-tables.routes.exclude-cidr-blocks"
       end
     end
 
