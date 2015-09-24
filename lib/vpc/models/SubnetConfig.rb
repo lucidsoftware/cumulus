@@ -66,16 +66,16 @@ module Cumulus
 
         # For route table try to get the AWS name or default to id
         aws_subnet_rt = EC2::subnet_route_tables[aws.subnet_id]
-        aws_rt_name = aws_subnet_rt.name || aws_subnet_rt.route_table_id
+        aws_rt_name = if aws_subnet_rt then aws_subnet_rt.name || aws_subnet_rt.route_table_id end
         if @route_table != aws_rt_name
-          diffs << SubnetDiff.new(SubnetChange::ROUTE, aws_rt_name, @route_table)
+          diffs << SubnetDiff.new(SubnetChange::ROUTE_TABLE, aws_rt_name, @route_table)
         end
 
         # For network acl try to get the AWS name or default to its id
         aws_subnet_net_acl = EC2::subnet_network_acls[aws.subnet_id]
         aws_net_acl_name = aws_subnet_net_acl.name || aws_subnet_net_acl.network_acl_id
         if @network_acl != aws_net_acl_name
-          diffs << SubnetDiff.new(SubnetChange::NETWORK, aws_net_acl_name, @network_acl)
+          diffs << SubnetDiff.new(SubnetChange::NETWORK_ACL, aws_net_acl_name, @network_acl)
         end
 
         if @availability_zone != aws.availability_zone

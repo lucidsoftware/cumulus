@@ -17,7 +17,7 @@ module Cumulus
 
       ADD = next_change_id
       UNMANAGED = next_change_id
-
+      MODIFIED = next_change_id
     end
 
     # Public: The base class for all Diff classes.
@@ -36,6 +36,7 @@ module Cumulus
       include DiffChange
 
       attr_reader :aws, :local, :type
+      attr_accessor :changes
 
       # Public: Static method that will produce an "unmanaged" diff
       #
@@ -55,15 +56,26 @@ module Cumulus
         self.new(ADD, nil, local)
       end
 
+      # Public: Static method that will produce a "modified" diff
+      #
+      # local - the local configuration
+      # aws - the aws resource
+      # changes - an object describing what was modified
+      def self.modified(aws, local, changes)
+        self.new(MODIFIED, aws, local, changes)
+      end
+
       # Public: Constructor
       #
       # type  - the type of the difference
       # aws   - the aws resource that's different (defaults to nil)
       # local - the local resource that's difference (defaults to nil)
-      def initialize(type, aws = nil, local = nil)
+      # changes - an object to describe what changed in a MODIFIED diff (defaults to nil)
+      def initialize(type, aws = nil, local = nil, changes = nil)
         @aws = aws
         @local = local
         @type = type
+        @changes = changes
       end
 
       def to_s

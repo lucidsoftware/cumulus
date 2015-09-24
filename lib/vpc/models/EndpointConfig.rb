@@ -44,7 +44,7 @@ module Cumulus
 
         # policy aws.policy_document
         aws_policy_statement = JSON.parse(URI.decode(aws.policy_document))["Statement"].first
-        local_policy_statement = Loader.policy(@policy)
+        local_policy_statement = Loader.policy(@policy)["Statement"].first
         policy_diff = EndpointDiff.policy(aws_policy_statement, local_policy_statement)
 
         if policy_diff

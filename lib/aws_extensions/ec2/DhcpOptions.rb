@@ -17,9 +17,9 @@ module AwsExtensions
         get_attribute_values("ntp-servers")
       end
 
-      # Public: Returns the value of netbios-attribute-servers
+      # Public: Returns the value of netbios-name-servers
       def netbios_name_servers
-        get_attribute_values("netbios-attribute-servers")
+        get_attribute_values("netbios-name-servers")
       end
 
       # Public: Returns the value of netbios-node-type

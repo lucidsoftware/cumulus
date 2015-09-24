@@ -10,8 +10,8 @@ module Cumulus
 
       CIDR = Common::DiffChange.next_change_id
       PUBLIC = Common::DiffChange.next_change_id
-      ROUTE = Common::DiffChange.next_change_id
-      NETWORK = Common::DiffChange.next_change_id
+      ROUTE_TABLE = Common::DiffChange.next_change_id
+      NETWORK_ACL = Common::DiffChange.next_change_id
       AZ = Common::DiffChange.next_change_id
       TAGS = Common::DiffChange.next_change_id
     end
@@ -51,13 +51,13 @@ module Cumulus
             Colors.aws_changes("\tAWS - #{aws}"),
             Colors.local_changes("\tLocal - #{local}"),
           ].join("\n")
-        when ROUTE
+        when ROUTE_TABLE
           [
             "Route Table:",
             Colors.aws_changes("\tAWS - #{aws}"),
             Colors.local_changes("\tLocal - #{local}"),
           ].join("\n")
-        when NETWORK
+        when NETWORK_ACL
           [
             "Network ACL:",
             Colors.aws_changes("\tAWS - #{aws}"),

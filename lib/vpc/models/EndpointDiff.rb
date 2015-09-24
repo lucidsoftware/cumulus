@@ -9,21 +9,18 @@ module Cumulus
       include Common::DiffChange
 
       POLICY = Common::DiffChange.next_change_id
-      ROUTE = Common::DiffChange.next_change_id
+      ROUTE_TABLES = Common::DiffChange.next_change_id
     end
 
     # Public: Represents a single difference between local configuration and AWS configuration
     class EndpointDiff < Common::Diff
       include EndpointChange
 
-      attr_accessor :route_tables
-      attr_accessor :policy_changes
-
       def self.route_tables(aws, local)
         changes = Common::ListChange.simple_list_diff(aws, local)
         if changes
-          diff = EndpointDiff.new(ROUTE, aws, local)
-          diff.route_tables = changes
+          diff = EndpointDiff.new(ROUTE_TABLES, aws, local)
+          diff.changes = changes
           diff
         end
       end
@@ -40,7 +37,7 @@ module Cumulus
 
         if !changes.empty?
           diff = EndpointDiff.new(POLICY, aws, local)
-          diff.policy_changes = changes
+          diff.changes = changes
           diff
         end
       end
@@ -58,7 +55,7 @@ module Cumulus
         when POLICY
           [
             "Policy:",
-            @policy_changes.map do |k, v|
+            @changes.map do |k, v|
               [
                 "\t#{k}:",
                 Colors.aws_changes("#{v.aws}"),
@@ -67,11 +64,11 @@ module Cumulus
               ].join(" ")
             end
           ].flatten.join("\n")
-        when ROUTE
+        when ROUTE_TABLES
           [
             "Route Tables:",
-            @route_tables.removed.map { |d| Colors.unmanaged("\t#{d}") },
-            @route_tables.added.map { |d| Colors.added("\t#{d}") },
+            @changes.removed.map { |d| Colors.unmanaged("\t#{d}") },
+            @changes.added.map { |d| Colors.added("\t#{d}") },
           ].flatten.join("\n")
         end
       end

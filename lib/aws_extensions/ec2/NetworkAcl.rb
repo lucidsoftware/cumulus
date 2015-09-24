@@ -14,6 +14,12 @@ module AwsExtensions
         self.associations.map { |assoc| assoc.subnet_id }
       end
 
+      # Public: Returns the enteries that are diffable by leaving out
+      # the last rule that denies all
+      def diffable_entries
+        self.entries.select { |entry| entry.rule_number < 32767 }
+      end
+
     end
   end
 end

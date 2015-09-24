@@ -20,15 +20,11 @@ module Cumulus
     class DhcpDiff < Common::Diff
       include DhcpChange
 
-      attr_accessor :domain_servers
-      attr_accessor :ntp_servers
-      attr_accessor :netbios_servers
-
       def self.domain_servers(aws, local)
         changes = Common::ListChange.simple_list_diff(aws, local)
         if changes
           diff = DhcpDiff.new(DOMAIN_SERVERS, aws, local)
-          diff.domain_servers = changes
+          diff.changes = changes
           diff
         end
       end
@@ -37,7 +33,7 @@ module Cumulus
         changes = Common::ListChange.simple_list_diff(aws, local)
         if changes
           diff = DhcpDiff.new(NTP_SERVERS, aws, local)
-          diff.ntp_servers = changes
+          diff.changes = changes
           diff
         end
       end
@@ -45,8 +41,8 @@ module Cumulus
       def self.netbios_servers(aws, local)
         changes = Common::ListChange.simple_list_diff(aws, local)
         if changes
-          diff = DhcpDiff.new(NETBIOS_SERVERS, aws, local)
-          diff.netbios_servers = changes
+          diff = DhcpDiff.new(NETBIOS_SERVERS, aws, local, servers_diff)
+          diff.changes = changes
           diff
         end
       end
@@ -64,8 +60,8 @@ module Cumulus
         when DOMAIN_SERVERS
           [
             "Domain Name Servers:",
-            @domain_servers.removed.map { |d| Colors.unmanaged("\t#{d}") },
-            @domain_servers.added.map { |d| Colors.added("\t#{d}") },
+            @changes.removed.map { |d| Colors.unmanaged("\t#{d}") },
+            @changes.added.map { |d| Colors.added("\t#{d}") },
           ].flatten.join("\n")
         when DOMAIN_NAME
           [
@@ -76,14 +72,14 @@ module Cumulus
         when NTP_SERVERS
           [
             "NTP Servers:",
-            @ntp_servers.removed.map { |n| Colors.unmanaged("\t#{n}") },
-            @ntp_servers.added.map { |n| Colors.added("\t#{n}") },
+            @changes.removed.map { |n| Colors.unmanaged("\t#{n}") },
+            @changes.added.map { |n| Colors.added("\t#{n}") },
           ].flatten.join("\n")
         when NETBIOS_SERVERS
           [
             "NETBIOS Name Servers:",
-            @netbios_servers.removed.map { |n| Colors.unmanaged("\t#{n}") },
-            @netbios_servers.added.map { |n| Colors.added("\t#{n}") },
+            @changes.removed.map { |n| Colors.unmanaged("\t#{n}") },
+            @changes.added.map { |n| Colors.added("\t#{n}") },
           ].flatten.join("\n")
         when NETBIOS_NODE
           [

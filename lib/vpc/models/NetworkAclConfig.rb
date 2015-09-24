@@ -43,13 +43,13 @@ module Cumulus
       def diff(aws)
         diffs = []
 
-        aws_inbound = aws.entries.select { |entry| !entry.egress }
+        aws_inbound = aws.diffable_entries.select { |entry| !entry.egress }
         inbound_diff = NetworkAclDiff.entries(NetworkAclChange::INBOUND, aws_inbound, @inbound)
         if inbound_diff
           diffs << inbound_diff
         end
 
-        aws_outbound = aws.entries.select { |entry| entry.egress }
+        aws_outbound = aws.diffable_entries.select { |entry| entry.egress }
         outbound_diff = NetworkAclDiff.entries(NetworkAclChange::OUTBOUND, aws_outbound, @outbound)
         if outbound_diff
           diffs << outbound_diff

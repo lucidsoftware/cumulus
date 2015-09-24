@@ -1,6 +1,7 @@
 require "common/models/Diff"
 require "common/models/ListChange"
 require "common/models/TagsDiff"
+require "vpc/models/AclEntryDiff"
 require "util/Colors"
 
 require "json"
@@ -21,31 +22,32 @@ module Cumulus
       include NetworkAclChange
       include Common::TagsDiff
 
-      attr_accessor :entries
-
       def self.entries(type, aws, local)
         aws_rule_entries = Hash[aws.map do |entry|
-          [entry.rule_number, entry]
+          aws_entry = AclEntryConfig.new
+          aws_entry.populate!(entry)
+          [entry.rule_number, aws_entry]
         end]
         local_rule_entries = Hash[local.map { |entry| [entry.rule, entry] }]
 
-        added = local_rule_entries.reject { |k, v| aws_rule_entries.has_key? k }
-        removed = Hash[aws_rule_entries.reject { |k, v| local_rule_entries.has_key? k }.map do |rule, aws|
-          aws_entry = AclEntryConfig.new
-          aws_entry.populate!(aws_rule_entries[rule])
-          [rule, aws_entry]
+        added_diffs = Hash[local_rule_entries.reject { |rule, entry| aws_rule_entries.has_key? rule }.map do |rule, local_entry|
+          [rule, AclEntryDiff.added(local_entry)]
         end]
-        modified = local_rule_entries.select { |k, v| aws_rule_entries.has_key? k }
+        removed_diffs = Hash[aws_rule_entries.reject { |rule, entry| local_rule_entries.has_key? rule }.map do |rule, aws_entry|
+          [rule, AclEntryDiff.unmanaged(aws_entry)]
+        end]
 
-        modified_diffs = Hash[modified.map do |rule, entry|
-          aws_entry = AclEntryConfig.new
-          aws_entry.populate!(aws_rule_entries[rule])
-          [rule, entry.diff(aws_entry)]
-        end].reject { |k, v| v.empty? }
+        modified_diffs = Hash[local_rule_entries.select { |rule, entry| aws_rule_entries.has_key? rule }.map do |rule, local_entry|
+          aws_entry = aws_rule_entries[rule]
+          entry_diffs = local_entry.diff(aws_entry)
+          if !entry_diffs.empty?
+            [rule, AclEntryDiff.modified(aws_entry, local_entry, entry_diffs)]
+          end
+        end.reject { |v| v.nil? }]
 
-        if !added.empty? or !removed.empty? or !modified_diffs.empty?
+        if !added_diffs.empty? or !removed_diffs.empty? or !modified_diffs.empty?
           diff = NetworkAclDiff.new(type, aws, local)
-          diff.entries = Common::ListChange.new(added, removed, modified_diffs)
+          diff.changes = Common::ListChange.new(added_diffs, removed_diffs, modified_diffs)
           diff
         end
       end
@@ -89,20 +91,20 @@ module Cumulus
         [
           [
             "\tThese rules will be deleted:",
-            @entries.removed.map do |rule, entry|
-              Colors.unmanaged(entry.pretty_string.lines.map { |l| "\t\t#{l}".chomp("\n") }.join("\n"))
+            @changes.removed.map do |rule, removed_diff|
+              Colors.unmanaged(removed_diff.aws.pretty_string.lines.map { |l| "\t\t#{l}".chomp("\n") }.join("\n"))
             end.flatten.join("\n\t\t\t---\n")
-          ].reject { @entries.removed.empty? },
+          ].reject { @changes.removed.empty? },
           [
             "\tThese rules will be created:",
-            @entries.added.map do |rule, entry|
-              Colors.added(entry.pretty_string.lines.map { |l| "\t\t#{l}".chomp("\n") }.join("\n"))
+            @changes.added.map do |rule, added_diff|
+              Colors.added(added_diff.local.pretty_string.lines.map { |l| "\t\t#{l}".chomp("\n") }.join("\n"))
             end.flatten.join("\n\t\t\t---\n")
-          ].reject { @entries.added.empty? },
-          @entries.modified.map do |rule, diffs|
+          ].reject { @changes.added.empty? },
+          @changes.modified.map do |rule, modified_diff|
             [
               "\tRule #{rule} was modified:",
-              diffs.map do |diff|
+              modified_diff.changes.map do |diff|
                 diff.to_s.lines.map { |l| "\t\t#{l}".chomp("\n") }
               end
             ]

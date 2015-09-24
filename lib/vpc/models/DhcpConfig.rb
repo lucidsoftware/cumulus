@@ -37,7 +37,16 @@ module Cumulus
           "ntp-servers" => @ntp_servers,
           "netbios-name-servers" => @netbios_name_servers,
           "netbios-node-type" => @netbios_node_type,
-        }.reject { |k, v| v.nil? }
+        }.reject { |k, v| v.nil? or v.empty? }
+      end
+
+      def to_aws
+        to_hash.map do |key, value|
+          {
+            key: key,
+            values: [value].flatten
+          }
+        end
       end
 
       # Public: Produce an array of differences between this local configuration and the

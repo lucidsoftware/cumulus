@@ -20,9 +20,6 @@ module Cumulus
       include RouteTableChange
       include Common::TagsDiff
 
-      attr_accessor :routes
-      attr_accessor :vgws
-
       def self.routes(aws, local)
         aws_cidr_routes = Hash[aws.map { |route| [route.destination_cidr_block, route] }]
         local_cidr_routes = Hash[local.map { |route| [route.dest_cidr, route] }]
@@ -33,11 +30,17 @@ module Cumulus
 
         added_diffs = Hash[added.map { |cidr, route| [cidr, RouteDiff.added(route)] }]
         removed_diffs = Hash[removed.map { |cidr, route| [cidr, RouteDiff.unmanaged(route)] }]
-        modified_diffs = Hash[modified.map { |cidr, route | [cidr, route.diff(aws_cidr_routes[cidr])] }].reject { |k, v| v.empty? }
+        modified_diffs = Hash[modified.map do |cidr, route|
+          aws_route = aws_cidr_routes[cidr]
+          route_diffs = route.diff(aws_route)
+          if !route_diffs.empty?
+            [cidr, RouteDiff.modified(aws_route, route, route_diffs)]
+          end
+        end.reject { |v| v.nil? }]
 
         if !added_diffs.empty? or !removed_diffs.empty? or !modified_diffs.empty?
           diff = RouteTableDiff.new(ROUTES, aws, local)
-          diff.routes = Common::ListChange.new(added_diffs, removed_diffs, modified_diffs)
+          diff.changes = Common::ListChange.new(added_diffs, removed_diffs, modified_diffs)
           diff
         end
       end
@@ -46,7 +49,7 @@ module Cumulus
         changes = Common::ListChange.simple_list_diff(aws, local)
         if changes
           diff = RouteTableDiff.new(VGWS, aws, local)
-          diff.vgws = changes
+          diff.changes = changes
           diff
         end
       end
@@ -72,12 +75,12 @@ module Cumulus
         when ROUTES
           [
             "Routes:",
-            @routes.removed.map { |s, _| Colors.unmanaged("\t#{s} will be deleted") },
-            @routes.added.map { |s, _| Colors.added("\t#{s} will be created") },
-            @routes.modified.map do |cidr, diffs|
+            @changes.removed.map { |s, _| Colors.unmanaged("\t#{s} will be deleted") },
+            @changes.added.map { |s, _| Colors.added("\t#{s} will be created") },
+            @changes.modified.map do |route, diff|
               [
-                "\t#{cidr}:",
-                diffs.map do |diff|
+                "\t#{route.dest_cidr}:",
+                diff.changes.map do |diff|
                   diff.to_s.lines.map { |l| "\t\t#{l}".chomp("\n") }
                 end
               ]
@@ -86,8 +89,8 @@ module Cumulus
         when VGWS
           [
             "Propagate VGWs:",
-            @vgws.removed.map { |s, _| Colors.unmanaged("\t#{s}") },
-            @vgws.added.map { |s, _| Colors.added("\t#{s}") },
+            @changes.removed.map { |s, _| Colors.unmanaged("\t#{s}") },
+            @changes.added.map { |s, _| Colors.added("\t#{s}") },
           ].flatten.join("\n")
         when TAGS
           tags_diff_string

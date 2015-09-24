@@ -66,6 +66,11 @@ module Cumulus
         @vpc_ids ||= Hash[vpcs.map { |vpc| [vpc.vpc_id, vpc] }]
       end
 
+      # Public refreshes the list of vpcs
+      def refresh_vpcs!
+        @vpcs = init_vpcs
+      end
+
       # Public: Lazily load the vpcs
       def vpcs
         @vpcs ||= init_vpcs
@@ -73,9 +78,9 @@ module Cumulus
 
       # Public
       #
-      # Returns a Hash of Aws::EC2::Types::RouteTable to that route tables name
+      # Returns a Hash of Aws::EC2::Types::RouteTable to that route tables name or id if there is no name
       def named_route_tables
-        @named_route_tables ||= Hash[route_tables.map { |rt| [rt.name, rt] }]
+        @named_route_tables ||= Hash[route_tables.map { |rt| [rt.name || rt.route_table_id, rt] }]
           .reject { |k, v| k.nil? or v.nil? }
       end
 
@@ -109,6 +114,11 @@ module Cumulus
         @route_tables ||= init_route_tables
       end
 
+      # Public refreshes the list of route tables
+      def refresh_route_tables!
+        @route_tables = init_route_tables
+      end
+
       # Public
       #
       # Returns a Hash of Aws::EC2::Types::NetworkAcl to each subnet id associated with the acl
@@ -128,9 +138,23 @@ module Cumulus
         end]
       end
 
+      # Public
+      #
+      # Returns a Hash of Aws::EC2::Types::NetworkAcl arrays to name or id
+      def named_network_acls
+        @named_network_acls = Hash[network_acls.map do |acl|
+          [acl.name || acl.network_acl_id, acl]
+        end]
+      end
+
       # Public: Lazily load the network acls
       def network_acls
         @network_acls ||= init_network_acls
+      end
+
+      # Public: Refresh the list of Network ACLs
+      def refresh_network_acls!
+        @network_acls = init_network_acls
       end
 
       # Public

@@ -370,6 +370,12 @@ module Modules
       else
         vpc.diff_one(ARGV[2])
       end
+    elsif ARGV[1] == "sync"
+      if ARGV.size == 2
+        vpc.sync
+      else
+        vpc.sync_one(ARGV[2])
+      end
     elsif ARGV[1] == "list"
       vpc.list
     end

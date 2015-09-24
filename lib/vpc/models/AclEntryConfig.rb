@@ -1,5 +1,6 @@
 require "conf/Configuration"
 require "vpc/models/AclEntryDiff"
+require "ec2/IPProtocolMapping"
 
 module Cumulus
   module VPC
@@ -20,18 +21,12 @@ module Cumulus
       def initialize(json = nil)
         if !json.nil?
           @rule = json["rule"]
-          @protocol = json["protocol"]
+          @protocol = json["protocol"].upcase
           @action = json["action"]
           @cidr_block = json["cidr-block"]
-
-          if @protocol.upcase == "TCP" or @protocol.upcase == "UDP"
-            @ports = json["ports"]
-          end
-
-          if @protocol.upcase == "ICMP"
-            @icmp_type = json["icmp-type"]
-            @icmp_code = json["icmp-code"]
-          end
+          @ports = json["ports"]
+          @icmp_type = json["icmp-type"]
+          @icmp_code = json["icmp-code"]
         end
       end
 
@@ -49,7 +44,7 @@ module Cumulus
 
       def populate!(aws)
         @rule = aws.rule_number
-        @protocol = if aws.protocol == "-1" then "all" else aws.protocol end
+        @protocol = EC2::IPProtocolMapping.keyword(aws.protocol)
         @action = aws.rule_action
         @cidr_block = aws.cidr_block
 
@@ -135,7 +130,7 @@ module Cumulus
         aws_from_port, aws_to_port = aws.expand_ports
 
         if local_from_port != aws_from_port or local_to_port != aws_to_port
-          diffs << AclEntryDiff.new(AclEntryChange::PORTS, "#{aws_from_port}-#{aws_to_port}", "#{local_from_port}-#{local_to_port}")
+          diffs << AclEntryDiff.new(AclEntryChange::PORTS, aws.ports, @ports)
         end
 
         if @icmp_type != aws.icmp_type

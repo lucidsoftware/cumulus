@@ -79,17 +79,17 @@ module Cumulus
 
         # Get the actual DHCP Options from AWS from the id
         aws_dhcp_options = EC2::id_dhcp_options[aws.dhcp_options_id]
-        dhcp_diffs = @dhcp.diff(aws_dhcp_options)
-        if !dhcp_diffs.empty?
-          diffs << VpcDiff.dhcp(dhcp_diffs, aws_dhcp_options, @dhcp)
+        dhcp_diff = VpcDiff.dhcp(aws_dhcp_options, @dhcp)
+        if dhcp_diff
+          diffs << dhcp_diff
         end
 
         # Load the actual route table configs to diff them
         local_route_tables = @route_tables.map { |rt_name| Loader.route_table(rt_name) }
         aws_route_tables = EC2::vpc_route_tables[aws.vpc_id]
-        route_table_diffs = VpcDiff.route_tables(aws_route_tables, local_route_tables)
-        if route_table_diffs
-          diffs << route_table_diffs
+        route_table_diff = VpcDiff.route_tables(aws_route_tables, local_route_tables)
+        if route_table_diff
+          diffs << route_table_diff
         end
 
         # Load the vpc endpoints

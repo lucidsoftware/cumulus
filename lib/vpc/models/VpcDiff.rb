@@ -16,12 +16,12 @@ module Cumulus
 
       CIDR = Common::DiffChange.next_change_id
       TENANCY = Common::DiffChange.next_change_id
-      SUBNETS = Common::DiffChange.next_change_id
       DHCP = Common::DiffChange.next_change_id
-      ROUTE = Common::DiffChange.next_change_id
+      ROUTE_TABLES = Common::DiffChange.next_change_id
       ENDPOINTS = Common::DiffChange.next_change_id
       ADDRESSES = Common::DiffChange.next_change_id
-      NETWORK = Common::DiffChange.next_change_id
+      NETWORK_ACLS = Common::DiffChange.next_change_id
+      SUBNETS = Common::DiffChange.next_change_id
       TAGS = Common::DiffChange.next_change_id
     end
 
@@ -29,13 +29,6 @@ module Cumulus
     class VpcDiff < Common::Diff
       include VpcChange
       include Common::TagsDiff
-
-      attr_accessor :subnets
-      attr_accessor :dhcp
-      attr_accessor :route_tables
-      attr_accessor :endpoints
-      attr_accessor :addresses
-      attr_accessor :network_acls
 
       def self.subnets(aws, local)
         aws_name_subnets = Hash[aws.map { |subnet| [subnet.name || subnet.subnet_id, subnet] }]
@@ -48,20 +41,27 @@ module Cumulus
         added_diffs = Hash[added.map { |subnet_name, subnet| [subnet_name, SubnetDiff.added(subnet)] }]
         removed_diffs = Hash[removed.map { |subnet_name, subnet| [subnet_name, SubnetDiff.unmanaged(subnet)] }]
         modified_diffs = Hash[modified.map do |subnet_name, subnet|
-          [subnet_name, subnet.diff(aws_name_subnets[subnet_name])]
-        end].reject { |k, v| v.empty? }
+          aws_subnet = aws_name_subnets[subnet_name]
+          subnet_diffs = subnet.diff(aws_subnet)
+          if !subnet_diffs.empty?
+            [subnet_name, SubnetDiff.modified(aws_subnet, subnet, subnet_diffs)]
+          end
+        end.reject { |v| v.nil? }]
 
         if !added_diffs.empty? or !removed_diffs.empty? or !modified_diffs.empty?
           diff = VpcDiff.new(SUBNETS, aws, local)
-          diff.subnets = Common::ListChange.new(added_diffs, removed_diffs, modified_diffs)
+          diff.changes = Common::ListChange.new(added_diffs, removed_diffs, modified_diffs)
           diff
         end
       end
 
-      def self.dhcp(dhcp_diffs, aws, local)
-        diff = VpcDiff.new(DHCP, aws, local)
-        diff.dhcp = dhcp_diffs
-        diff
+      def self.dhcp(aws, local)
+        dhcp_diffs = local.diff(aws)
+        if !dhcp_diffs.empty?
+          diff = VpcDiff.new(DHCP, aws, local)
+          diff.changes = dhcp_diffs
+          diff
+        end
       end
 
       def self.route_tables(aws, local)
@@ -75,12 +75,16 @@ module Cumulus
         added_diffs = Hash[added.map { |rt_name, rt| [rt_name, RouteTableDiff.added(rt)]}]
         removed_diffs = Hash[removed.map { |rt_name, rt| [rt_name, RouteTableDiff.unmanaged(rt)]}]
         modified_diffs = Hash[modified.map do |rt_name, rt|
-          [rt_name, rt.diff(aws_name_route_tables[rt_name])]
-        end].reject { |k, v| v.empty? }
+          aws_rt = aws_name_route_tables[rt_name]
+          rt_diffs = rt.diff(aws_rt)
+          if !rt_diffs.empty?
+            [rt_name, RouteTableDiff.modified(aws_rt, rt, rt_diffs)]
+          end
+        end.reject { |v| v.nil? }]
 
         if !added_diffs.empty? or !removed_diffs.empty? or !modified_diffs.empty?
-          diff = VpcDiff.new(ROUTE, aws, local)
-          diff.route_tables = Common::ListChange.new(added_diffs, removed_diffs, modified_diffs)
+          diff = VpcDiff.new(ROUTE_TABLES, aws, local)
+          diff.changes = Common::ListChange.new(added_diffs, removed_diffs, modified_diffs)
           diff
         end
       end
@@ -96,17 +100,21 @@ module Cumulus
         added_diffs = Hash[added.map { |service_name, endpoint| [service_name, EndpointDiff.added(endpoint)]}]
         removed_diffs = Hash[removed.map { |service_name, endpoint| [service_name, EndpointDiff.unmanaged(endpoint)]}]
         modified_diffs = Hash[modified.map do |service_name, endpoint|
-          [service_name, endpoint.diff(aws_service_endpoints[service_name])]
-        end].reject { |k, v| v.empty? }
+          aws_endpoint = aws_service_endpoints[service_name]
+          endpoint_diffs = endpoint.diff(aws_endpoint)
+          if !endpoint_diffs.empty?
+            [service_name, EndpointDiff.modified(aws_endpoint, endpoint, endpoint_diffs)]
+          end
+        end.reject { |v| v.nil? }]
 
         if !added_diffs.empty? or !removed_diffs.empty? or !modified_diffs.empty?
           diff = VpcDiff.new(ENDPOINTS, aws, local)
-          diff.endpoints = Common::ListChange.new(added_diffs, removed_diffs, modified_diffs)
+          diff.changes = Common::ListChange.new(added_diffs, removed_diffs, modified_diffs)
           diff
         end
       end
 
-      AddressChange = Struct.new(:aws, :local)
+      AddressChange = Struct.new(:aws_name, :aws, :local_name, :local)
       def self.address_associations(aws, local)
         # Map the aws and local public ips to network interface
         aws_addresses = Hash[aws.map { |addr| [addr.public_ip, EC2::id_network_interfaces[addr.network_interface_id]] }]
@@ -123,17 +131,22 @@ module Cumulus
         end].reject { |k, v| v.nil? }
 
         added = local_addresses.reject { |k, v| aws_addresses.has_key? k }
-        added_names = Hash[added.map { |ip, interface| [ip, interface.name || interface.network_interface_id] }]
+        added_names = Hash[added.map { |ip, interface| [ip, AddressChange.new(nil, nil, interface.name || interface.network_interface_id,  interface)] }]
 
         removed = aws_addresses.reject { |k, v| local_addresses.has_key? k }
-        removed_names = Hash[removed.map { |ip, interface| [ip, interface.name || interface.network_interface_id] }]
+        removed_names = Hash[removed.map { |ip, interface| [ip, AddressChange.new(interface.name || interface.network_interface_id, interface, nil, nil)] }]
 
         modified = local_addresses.select { |k, v| aws_addresses.has_key? k and aws_addresses[k].network_interface_id != v.network_interface_id }
-        modified_changes = Hash[modified.map { |key, local_v| [key, AddressChange.new(aws_addresses[key], local_v)] }]
+        modified_changes = Hash[modified.map do |ip, local_interface|
+            aws_interface = aws_addresses[ip]
+            aws_name = aws_interface.name || aws_interface.network_interface_id
+            local_name = local_interface.name || local_interface.network_interface_id
+          [ip, AddressChange.new(aws_name, aws_interface, local_name, local_interface)]
+        end]
 
         if !added_names.empty? or !removed_names.empty? or !modified_changes.empty?
           diff = VpcDiff.new(ADDRESSES, aws, local_addresses)
-          diff.addresses = Common::ListChange.new(added_names, removed_names, modified_changes)
+          diff.changes = Common::ListChange.new(added_names, removed_names, modified_changes)
           diff
         end
       end
@@ -149,12 +162,16 @@ module Cumulus
         added_diffs = Hash[added.map { |name, acl| [name, NetworkAclDiff.added(acl)] }]
         removed_diffs = Hash[removed.map { |name, acl| [name, NetworkAclDiff.unmanaged(acl)] }]
         modified_diffs = Hash[modified.map do |name, acl|
-          [name, acl.diff(aws_network_acl_names[name])]
-        end].reject { |k, v| v.empty? }
+          aws_acl = aws_network_acl_names[name]
+          acl_diffs = acl.diff(aws_acl)
+          if !acl_diffs.empty?
+            [name, NetworkAclDiff.modified(aws_acl, acl, acl_diffs)]
+          end
+        end.reject { |v| v.nil? }]
 
         if !added_diffs.empty? or !removed_diffs.empty? or !modified_diffs.empty?
-          diff = VpcDiff.new(NETWORK, aws, local)
-          diff.network_acls = Common::ListChange.new(added_diffs, removed_diffs, modified_diffs)
+          diff = VpcDiff.new(NETWORK_ACLS, aws, local)
+          diff.changes = Common::ListChange.new(added_diffs, removed_diffs, modified_diffs)
           diff
         end
       end
@@ -192,12 +209,12 @@ module Cumulus
         when SUBNETS
           [
             "Subnets:",
-            @subnets.removed.map { |s, _| Colors.unmanaged("\t#{s} is not managed by Cumulus") },
-            @subnets.added.map { |s, _| Colors.added("\t#{s} will be created") },
-            @subnets.modified.map do |subnet_name, diffs|
+            @changes.removed.map { |s, _| Colors.unmanaged("\t#{s} is not managed by Cumulus") },
+            @changes.added.map { |s, _| Colors.added("\t#{s} will be created") },
+            @changes.modified.map do |subnet_name, diff|
               [
                 "\t#{subnet_name}:",
-                diffs.map do |diff|
+                diff.changes.map do |diff|
                   diff.to_s.lines.map { |l| "\t\t#{l}".chomp("\n") }
                 end
               ]
@@ -210,15 +227,15 @@ module Cumulus
               diff.to_s.lines.map { |l| "\t#{l}".chomp("\n") }
             end
           ].flatten.join("\n")
-        when ROUTE
+        when ROUTE_TABLES
           [
             "Route Tables:",
-            @route_tables.removed.map { |r, _| Colors.unmanaged("\t#{r} will be deleted") },
-            @route_tables.added.map { |r, _| Colors.added("\t#{r} will be created") },
-            @route_tables.modified.map do |rt_name, diffs|
+            @changes.removed.map { |r, _| Colors.unmanaged("\t#{r} will be deleted") },
+            @changes.added.map { |r, _| Colors.added("\t#{r} will be created") },
+            @changes.modified.map do |rt_name, diff|
               [
                 "\t#{rt_name}:",
-                diffs.map do |diff|
+                diff.changes.map do |diff|
                   diff.to_s.lines.map { |l| "\t\t#{l}".chomp("\n") }
                 end
               ]
@@ -227,12 +244,12 @@ module Cumulus
         when ENDPOINTS
           [
             "Endpoints:",
-            @endpoints.removed.map { |e, _| Colors.unmanaged("\t#{e} will be deleted") },
-            @endpoints.added.map { |e, _| Colors.added("\t#{e} will be created") },
-            @endpoints.modified.map do |endpoint_name, diffs|
+            @changes.removed.map { |e, _| Colors.unmanaged("\t#{e} will be deleted") },
+            @changes.added.map { |e, _| Colors.added("\t#{e} will be created") },
+            @changes.modified.map do |endpoint_name, diff|
               [
                 "\t#{endpoint_name}:",
-                diffs.map do |diff|
+                diff.changes.map do |diff|
                   diff.to_s.lines.map { |l| "\t\t#{l}".chomp("\n") }
                 end
               ]
@@ -241,23 +258,21 @@ module Cumulus
         when ADDRESSES
           [
             "Address Associations:",
-            @addresses.removed.map { |ip, n| Colors.unmanaged("\t#{ip} will be disassociated from #{n}") },
-            @addresses.added.map { |ip, n| Colors.added("\t#{ip} will be associated to #{n}") },
-            @addresses.modified.map do |ip, change|
-              aws_name = change.aws.name || change.aws.network_interface_id
-              local_name = change.local.name || change.local.network_interface_id
-              "\t#{ip} will be changed from #{aws_name} to #{local_name}"
+            @changes.removed.map { |ip, addr_change| Colors.unmanaged("\t#{ip} will be disassociated from #{addr_change.aws_name}") },
+            @changes.added.map { |ip, addr_change| Colors.added("\t#{ip} will be associated to #{addr_change.local_name}") },
+            @changes.modified.map do |ip, addr_change|
+              "\t#{ip} will be changed from #{addr_change.aws_name} to #{addr_change.local_name}"
             end
           ].flatten.join("\n")
-        when NETWORK
+        when NETWORK_ACLS
           [
             "Network ACLs:",
-            @network_acls.removed.map { |acl_name, _| Colors.unmanaged("\t#{acl_name} will be deleted") },
-            @network_acls.added.map { |acl_name, _| Colors.added("\t#{acl_name} will be created") },
-            @network_acls.modified.map do |acl_name, diffs|
+            @changes.removed.map { |acl_name, _| Colors.unmanaged("\t#{acl_name} will be deleted") },
+            @changes.added.map { |acl_name, _| Colors.added("\t#{acl_name} will be created") },
+            @changes.modified.map do |acl_name, diff|
               [
                 "\t#{acl_name}:",
-                diffs.map do |diff|
+                diff.changes.map do |diff|
                   diff.to_s.lines.map { |l| "\t\t#{l}".chomp("\n") }
                 end
               ]
