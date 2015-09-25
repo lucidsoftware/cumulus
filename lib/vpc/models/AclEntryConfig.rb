@@ -69,6 +69,7 @@ module Cumulus
           @icmp_code = aws_icmp_code
         end
 
+        self
       end
 
       # Public: expands the ports string into a from and to port

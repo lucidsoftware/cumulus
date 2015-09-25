@@ -32,10 +32,10 @@ module Cumulus
 
       def to_hash
         {
-          "domain-name-servers" => @domain_name_servers,
+          "domain-name-servers" => @domain_name_servers.sort,
           "domain-name" => @domain_name,
-          "ntp-servers" => @ntp_servers,
-          "netbios-name-servers" => @netbios_name_servers,
+          "ntp-servers" => @ntp_servers.sort,
+          "netbios-name-servers" => @netbios_name_servers.sort,
           "netbios-node-type" => @netbios_node_type,
         }.reject { |k, v| v.nil? or v.empty? }
       end
@@ -47,6 +47,16 @@ module Cumulus
             values: [value].flatten
           }
         end
+      end
+
+      def populate!(aws)
+        @domain_name_servers = aws.domain_name_servers
+        @domain_name = aws.domain_name
+        @ntp_servers = aws.ntp_servers
+        @netbios_name_servers = aws.netbios_name_servers
+        @netbios_node_type = aws.netbios_node_type
+
+        self
       end
 
       # Public: Produce an array of differences between this local configuration and the

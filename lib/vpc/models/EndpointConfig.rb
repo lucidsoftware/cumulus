@@ -29,8 +29,16 @@ module Cumulus
         {
           "service-name" => @service_name,
           "policy" => @policy,
-          "route-tables" => @route_tables,
+          "route-tables" => @route_tables.sort,
         }.reject { |k, v| v.nil? }
+      end
+
+      def populate!(aws, route_table_map)
+        @service_name = aws.service_name
+        @policy = aws.parsed_policy["Version"]
+        @route_tables = aws.route_table_ids.map { |rt_id| route_table_map[rt_id] || rt_id }
+
+        self
       end
 
       # Public: Produce an array of differences between this local configuration and the
@@ -42,8 +50,8 @@ module Cumulus
       def diff(aws)
         diffs = []
 
-        # policy aws.policy_document
-        aws_policy_statement = JSON.parse(URI.decode(aws.policy_document))["Statement"].first
+        # policy
+        aws_policy_statement = aws.parsed_policy["Statement"].first
         local_policy_statement = Loader.policy(@policy)["Statement"].first
         policy_diff = EndpointDiff.policy(aws_policy_statement, local_policy_statement)
 

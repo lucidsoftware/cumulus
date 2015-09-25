@@ -119,11 +119,11 @@ module Cumulus
         # Map the aws and local public ips to network interface
         aws_addresses = Hash[aws.map { |addr| [addr.public_ip, EC2::id_network_interfaces[addr.network_interface_id]] }]
 
-        local_addresses = Hash[local.map do |ip, ref|
-          interface = EC2::named_network_interfaces[ref] || EC2::id_network_interfaces[ref]
+        local_addresses = Hash[local.map do |ip, key|
+          interface = EC2::named_network_interfaces[key]
 
           if interface.nil?
-            puts Colors.red("Config error: no network interface exists for #{ref}")
+            puts Colors.red("Config error: no network interface exists for #{key}")
             exit 1
           end
 

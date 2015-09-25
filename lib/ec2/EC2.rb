@@ -22,6 +22,9 @@ module Cumulus
       require "aws_extensions/ec2/NetworkInterface"
       Aws::EC2::Types::NetworkInterface.send(:include, AwsExtensions::EC2::NetworkInterface)
 
+      require "aws_extensions/ec2/VpcEndpoint"
+      Aws::EC2::Types::VpcEndpoint.send(:include, AwsExtensions::EC2::VpcEndpoint)
+
       # Public
       #
       # Returns a Hash of subnet id to Aws::EC2::Types::Subnet
@@ -31,9 +34,9 @@ module Cumulus
 
       # Public
       #
-      # Returns a Hash of subnet name to Aws::EC2::Types::Subnet
+      # Returns a Hash of subnet name or id to Aws::EC2::Types::Subnet
       def named_subnets
-        @named_subnets ||= Hash[subnets.map { |subnet| [subnet.name, subnet] }]
+        @named_subnets ||= Hash[subnets.map { |subnet| [subnet.name || subnet.subnet_id, subnet] }]
           .reject { |k, v| !k or !v }
       end
 
@@ -194,7 +197,7 @@ module Cumulus
       #
       # Returns a Hash of vpc id to array of Aws::EC2::Types::Address that has a network interface in the vpc
       def vpc_addresses
-        @vpc_addresses = Hash[id_vpcs.map do |vpc_id, _|
+        @vpc_addresses ||= Hash[id_vpcs.map do |vpc_id, _|
           interface_ids = vpc_network_interfaces[vpc_id].map { |interface| interface.network_interface_id }
           [vpc_id, addresses.select { |addr| interface_ids.include? addr.network_interface_id }]
         end]
@@ -207,10 +210,17 @@ module Cumulus
 
       # Public
       #
+<<<<<<< 318178b1bc6b5322b1d343b63224938b3af7e839
       # Returns a Hash of interface name to Aws::EC2::Types::NetworkInterface
       def named_network_interfaces
         @named_network_interfaces ||= Hash[network_interfaces.map { |net| [net.name, net] }]
           .reject { |k, v| !k or !v }
+=======
+      # Returns a Hash of Aws::EC2::Types::NetworkInterface to interface name or id
+      def named_network_interfaces
+        @named_network_interfaces ||= Hash[network_interfaces.map { |net| [net.name || net.network_interface_id, net] }]
+          .reject { |k, v| k.nil? or v.nil? }
+>>>>>>> Add migration of vpc, route tables, endpoint policies, subnets
       end
 
       # Public

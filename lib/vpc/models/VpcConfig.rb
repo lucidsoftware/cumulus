@@ -43,11 +43,8 @@ module Cumulus
         end
       end
 
-      # Public: Get the config as a prettified JSON string.
-      #
-      # Returns the JSON string
-      def pretty_json
-        JSON.pretty_generate({
+      def to_hash
+        {
           "cidr-block" => @cidr_block,
           "tenancy" => @tenancy,
           "dhcp" => if @dhcp then @dhcp.to_hash end,
@@ -57,7 +54,45 @@ module Cumulus
           "network-acls" => @network_acls.map(&:to_hash),
           "subnets" => @subnets,
           "tags" => @tags,
-        })
+        }
+      end
+
+      # Public: Populate a config object with AWS configuration
+      #
+      # aws - the AWS configuration for the subnet
+      # route_table_map - an optional mapping of route table ids to names
+      # subnet_map - an optional mapping of subnet ids to names
+      def populate!(aws, route_table_map = {}, subnet_map = {})
+        @cidr_block = aws.cidr_block
+        @tenancy = aws.instance_tenancy
+
+        aws_dhcp = EC2::id_dhcp_options[aws.dhcp_options_id]
+        @dhcp = DhcpConfig.new().populate!(aws_dhcp)
+
+        aws_rts = EC2::vpc_route_tables[aws.vpc_id]
+        rt_names = aws_rts.map { |rt| route_table_map[rt.route_table_id] || rt.route_table_id }
+        @route_tables = rt_names.sort
+
+        aws_endpoints = EC2::vpc_endpoints[aws.vpc_id]
+        @endpoints = aws_endpoints.map { |endpoint| EndpointConfig.new().populate!(endpoint, route_table_map) }
+
+        aws_addresses = EC2::vpc_addresses[aws.vpc_id]
+        @address_associations = Hash[aws_addresses.map do |addr|
+          network_interface = EC2::id_network_interfaces[addr.network_interface_id]
+          [addr.public_ip, network_interface.name || addr.network_interface_id]
+        end]
+
+        aws_network_acls = EC2::vpc_network_acls[aws.vpc_id]
+        cumulus_network_acls = aws_network_acls.map { |acl| NetworkAclConfig.new().populate!(acl) }
+        @network_acls = cumulus_network_acls.sort_by!(&:name)
+
+        aws_subnets = EC2::vpc_subnets[aws.vpc_id]
+        subnet_names = aws_subnets.map { |subnet| subnet_map[subnet.subnet_id] || subnet.subnet_id }
+        @subnets = subnet_names.sort
+
+        @tags = Hash[aws.tags.map { |tag| [tag.key, tag.value] }]
+
+        self
       end
 
       # Public: Produce an array of differences between this local configuration and the
