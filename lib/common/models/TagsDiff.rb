@@ -1,5 +1,5 @@
 module Cumulus
-   module Common
+  module Common
     # Public: A module to be mixed in to Diff classes that have tags
     module TagsDiff
       # Public: Get the diff string for tag differences

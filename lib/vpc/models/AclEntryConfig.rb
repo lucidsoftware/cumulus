@@ -51,7 +51,7 @@ module Cumulus
         aws_from_port = aws.port_range.from if aws.port_range
         aws_to_port = aws.port_range.to if aws.port_range
 
-        if aws_from_port != nil
+        if aws_from_port
           if aws_from_port == aws_to_port
             @ports = aws_from_port.to_i
           else

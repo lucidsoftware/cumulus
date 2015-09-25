@@ -55,29 +55,29 @@ module Cumulus
         diffs.each do |diff|
           case diff.type
           when CIDR
-            puts "CIDR Block cannot be updated. You must create a new VPC."
+            puts Colors.blue("CIDR Block cannot be updated. You must create a new VPC.")
           when TENANCY
-            puts "Tenancy cannot be updated. You must create a new VPC."
+            puts Colors.blue("Tenancy cannot be updated. You must create a new VPC.")
           when DHCP
-            puts "Updating DHCP Options..."
+            puts Colors.blue("Updating DHCP Options...")
             update_dhcp_options(aws_vpc, local.dhcp)
           when ROUTE_TABLES
-            puts "Updating Route Tables..."
+            puts Colors.blue("Updating Route Tables...")
             update_route_tables(aws_vpc, diff.changes)
           when ENDPOINTS
-            puts "Updating Endpoints..."
+            puts Colors.blue("Updating Endpoints...")
             update_endpoints(aws_vpc, diff.changes)
           when ADDRESSES
-            puts "Updating Address Associations..."
+            puts Colors.blue("Updating Address Associations...")
             update_address_associations(aws_vpc, diff.changes)
           when NETWORK_ACLS
-            puts "Updating Network ACLs"
+            puts Colors.blue("Updating Network ACLs")
             update_network_acls(aws_vpc, diff.changes)
           when SUBNETS
-            puts "Updating Subnets..."
+            puts Colors.blue("Updating Subnets...")
             update_subnets(aws_vpc, diff.changes)
           when TAGS
-            puts "Updating Tags..."
+            puts Colors.blue("Updating Tags...")
 
             if !diff.tags_to_remove.empty?
               delete_tags(aws_vpc.vpc_id, diff.tags_to_remove)

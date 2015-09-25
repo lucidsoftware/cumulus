@@ -18,7 +18,7 @@ module AwsExtensions
       # the default route with the local gateway and any routes that are for s3 service endpoints
       # (ones that have a destination_prefix_list_id)
       def diffable_routes
-        self.routes.select { |route| route.gateway_id != "local" and route.origin != "CreateRouteTable" and route.destination_prefix_list_id.nil? }
+        self.routes.select { |route| route.gateway_id != "local" and route.origin != "CreateRouteTable" and !route.destination_prefix_list_id }
       end
 
     end

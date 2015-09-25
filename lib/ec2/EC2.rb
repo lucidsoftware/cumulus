@@ -24,22 +24,22 @@ module Cumulus
 
       # Public
       #
-      # Returns a Hash of subnets mapped to their id
+      # Returns a Hash of subnet id to Aws::EC2::Types::Subnet
       def id_subnets
         @id_subnets ||= Hash[subnets.map { |subnet| [subnet.subnet_id, subnet] }]
       end
 
       # Public
       #
-      # Returns a Hash of subnets mapped to the value of the "Name" tag
+      # Returns a Hash of subnet name to Aws::EC2::Types::Subnet
       def named_subnets
         @named_subnets ||= Hash[subnets.map { |subnet| [subnet.name, subnet] }]
-          .reject { |k, v| k.nil? or v.nil? }
+          .reject { |k, v| !k or !v }
       end
 
       # Public
       #
-      # Returns a Hash of subnets mapped to their vpc id
+      # Returns a Hash of VPC id to array of Aws::EC2::Types::Subnet for the VPC
       def vpc_subnets
         @vpc_subnets ||= Hash[id_vpcs.map do |vpc_id, _|
           [vpc_id, subnets.select { |subnet| subnet.vpc_id == vpc_id }]
@@ -53,15 +53,15 @@ module Cumulus
 
       # Public
       #
-      # Returns a Hash of Aws::EC2::Types::Vpc to a VPC's name or id if there is no name
+      # Returns a Hash of VPC name or id to Aws::EC2::Types::Vpc
       def named_vpcs
         @named_vpcs ||= Hash[vpcs.map { |vpc| [vpc.name || vpc.vpc_id, vpc] }]
-          .reject { |k, v| k.nil? or v.nil? }
+          .reject { |k, v| !k or !v }
       end
 
       # Public
       #
-      # Returns a Hash of Aws::EC2::Types::Vpc to a VPC's id
+      # Returns a Hash of VPC id to Aws::EC2::Types::Vpc
       def id_vpcs
         @vpc_ids ||= Hash[vpcs.map { |vpc| [vpc.vpc_id, vpc] }]
       end
@@ -78,15 +78,15 @@ module Cumulus
 
       # Public
       #
-      # Returns a Hash of Aws::EC2::Types::RouteTable to that route tables name or id if there is no name
+      # Returns a Hash of route tables name or id to Aws::EC2::Types::RouteTable
       def named_route_tables
         @named_route_tables ||= Hash[route_tables.map { |rt| [rt.name || rt.route_table_id, rt] }]
-          .reject { |k, v| k.nil? or v.nil? }
+          .reject { |k, v| !k or !v }
       end
 
       # Public
       #
-      # Returns a Hash of Aws::EC2::Types::RouteTable to each subnet id associated with the route table
+      # Returns a Hash of subnet id to Aws::EC2::Types::RouteTable
       def subnet_route_tables
         @subnet_route_tables ||= Hash[route_tables.flat_map do |rt|
           rt.subnet_ids.map { |subnet_id| [subnet_id, rt] }
@@ -95,7 +95,7 @@ module Cumulus
 
       # Public
       #
-      # Returns a Hash of Aws::EC2::Types::RouteTable arrays to vpc id
+      # Returns a Hash of vpc id to array of Aws::EC2::Types::RouteTable
       def vpc_route_tables
         @vpc_route_tables ||= Hash[id_vpcs.map do |vpc_id, _|
           [vpc_id, route_tables.select { |rt| rt.vpc_id == vpc_id }]
@@ -104,7 +104,7 @@ module Cumulus
 
       # Public
       #
-      # Returns a Hash of Aws::EC2::Types::RouteTable arrays to route table id
+      # Returns a Hash of route table id Aws::EC2::Types::RouteTable
       def id_route_tables
         @id_route_tables ||= Hash[@route_tables.map { |rt| [rt.route_table_id, rt] }]
       end
@@ -121,7 +121,7 @@ module Cumulus
 
       # Public
       #
-      # Returns a Hash of Aws::EC2::Types::NetworkAcl to each subnet id associated with the acl
+      # Returns a Hash of subnet id to Aws::EC2::Types::NetworkAcl associated with the subnet
       def subnet_network_acls
         @subnet_network_acls ||=
         Hash[network_acls.flat_map do |acl|
@@ -131,7 +131,7 @@ module Cumulus
 
       # Public
       #
-      # Returns a Hash of Aws::EC2::Types::NetworkAcl arrays to vpc id
+      # Returns a Hash of vpc id to array of Aws::EC2::Types::NetworkAcl
       def vpc_network_acls
         @vpc_network_acls = Hash[id_vpcs.map do |vpc_id, _|
           [vpc_id, network_acls.select { |acl| acl.vpc_id == vpc_id }]
@@ -140,7 +140,7 @@ module Cumulus
 
       # Public
       #
-      # Returns a Hash of Aws::EC2::Types::NetworkAcl arrays to name or id
+      # Returns a Hash of network acl name or id to Aws::EC2::Types::NetworkAcl
       def named_network_acls
         @named_network_acls = Hash[network_acls.map do |acl|
           [acl.name || acl.network_acl_id, acl]
@@ -159,7 +159,7 @@ module Cumulus
 
       # Public
       #
-      # Returns a Hash of Aws::EC2::Types::DhcpOptions to dhcp options id
+      # Returns a Hash of dhcp options id to Aws::EC2::Types::DhcpOptions
       def id_dhcp_options
         @id_dhcp_options ||= Hash[dhcp_options.map { |dhcp| [dhcp.dhcp_options_id, dhcp] }]
       end
@@ -171,7 +171,7 @@ module Cumulus
 
       # Public: Lazily load the vpc endpoints
       #
-      # Returns a Hash of Aws::EC2::Types::VpcEndpoint arrays mapped to vpc id
+      # Returns a Hash of vpc id to array of Aws::EC2::Types::VpcEndpoint
       def vpc_endpoints
         @vpc_endpoints ||= Hash[id_vpcs.map do |vpc_id, _|
           [vpc_id, endpoints.select { |e| e.vpc_id == vpc_id } ]
@@ -185,14 +185,14 @@ module Cumulus
 
       # Public
       #
-      # Returns a Hash of Aws::EC2::Types::Address to public ip
+      # Returns a Hash of public ip to Aws::EC2::Types::Address
       def public_addresses
         @public_addresses ||= Hash[addresses.map { |addr| [addr.public_ip, addr] }]
       end
 
       # Public
       #
-      # Returns a Hash of Aws::EC2::Types::Address arrays to vpc id that the address is in
+      # Returns a Hash of vpc id to array of Aws::EC2::Types::Address that has a network interface in the vpc
       def vpc_addresses
         @vpc_addresses = Hash[id_vpcs.map do |vpc_id, _|
           interface_ids = vpc_network_interfaces[vpc_id].map { |interface| interface.network_interface_id }
@@ -207,22 +207,22 @@ module Cumulus
 
       # Public
       #
-      # Returns a Hash of Aws::EC2::Types::NetworkInterface to interface name
+      # Returns a Hash of interface name to Aws::EC2::Types::NetworkInterface
       def named_network_interfaces
         @named_network_interfaces ||= Hash[network_interfaces.map { |net| [net.name, net] }]
-          .reject { |k, v| k.nil? or v.nil? }
+          .reject { |k, v| !k or !v }
       end
 
       # Public
       #
-      # Returns a Hash of Aws::EC2::Types::NetworkInterface to interface id
+      # Returns a Hash of interface id to Aws::EC2::Types::NetworkInterface
       def id_network_interfaces
         @id_network_interfaces ||= Hash[network_interfaces.map { |net| [net.network_interface_id, net] }]
       end
 
       # Public
       #
-      # Returns a Hash of Aws::EC2::Types::NetworkInterface arrays to vpc id
+      # Returns a Hash of vpc id to array of Aws::EC2::Types::NetworkInterface
       def vpc_network_interfaces
         @vpc_network_interfaces ||= Hash[id_vpcs.map do |vpc_id, _|
           [vpc_id, network_interfaces.select { |net| net.vpc_id == vpc_id}]
