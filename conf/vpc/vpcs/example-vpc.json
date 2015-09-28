@@ -1,0 +1,66 @@
+{
+  "cidr-block": "10.0.0.0/16",
+  "tenancy": "default",
+  "dhcp": {
+    "domain-name-servers": [
+      "AmazonProvidedDNS"
+    ],
+    "domain-name": "ec2.internal"
+  },
+  "route-tables": [
+    "example-route-table"
+  ],
+  "endpoints": [
+    {
+      "service-name": "com.amazonaws.us-east-1.s3",
+      "policy": "example-policy",
+      "route-tables": [
+        "example-route-table"
+      ]
+    }
+  ],
+  "address-associations": {
+    "x.x.x.x": "eni-abc123"
+  },
+  "network-acls": [
+    {
+      "inbound": [
+        {
+          "rule": 100,
+          "protocol": "ALL",
+          "action": "allow",
+          "cidr-block": "10.0.0.0/0"
+        },
+        {
+          "rule": 200,
+          "protocol": "UDP",
+          "action": "allow",
+          "cidr-block": "10.1.0.0/0"
+        }
+      ],
+      "outbound": [
+        {
+          "rule": 100,
+          "protocol": "ALL",
+          "action": "allow",
+          "cidr-block": "10.0.0.0/0"
+        },
+        {
+          "rule": 200,
+          "protocol": "UDP",
+          "action": "allow",
+          "cidr-block": "10.1.0.0/0"
+        }
+      ],
+      "tags": {
+        "Name": "example-net-acl"
+      }
+    }
+  ],
+  "subnets": [
+    "example-subnet"
+  ],
+  "tags": {
+    "Name": "example-vpc"
+  }
+}

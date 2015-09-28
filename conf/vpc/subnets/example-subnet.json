@@ -1,0 +1,10 @@
+{
+  "cidr-block": "10.1.0.0/16",
+  "map-public-ip": true,
+  "route-table": "example-route-table",
+  "network-acl": "example-net-acl",
+  "availability-zone": "us-east-1e",
+  "tags": {
+    "Name": "example-subnet"
+  }
+}
