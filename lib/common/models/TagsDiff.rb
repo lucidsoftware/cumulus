@@ -16,17 +16,25 @@ module Cumulus
       #
       # Returns a hash of tags
       def tags_to_remove
-        aws_tags.reject { |t, v| @local.tags.include?(t) and @local.tags[t] == v }
+        aws_tags.reject { |t, v| local_tags.include?(t) and local_tags[t] == v }
       end
 
       # Public: Get the tags that are in local configuration but not in AWS
       #
       # Returns a hash of tags
       def tags_to_add
-        @local.tags.reject { |t, v| aws_tags.include?(t) and aws_tags[t] == v }
+        local_tags.reject { |t, v| aws_tags.include?(t) and aws_tags[t] == v }
       end
 
       private
+
+      # Internal: Override this method if the tags are not found on the tags attribute
+      # of the local object
+      #
+      # Returns the tags
+      def local_tags
+        @local.tags
+      end
 
       # Internal: Get the tags in AWS as a hash of key to value
       #

@@ -2,9 +2,11 @@ module AwsExtensions
   module EC2
     module Subnet
 
-      # Public: Returns the value of the "Name" tag for the subnet
+      # Public: Returns the value of the "Name" tag for the subnet or nil if there is not one
       def name
-        tags.select { |tag| tag.key == "Name" }.first.value
+        self.tags.select { |tag| tag.key == "Name" }.first.value
+      rescue
+        nil
       end
 
       # Implement comparison by using subnet id

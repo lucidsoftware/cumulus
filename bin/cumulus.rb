@@ -341,6 +341,46 @@ module Modules
     end
   end
 
+  # Public: Run the vpc module
+  def self.vpc
+    if ARGV.size < 2 or (ARGV[1] != "help" and ARGV[1] != "diff" and ARGV[1] != "list" and ARGV[1] != "sync" and ARGV[1] != "migrate")
+      puts "Usage: cumulus vpc [diff|help|list|migrate|sync] <asset>"
+      exit
+    end
+
+    if ARGV[1] == "help"
+      puts "elb: Manage Virtual Private Cloud"
+      puts "\tDiff and sync VPC configuration with AWS."
+      puts
+      puts "Usage: cumulus vpc [diff|help|list|migrate|sync] <asset>"
+      puts
+      puts "Commands"
+      puts "\tdiff\t- print out differences between local configuration and AWS (supplying the name of the VPC will diff only that VPC)"
+      puts "\tlist\t- list the locally defined VPCs"
+      puts "\tsync\t- sync local VPC definitions with AWS (supplying the name of the VPC will sync only that VPC)"
+      puts "\tmigrate\t- migrate AWS configuration to Cumulus"
+      exit
+    end
+
+    require "vpc/manager/Manager"
+    vpc = Cumulus::VPC::Manager.new
+    if ARGV[1] == "diff"
+      if ARGV.size == 2
+        vpc.diff
+      else
+        vpc.diff_one(ARGV[2])
+      end
+    elsif ARGV[1] == "sync"
+      if ARGV.size == 2
+        vpc.sync
+      else
+        vpc.sync_one(ARGV[2])
+      end
+    elsif ARGV[1] == "list"
+      vpc.list
+    end
+  end
+
 end
 
 # read in the optional path to the configuration file to use
@@ -403,8 +443,8 @@ end
 
 if ARGV.size == 0 or (ARGV[0] != "iam" and ARGV[0] != "help" and ARGV[0] != "autoscaling" and
   ARGV[0] != "route53" and ARGV[0] != "s3" and ARGV[0] != "security-groups" and
-  ARGV[0] != "cloudfront" and ARGV[0] != "elb")
-  puts "Usage: cumulus [autoscaling|cloudfront|elb|help|iam|route53|s3|security-groups]"
+  ARGV[0] != "cloudfront" and ARGV[0] != "elb" and ARGV[0] != "vpc")
+  puts "Usage: cumulus [autoscaling|cloudfront|elb|help|iam|route53|s3|security-groups|vpc]"
   exit
 end
 
@@ -420,6 +460,7 @@ if ARGV[0] == "help"
   puts "\troute53\t\t- Manages configuration for Route53"
   puts "\ts3\t\t- Manages configuration of S3 buckets"
   puts "\tsecurity-groups\t- Manages configuration for EC2 Security Groups"
+  puts "\tvpc\t\t- Manages configuration for Virtual Private Clouds"
 end
 
 if ARGV[0] == "iam"
@@ -436,4 +477,6 @@ elsif ARGV[0] == "security-groups"
   Modules.security
 elsif ARGV[0] == "s3"
   Modules.s3
+elsif ARGV[0] == "vpc"
+  Modules.vpc
 end

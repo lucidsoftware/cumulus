@@ -39,9 +39,9 @@ module Cumulus
         )
       end
 
-      # Public: Load all of the user defined policies as AWS policies
+      # Public: Load the specified user defined policy as an AWS policy
       #
-      # Returns an array of Aws::ElasticLoadBalancing::Types::PolicyDescription
+      # Returns an Aws::ElasticLoadBalancing::Types::PolicyDescription
       def self.policy(policy_name)
         Common::BaseLoader::resource(policy_name, @@policies_dir) do |policy_name, policy|
           Aws::ElasticLoadBalancing::Types::PolicyDescription.new({
