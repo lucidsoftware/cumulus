@@ -210,17 +210,10 @@ module Cumulus
 
       # Public
       #
-<<<<<<< 318178b1bc6b5322b1d343b63224938b3af7e839
       # Returns a Hash of interface name to Aws::EC2::Types::NetworkInterface
       def named_network_interfaces
-        @named_network_interfaces ||= Hash[network_interfaces.map { |net| [net.name, net] }]
-          .reject { |k, v| !k or !v }
-=======
-      # Returns a Hash of Aws::EC2::Types::NetworkInterface to interface name or id
-      def named_network_interfaces
         @named_network_interfaces ||= Hash[network_interfaces.map { |net| [net.name || net.network_interface_id, net] }]
-          .reject { |k, v| k.nil? or v.nil? }
->>>>>>> Add migration of vpc, route tables, endpoint policies, subnets
+          .reject { |k, v| !k or !v }
       end
 
       # Public
