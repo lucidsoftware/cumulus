@@ -1,8 +1,8 @@
 module Cumulus
   module EC2
     class IPProtocolMapping
-      @@protocol_keyword = {
-        "-1" => "ALL",
+      @@protocol_keyword = Hash[{
+        "-1" => "all",
         "0" => "HOPOPT",
         "1" => "ICMP",
         "2" => "IGMP",
@@ -145,12 +145,12 @@ module Cumulus
         "140" => "Shim6",
         "141" => "WESP",
         "142" => "ROHC"
-      }
+      }.map { |protocol, keyword| [protocol, keyword.downcase] }]
 
       @@keyword_protocol = @@protocol_keyword.invert
 
       @@special_cases = {
-        "84" => ["TTP", "IPTM"]
+        "84" => ["ttp", "iptm"]
       }
 
       def self.keyword(protocol)
@@ -158,7 +158,7 @@ module Cumulus
       end
 
       def self.protocol(keyword)
-        @@keyword_protocol[keyword] || @@special_cases.select { |k, v| v.include? keyword }.map { |k, _| k }.first
+        @@keyword_protocol[keyword.downcase] || @@special_cases.select { |k, v| v.include? keyword.downcase }.map { |k, _| k }.first
       end
     end
   end

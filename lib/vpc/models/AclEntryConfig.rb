@@ -21,7 +21,7 @@ module Cumulus
       def initialize(json = nil)
         if !json.nil?
           @rule = json["rule"]
-          @protocol = json["protocol"].upcase
+          @protocol = json["protocol"]
           @action = json["action"]
           @cidr_block = json["cidr-block"]
           @ports = json["ports"]
@@ -115,7 +115,7 @@ module Cumulus
       def diff(aws)
         diffs = []
 
-        if @protocol != aws.protocol
+        if @protocol.downcase != aws.protocol.downcase
           diffs << AclEntryDiff.new(AclEntryChange::PROTOCOL, aws.protocol, @protocol)
         end
 

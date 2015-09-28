@@ -27,13 +27,13 @@
       "inbound": [
         {
           "rule": 100,
-          "protocol": "ALL",
+          "protocol": "all",
           "action": "allow",
           "cidr-block": "10.0.0.0/0"
         },
         {
           "rule": 200,
-          "protocol": "UDP",
+          "protocol": "udp",
           "action": "allow",
           "cidr-block": "10.1.0.0/0"
         }
@@ -41,13 +41,13 @@
       "outbound": [
         {
           "rule": 100,
-          "protocol": "ALL",
+          "protocol": "all",
           "action": "allow",
           "cidr-block": "10.0.0.0/0"
         },
         {
           "rule": 200,
-          "protocol": "UDP",
+          "protocol": "udp",
           "action": "allow",
           "cidr-block": "10.1.0.0/0"
         }
