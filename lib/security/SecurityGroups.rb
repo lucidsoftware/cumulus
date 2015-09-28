@@ -8,8 +8,6 @@ module Cumulus
     class << self
       @@client = Aws::EC2::Client.new(region: Configuration.instance.region, profile: Configuration.instance.profile)
 
-      attr_reader :client
-
       def id_security_groups
         @id_security_groups ||= Hash[security_groups.map { |a| [a.group_id, a] }]
       end

@@ -14,7 +14,7 @@ module Cumulus
     class Manager < Common::Manager
       def initialize
         super()
-        @ec2 = SecurityGroups.client
+        @ec2 = Aws::EC2::Client.new(region: Configuration.instance.region, profile: Configuration.instance.profile)
       end
 
       # Public: Migrate AWS Security Groups to Cumulus configuration.

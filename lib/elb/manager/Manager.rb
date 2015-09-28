@@ -20,7 +20,7 @@ module Cumulus
 
       def initialize
         super()
-        @elb = ELB.client
+        @elb = Aws::CloudFront::Client.new(region: Configuration.instance.region, profile: Configuration.instance.profile)
       end
 
       def resource_name

@@ -7,8 +7,6 @@ module Cumulus
     class << self
       @@client = Aws::ElasticLoadBalancing::Client.new(region: Configuration.instance.region, profile: Configuration.instance.profile)
 
-      attr_reader :client
-
       # Public: Static method that will get an ELB from AWS by its name.
       #
       # name - the name of the ELB to get
