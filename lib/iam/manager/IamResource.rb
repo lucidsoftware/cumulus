@@ -178,7 +178,9 @@ module Cumulus
       # diffs     - the diff objects to be used when updating the resource
       def update(resource, diffs)
         if diffs.size == 1 and diffs[0].type == Common::DiffChange::ADD
-          update_policy(resource, diffs[0].local.generated_policy_name, diffs[0].local.policy)
+          if !diffs[0].local.policy.empty?
+            update_policy(resource, diffs[0].local.generated_policy_name, diffs[0].local.policy)
+          end
           if !diffs[0].local.attached_policies.empty?
             update_attached(resource, diffs[0].local.attached_policies, [])
           end
