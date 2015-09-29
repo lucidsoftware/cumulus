@@ -2,6 +2,14 @@
 
 require "optparse"
 
+# check for bundler
+begin
+  require "bundler/setup"
+  Bundler.require
+rescue LoadError
+  puts "Bundler required. Run `gem install bundler`"
+end
+
 module Modules
   # Public: Run the IAM module
   def self.iam
@@ -430,16 +438,6 @@ if !options[:root].nil?
   project_root = File.expand_path(options[:root])
 end
 Cumulus::Configuration.init(project_root, options[:config], options[:profile])
-
-# check for the aws ruby gem
-begin
-  require 'aws-sdk'
-rescue LoadError
-  puts "Cumulus requires the gem 'aws-sdk'"
-  puts "Please install 'aws-sdk':"
-  puts "\tgem install aws-sdk -v 2.1.15"
-  exit
-end
 
 if ARGV.size == 0 or (ARGV[0] != "iam" and ARGV[0] != "help" and ARGV[0] != "autoscaling" and
   ARGV[0] != "route53" and ARGV[0] != "s3" and ARGV[0] != "security-groups" and
