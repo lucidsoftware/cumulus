@@ -149,8 +149,7 @@ module Cumulus
       # Returns a Hash of route table id to file name
       def migrate_route_tables(dir)
         puts "Migrating route tables to #{dir}"
-        Hash[EC2::route_tables.map do |route_table|
-          name = route_table.name || route_table.route_table_id
+        Hash[EC2::named_route_tables.map do |name, route_table|
           puts "Migrating route table #{name}"
 
           cumulus_rt = RouteTableConfig.new(name).populate!(route_table)

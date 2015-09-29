@@ -51,9 +51,9 @@ module Cumulus
         diffs = []
 
         # policy
-        aws_policy_statement = aws.parsed_policy["Statement"].first
-        local_policy_statement = Loader.policy(@policy)["Statement"].first
-        policy_diff = EndpointDiff.policy(aws_policy_statement, local_policy_statement)
+        aws_policy_statements = aws.parsed_policy["Statement"]
+        local_policy_statements = Loader.policy(@policy)["Statement"]
+        policy_diff = EndpointDiff.policy(aws_policy_statements, local_policy_statements)
 
         if policy_diff
           diffs << policy_diff

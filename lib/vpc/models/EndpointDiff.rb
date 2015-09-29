@@ -2,6 +2,8 @@ require "common/models/Diff"
 require "common/models/ListChange"
 require "util/Colors"
 
+require "json"
+
 module Cumulus
   module VPC
     # Public: The types of changes that can be made to the endpoint
@@ -25,19 +27,9 @@ module Cumulus
         end
       end
 
-      PolicyChange = Struct.new(:aws, :local)
       def self.policy(aws, local)
-        changes = {}
-
-        aws.each do |k, v|
-          if local[k] != v
-            changes[k] = PolicyChange.new(v, local[k])
-          end
-        end
-
-        if !changes.empty?
+        if aws != local
           diff = EndpointDiff.new(POLICY, aws, local)
-          diff.changes = changes
           diff
         end
       end
@@ -54,16 +46,16 @@ module Cumulus
         case @type
         when POLICY
           [
-            "Policy:",
-            @changes.map do |k, v|
-              [
-                "\t#{k}:",
-                Colors.aws_changes("#{v.aws}"),
-                "->",
-                Colors.local_changes("#{v.local}"),
-              ].join(" ")
-            end
-          ].flatten.join("\n")
+            "Policy Statement:",
+            Colors.unmanaged([
+              "\tRemoving:",
+              JSON.pretty_generate(aws).lines.map { |l| "\t\t#{l}".chomp("\n") }
+            ].join("\n")),
+            Colors.added([
+              "\tAdding:",
+              JSON.pretty_generate(local).lines.map { |l| "\t\t#{l}".chomp("\n") }
+            ].join("\n"))
+          ].join("\n")
         when ROUTE_TABLES
           [
             "Route Tables:",

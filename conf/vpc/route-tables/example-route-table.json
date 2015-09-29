@@ -2,7 +2,7 @@
   "routes": [
     {
       "dest-cidr": "10.1.0.0/16",
-      // One of these must be defined
+      // One of these ids must be defined
       "gateway-id": "local",
       "instance-id": null,
       "network-interface-id": null,
@@ -10,7 +10,7 @@
     },
     {
       "dest-cidr": "10.2.0.0/0",
-      // One of these must be defined
+      // One of these ids must be defined
       "gateway-id": null,
       "instance-id": "i-abc123",
       "network-interface-id": null,
@@ -18,7 +18,7 @@
     },
     {
       "dest-cidr": "10.3.0.0/0",
-      // One of these must be defined
+      // One of these ids must be defined
       "gateway-id": null,
       "instance-id": null,
       "network-interface-id": "eni-abc123",
