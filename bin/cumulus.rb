@@ -2,15 +2,6 @@
 
 require "optparse"
 
-# check for bundler
-begin
-  require "bundler/setup"
-  Bundler.require
-rescue LoadError
-  puts "Bundler required. Run `gem install bundler`"
-  exit 1
-end
-
 module Modules
   # Public: Run the IAM module
   def self.iam
