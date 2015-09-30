@@ -1,5 +1,6 @@
 require "common/models/Diff"
 require "common/models/TagsDiff"
+require "common/models/ListChange"
 require "util/Colors"
 
 module Cumulus
@@ -30,20 +31,34 @@ module Cumulus
       include AutoScalingChange
       include Common::TagsDiff
 
-      attr_accessor :scheduled_diffs
       attr_accessor :policy_diffs
 
       # Public: Static method that will produce a diff that contains changes in
       # scheduled actions
       #
-      # local           - the local configuration
-      # scheduled_diffs - the differences in scheduled actions
+      # aws - the array of AWS scheduled actions
+      # local - the map of scheduled action name to local configuration
       #
-      # Returns the diff
-      def AutoScalingDiff.scheduled(local, scheduled_diffs)
-        diff = AutoScalingDiff.new(SCHEDULED, nil, local)
-        diff.scheduled_diffs = scheduled_diffs
-        diff
+      # Returns the AutoScalingDiff
+      def AutoScalingDiff.scheduled(aws, local)
+        aws_scheduled = Hash[aws.map { |s| [s.scheduled_action_name, s] }]
+
+        removed = aws_scheduled.reject { |k, v| local.include?(k) }.map { |_, sched| ScheduledActionDiff.unmanaged(sched) }
+        added = local.reject { |k, v| aws_scheduled.include? k }.map { |_, sched| ScheduledActionDiff.added(sched) }
+        modified = local.select { |k, v| aws_scheduled.include? k }.map do |name, local_sched|
+          aws_sched = aws_scheduled[name]
+          sched_diffs = local_sched.diff(aws_sched)
+
+          if !sched_diffs.empty?
+            ScheduledActionDiff.modified(aws_sched, local_sched, sched_diffs)
+          end
+        end.reject { |v| !v }
+
+        if !removed.empty? or !added.empty? or !modified.empty?
+          diff = AutoScalingDiff.new(AutoScalingChange::SCHEDULED, aws, local)
+          diff.changes = Common::ListChange.new(added, removed, modified)
+          diff
+        end
       end
 
       # Public: Static method that will produce a diff that contains changes in
@@ -64,11 +79,11 @@ module Cumulus
         when LAUNCH
           "Launch configuration: AWS - #{Colors.aws_changes(@aws.launch_configuration_name)}, Local - #{@local.launch}"
         when MIN
-          "Min size: AWS - #{Colors.aws_changes(@aws.min_size)}, Local - #{Colors.local_changes(@local.min)}"
+          "Min size: AWS - #{Colors.aws_changes(@aws)}, Local - #{Colors.local_changes(@local)}"
         when MAX
-          "Max size: AWS - #{Colors.aws_changes(@aws.max_size)}, Local - #{Colors.local_changes(@local.max)}"
+          "Max size: AWS - #{Colors.aws_changes(@aws)}, Local - #{Colors.local_changes(@local)}"
         when DESIRED
-          "Desired size: AWS - #{Colors.aws_changes(@aws.desired_capacity)}, Local - #{Colors.local_changes(@local.desired)}"
+          "Desired size: AWS - #{Colors.aws_changes(@aws)}, Local - #{Colors.local_changes(@local)}"
         when METRICS
           lines = ["Enabled Metrics:"]
           lines << metrics_to_disable.map { |m| "\t#{Colors.removed(m)}" }
@@ -99,9 +114,19 @@ module Cumulus
         when COOLDOWN
           "Cooldown: AWS - #{Colors.aws_changes(@aws.default_cooldown)}, Local - #{Colors.local_changes(@local.cooldown)}"
         when SCHEDULED
-          lines = ["Scheduled Actions:"]
-          lines << scheduled_diffs.map { |d| "\t#{d}" }
-          lines.flatten.join("\n")
+          [
+            "Scheduled Actions:",
+            changes.removed.map { |added_diff| "\t#{added_diff}" },
+            changes.added.map { |removed_diff| "\t#{removed_diff}" },
+            changes.modified.map do |modified_diff|
+              [
+                "\t#{modified_diff.local.name}:",
+                modified_diff.changes.map do |scheduled_diff|
+                  scheduled_diff.to_s.lines.map { |l| "\t\t#{l}".chomp("\n") }
+                end
+              ]
+            end
+          ].flatten.join("\n")
         when POLICY
           lines = ["Scaling policies:"]
           lines << policy_diffs.map { |d| "\t#{d}" }

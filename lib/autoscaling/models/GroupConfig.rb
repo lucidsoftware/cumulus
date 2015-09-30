@@ -4,6 +4,9 @@ require "autoscaling/models/PolicyConfig"
 require "autoscaling/models/PolicyDiff"
 require "autoscaling/models/ScheduledActionDiff"
 require "autoscaling/models/ScheduledConfig"
+require "common/models/UTCTimeSource"
+
+require "parse-cron"
 
 module Cumulus
   module AutoScaling
@@ -92,6 +95,28 @@ module Cumulus
         }.reject { |k, v| v.nil? })
       end
 
+      # Public: Generate the object that AWS expects to create or update an
+      # AutoScaling group
+      #
+      # include_min_max_desired - if true, min_size, max_size and desired_capacity
+      # will be included in the hash
+      #
+      # Returns a hash of the information that AWS expects
+      def to_aws(include_min_max_desired)
+        {
+          auto_scaling_group_name: @name,
+          min_size: if include_min_max_desired then @min end,
+          max_size: if include_min_max_desired then @max end,
+          desired_capacity: if include_min_max_desired then @desired end,
+          default_cooldown: @cooldown,
+          health_check_type: @check_type,
+          health_check_grace_period: @check_grace,
+          vpc_zone_identifier: if !@subnets.empty? then @subnets.join(",") end,
+          termination_policies: @termination,
+          launch_configuration_name: @launch
+        }
+      end
+
       # Public: Produce the differences between this local configuration and the
       # configuration in AWS
       #
@@ -104,15 +129,6 @@ module Cumulus
 
         if @cooldown != aws.default_cooldown
           diffs << AutoScalingDiff.new(AutoScalingChange::COOLDOWN, aws, self)
-        end
-        if @min != aws.min_size
-          diffs << AutoScalingDiff.new(AutoScalingChange::MIN, aws, self)
-        end
-        if @max != aws.max_size
-          diffs << AutoScalingDiff.new(AutoScalingChange::MAX, aws, self)
-        end
-        if @desired != aws.desired_capacity
-          diffs << AutoScalingDiff.new(AutoScalingChange::DESIRED, aws, self)
         end
         if @enabled_metrics != aws.enabled_metrics
           diffs << AutoScalingDiff.new(AutoScalingChange::METRICS, aws, self)
@@ -143,9 +159,52 @@ module Cumulus
         aws_scheduled = autoscaling.describe_scheduled_actions({
           auto_scaling_group_name: @name
         }).scheduled_update_group_actions
-        scheduled_diffs = diff_scheduled(aws_scheduled)
-        if !scheduled_diffs.empty?
-          diffs << AutoScalingDiff.scheduled(self, scheduled_diffs)
+
+        scheduled_diff = AutoScalingDiff.scheduled(aws_scheduled, @scheduled)
+        if scheduled_diff
+          diffs << scheduled_diff
+        end
+
+        aws_min = aws.min_size
+        aws_max = aws.max_size
+        aws_desired = aws.desired_capacity
+        local_min = @min
+        local_max = @max
+        local_desired = @desired
+        update_desired = Configuration.instance.autoscaling.force_size
+
+        # If there is local scheduled actions, use the most recent one to determine the local min/max
+        if !@scheduled.empty? and !Configuration.instance.autoscaling.force_size
+          local_last_scheduled = last_scheduled
+
+          if local_last_scheduled
+            local_min = local_last_scheduled.min
+            local_max = local_last_scheduled.max
+            local_desired = local_last_scheduled.desired
+          end
+        end
+
+        # If desired was not specified, assume it is the min
+        local_desired = local_min if !local_desired
+
+        # If the aws desired value is outside of the new min/max bounds then we need to
+        # update desired to be in the bounds
+        if aws_desired < local_min
+          local_desired = local_min if local_desired < local_min
+          update_desired = true
+        elsif aws_desired > local_max
+          local_desired = local_max if local_desired > local_max
+          update_desired = true
+        end
+
+        if local_min != aws_min
+          diffs << AutoScalingDiff.new(AutoScalingChange::MIN, aws_min, local_min)
+        end
+        if local_max != aws_max
+          diffs << AutoScalingDiff.new(AutoScalingChange::MAX, aws_max, local_max)
+        end
+        if update_desired
+          diffs << AutoScalingDiff.new(AutoScalingChange::DESIRED, aws_desired, local_desired)
         end
 
         # check for changes in scaling policies
@@ -158,6 +217,15 @@ module Cumulus
         end
 
         diffs
+      end
+
+      def last_scheduled
+        time_source = Common::UTCTimeSource.new
+
+        @scheduled.values.sort_by do |scheduled|
+          cron_parser = CronParser.new(scheduled.recurrence, time_source)
+          cron_parser.last
+        end.last
       end
 
       # Public: Populate the GroupConfig from an existing AWS AutoScaling group
@@ -202,30 +270,6 @@ module Cumulus
       end
 
       private
-
-      # Internal: Determine changes in scheduled actions.
-      #
-      # aws_scheduled - the scheduled actions in AWS
-      #
-      # Returns an array of ScheduledActionDiff's that represent difference between
-      # local and AWS configuration
-      def diff_scheduled(aws_scheduled)
-        diffs = []
-
-        aws_scheduled = Hash[aws_scheduled.map { |s| [s.scheduled_action_name, s] }]
-        aws_scheduled.reject { |k, v| @scheduled.include?(k) }.each do |name, aws|
-          diffs << ScheduledActionDiff.unmanaged(aws)
-        end
-        @scheduled.each do |name, local|
-          if !aws_scheduled.include?(name)
-            diffs << ScheduledActionDiff.added(local)
-          else
-            diffs << local.diff(aws_scheduled[name])
-          end
-        end
-
-        diffs.flatten
-      end
 
       # Internal: Determine changes in scaling policies.
       #

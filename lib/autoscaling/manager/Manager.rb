@@ -35,8 +35,8 @@ module Cumulus
           Dir.mkdir(groups_dir)
         end
 
-        aws_groups.each do |resource|
-          puts "Processing #{resource.auto_scaling_group_name}..."
+        aws_resources.each do |name, resource|
+          puts "Processing #{name}..."
           config = GroupConfig.new(resource.auto_scaling_group_name)
           config.populate(resource)
           config.populate_scheduled(@aws.describe_scheduled_actions({
@@ -82,7 +82,19 @@ module Cumulus
       #
       # group - the group to create
       def create(group)
-        @aws.create_auto_scaling_group(gen_autoscaling_aws_hash(group))
+
+        hash = group.to_aws(true)
+
+        # If there are local scheduled actions, override the min, max
+        # and desired capacity if it exists on the last scheduled action
+        last_scheduled = group.last_scheduled
+        if last_scheduled
+          hash[:min_size] = last_scheduled.min || hash[:min_size]
+          hash[:max_size] = last_scheduled.max || hash[:max_size]
+          hash[:desired_capacity] = last_scheduled.desired || hash[:desired_capacity]
+        end
+
+        @aws.create_auto_scaling_group(hash)
         update_tags(group, {}, group.tags)
         update_load_balancers(group, [], group.load_balancers)
         update_scheduled_actions(group, [], group.scheduled.map { |k, v| k })
@@ -106,27 +118,52 @@ module Cumulus
       # group - the group to update
       # diffs - the diffs between local and AWS configuration
       def update(group, diffs)
-        hash = gen_autoscaling_aws_hash(group)
+        hash = group.to_aws(Configuration.instance.autoscaling.force_size)
         if !Configuration.instance.autoscaling.override_launch_config_on_sync
           hash.delete(:launch_configuration_name)
         end
-        @aws.update_auto_scaling_group(hash)
+
+        update_group = false
+
         diffs.each do |diff|
-          if diff.type == AutoScalingChange::TAGS
+          case diff.type
+          when AutoScalingChange::MIN
+            update_group = true
+
+            # Override the min size value because it could be different from the actual
+            # configured min size if there were scheduled actions
+            hash[:min_size] = diff.local
+          when AutoScalingChange::MAX
+            update_group = true
+
+            # Override the max size value because it could be different from the actual
+            # configured max size if there were scheduled actions
+            hash[:max_size] = diff.local
+          when AutoScalingChange::DESIRED
+            update_group = true
+
+            # Override the desired size value because it could be different from the actual
+            # configured desired size if there were scheduled actions
+            hash[:desired_capacity] = diff.local
+          when AutoScalingChange::COOLDOWN,
+               AutoScalingChange::CHECK_TYPE,
+               AutoScalingChange::CHECK_GRACE,
+               AutoScalingChange::SUBNETS,
+               AutoScalingChange::TERMINATION,
+               AutoScalingChange::LAUNCH
+            update_group = true
+          when AutoScalingChange::TAGS
             update_tags(group, diff.tags_to_remove, diff.tags_to_remove)
-          elsif diff.type == AutoScalingChange::LOAD_BALANCER
+          when AutoScalingChange::LOAD_BALANCER
             update_load_balancers(group, diff.load_balancers_to_remove, diff.load_balancers_to_add)
-          elsif diff.type == AutoScalingChange::METRICS
+          when AutoScalingChange::METRICS
             update_metrics(group, diff.metrics_to_disable, diff.metrics_to_enable)
-          elsif diff.type == AutoScalingChange::SCHEDULED
-            remove = diff.scheduled_diffs.reject do |d|
-              d.type != ScheduledActionChange::UNMANAGED
-            end.map { |d| d.aws.scheduled_action_name }
-            update = diff.scheduled_diffs.select do |d|
-              d.type != ScheduledActionChange::UNMANAGED
-            end.map { |d| d.local.name }
+          when AutoScalingChange::SCHEDULED
+            remove = diff.changes.removed.map { |d| d.aws.scheduled_action_name }
+            update = (diff.changes.added + diff.changes.modified).map { |d| d.local.name }
+
             update_scheduled_actions(group, remove, update)
-          elsif diff.type == AutoScalingChange::POLICY
+          when AutoScalingChange::POLICY
             remove = diff.policy_diffs.reject do |d|
               d.type != PolicyChange::UNMANAGED
             end.map { |d| d.aws.policy_name }
@@ -160,27 +197,8 @@ module Cumulus
             end
           end
         end
-      end
 
-      # Internal: Generate the object that AWS expects to create or update an
-      # AutoScaling group
-      #
-      # group - the configuration object to use when generating the object
-      #
-      # Returns a hash of the information that AWS expects
-      def gen_autoscaling_aws_hash(group)
-        {
-          auto_scaling_group_name: group.name,
-          min_size: group.min,
-          max_size: group.max,
-          desired_capacity: group.desired,
-          default_cooldown: group.cooldown,
-          health_check_type: group.check_type,
-          health_check_grace_period: group.check_grace,
-          vpc_zone_identifier: group.subnets.size > 0 ? group.subnets.join(",") : nil,
-          termination_policies: group.termination,
-          launch_configuration_name: group.launch
-        }
+        @aws.update_auto_scaling_group(hash) if update_group
       end
 
       # Internal: Update the tags for an autoscaling group.
@@ -252,6 +270,7 @@ module Cumulus
       def update_scheduled_actions(group, remove, update)
         # remove any unmanaged scheduled actions
         remove.each do |name|
+          puts Colors.blue("\tdeleting scheduled action #{name}...")
           @aws.delete_scheduled_action({
             auto_scaling_group_name: group.name,
             scheduled_action_name: name
