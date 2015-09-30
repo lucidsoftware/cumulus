@@ -189,18 +189,18 @@ module Cumulus
 
         # If the aws desired value is outside of the new min/max bounds then we need to
         # update desired to be in the bounds
-        if aws_desired < local_min
+        if local_min and aws_desired < local_min
           local_desired = local_min if local_desired < local_min
           update_desired = true
-        elsif aws_desired > local_max
+        elsif local_max and aws_desired > local_max
           local_desired = local_max if local_desired > local_max
           update_desired = true
         end
 
-        if local_min != aws_min
+        if local_min and local_min != aws_min
           diffs << AutoScalingDiff.new(AutoScalingChange::MIN, aws_min, local_min)
         end
-        if local_max != aws_max
+        if local_max and local_max != aws_max
           diffs << AutoScalingDiff.new(AutoScalingChange::MAX, aws_max, local_max)
         end
         if update_desired
