@@ -98,14 +98,17 @@ module Cumulus
     # file_path     - The String path from `project_root` to the configuration
     #                 file
     # profile       - The String profile name that will be used to make AWS API calls
-    def initialize(project_root, file_path, profile)
+    # autoscaling_force_size
+    #               -  Determines whether autoscaling should use configured values for
+    #                  min/max/desired group size
+    def initialize(project_root, file_path, profile, autoscaling_force_size)
       Config.project_root = project_root;
       Config.json = JSON.parse(File.read(absolute_path(file_path)))
       @profile = profile
       @colors_enabled = conf "colors-enabled"
       @region = conf "region"
       @iam = IamConfig.new
-      @autoscaling = AutoScalingConfig.new
+      @autoscaling = AutoScalingConfig.new(autoscaling_force_size)
       @route53 = Route53Config.new
       @security = SecurityConfig.new
       @cloudfront = CloudFrontConfig.new
@@ -121,8 +124,12 @@ module Cumulus
       # project_root  - The String path to the directory the project is running in
       # file_path     - The String path from `project_root` to the configuration
       #                 file
-      def init(project_root, file_path, profile)
-        instance = new(project_root, file_path, profile)
+      # profile       - The String profile name that will be used to make AWS API calls
+      # autoscaling_force_size
+      #               -  Determines whether autoscaling should use configured values for
+      #                  min/max/desired group size
+      def init(project_root, file_path, profile, autoscaling_force_size)
+        instance = new(project_root, file_path, profile, autoscaling_force_size)
         @@instance = instance
       end
 
@@ -172,13 +179,15 @@ module Cumulus
       attr_reader :override_launch_config_on_sync
       attr_reader :static_policy_directory
       attr_reader :template_policy_directory
+      attr_reader :force_size
 
       # Public: Constructor.
-      def initialize
+      def initialize(force_size = false)
         @groups_directory = conf_abs_path "autoscaling.groups.directory"
         @override_launch_config_on_sync = conf "autoscaling.groups.override-launch-config-on-sync"
         @static_policy_directory = conf_abs_path "autoscaling.policies.static.directory"
         @template_policy_directory = conf_abs_path "autoscaling.policies.templates.directory"
+        @force_size = force_size
       end
 
     end

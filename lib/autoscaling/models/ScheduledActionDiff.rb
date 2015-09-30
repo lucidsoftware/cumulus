@@ -21,21 +21,21 @@ module Cumulus
       include ScheduledActionChange
 
       def diff_string
-        diff_lines = [@local.name]
+        diff_lines = []
 
         case @type
         when START
-          diff_lines << "\t\tStart: AWS - #{Colors.aws_changes(@aws.start_time)}, Local - #{Colors.local_changes(@local.start)}"
+          diff_lines << "Start: AWS - #{Colors.aws_changes(@aws.start_time)}, Local - #{Colors.local_changes(@local.start)}"
         when ENDTIME
-          diff_lines << "\t\tEnd: AWS - #{Colors.aws_changes(@aws.end_time)}, Local - #{Colors.local_changes(@local.end)}"
+          diff_lines << "End: AWS - #{Colors.aws_changes(@aws.end_time)}, Local - #{Colors.local_changes(@local.end)}"
         when RECURRENCE
-          diff_lines << "\t\tRecurrence: AWS - #{Colors.aws_changes(@aws.recurrence)}, Local - #{Colors.local_changes(@local.recurrence)}"
+          diff_lines << "Recurrence: AWS - #{Colors.aws_changes(@aws.recurrence)}, Local - #{Colors.local_changes(@local.recurrence)}"
         when MIN
-          diff_lines << "\t\tMin size: AWS - #{Colors.aws_changes(@aws.min_size)}, Local - #{Colors.local_changes(@local.min)}"
+          diff_lines << "Min size: AWS - #{Colors.aws_changes(@aws.min_size)}, Local - #{Colors.local_changes(@local.min)}"
         when MAX
-          diff_lines << "\t\tMax size: AWS - #{Colors.aws_changes(@aws.max_size)}, Local - #{Colors.local_changes(@local.max)}"
+          diff_lines << "Max size: AWS - #{Colors.aws_changes(@aws.max_size)}, Local - #{Colors.local_changes(@local.max)}"
         when DESIRED
-          diff_lines << "\t\tDesired capacity: AWS - #{Colors.aws_changes(@aws.desired_capacity)}, Local - #{Colors.local_changes(@local.desired)}"
+          diff_lines << "Desired capacity: AWS - #{Colors.aws_changes(@aws.desired_capacity)}, Local - #{Colors.local_changes(@local.desired)}"
         end
 
         diff_lines.flatten.join("\n")

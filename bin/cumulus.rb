@@ -395,7 +395,8 @@ end
 options = {
   :config => "conf/configuration.json",
   :root => nil,
-  :profile => nil
+  :profile => nil,
+  :autoscaling_force_size => false
 }
 OptionParser.new do |opts|
   opts.on("-c", "--config [FILE]", "Specify the configuration file to use") do |c|
@@ -408,6 +409,10 @@ OptionParser.new do |opts|
 
   opts.on("-p", "--aws-profile [NAME]", "Specify the AWS profile to use for API requests") do |p|
     options[:profile] = p
+  end
+
+  opts.on("--autoscaling-force-size", "Forces autoscaling to use configured min/max/desired values instead of scheduled actions") do |f|
+    options[:autoscaling_force_size] = true
   end
 end.parse!
 
@@ -437,7 +442,7 @@ project_root = File.expand_path(
 if !options[:root].nil?
   project_root = File.expand_path(options[:root])
 end
-Cumulus::Configuration.init(project_root, options[:config], options[:profile])
+Cumulus::Configuration.init(project_root, options[:config], options[:profile], options[:autoscaling_force_size])
 
 if ARGV.size == 0 or (ARGV[0] != "iam" and ARGV[0] != "help" and ARGV[0] != "autoscaling" and
   ARGV[0] != "route53" and ARGV[0] != "s3" and ARGV[0] != "security-groups" and
