@@ -33,18 +33,35 @@ module Cumulus
         end
       end
 
-      # Public: Get the config as a prettified JSON string.
-      #
-      # Returns the JSON string
-      def pretty_json
-        JSON.pretty_generate({
+      def to_hash
+        {
           "cidr-block" => @cidr_block,
           "map-public-ip" => @map_public_ip,
           "route-table" => @route_table,
           "network-acl" => @network_acl,
           "availability-zone" => @availability_zone,
           "tags" => @tags,
-        })
+        }
+      end
+
+      # Public: Populate a config object with AWS configuration
+      #
+      # aws - the AWS configuration for the subnet
+      # route_table_map - an optional mapping of route table ids to names
+      def populate!(aws, route_table_map = {})
+        @cidr_block = aws.cidr_block
+        @map_public_ip = aws.map_public_ip_on_launch
+
+        subnet_rt = EC2::subnet_route_tables[aws.subnet_id]
+        @route_table = if subnet_rt then route_table_map[subnet_rt.route_table_id] || subnet_rt.route_table_id end
+
+        subnet_acl = EC2::subnet_network_acls[aws.subnet_id]
+        @network_acl = subnet_acl.name || subnet_acl.network_acl_id
+
+        @availability_zone = aws.availability_zone
+        @tags = Hash[aws.tags.map { |tag| [tag.key, tag.value] }]
+
+        self
       end
 
       # Public: Produce an array of differences between this local configuration and the

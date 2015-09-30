@@ -35,6 +35,21 @@ module Cumulus
         }.reject { |k, v| v.nil? }
       end
 
+      def populate!(aws)
+        ignored_cidrs = Configuration.instance.vpc.routes_cidr_exclude_list
+        @routes = aws.diffable_routes.reject { |route| ignored_cidrs.include? route.destination_cidr_block }.map do |aws_route|
+          cumulus_route = RouteConfig.new
+          cumulus_route.populate!(aws_route)
+          cumulus_route
+        end
+
+        @propagate_vgws = aws.propagating_vgws.map(&:gateway_id)
+
+        @tags = Hash[aws.tags.map { |tag| [tag.key, tag.value] }]
+
+        self
+      end
+
       # Public: Produce an array of differences between this local configuration and the
       # configuration in AWS
       #

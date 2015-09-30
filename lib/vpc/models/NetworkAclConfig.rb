@@ -34,6 +34,27 @@ module Cumulus
         }.reject { |k, v| v.nil? }
       end
 
+      def populate!(aws)
+        @inbound = aws.diffable_entries.select { |entry| !entry.egress }
+                      .map { |entry| AclEntryConfig.new().populate!(entry) }
+                      .sort_by!(&:rule)
+        @outbound = aws.diffable_entries.select { |entry| entry.egress }
+                      .map { |entry| AclEntryConfig.new().populate!(entry) }
+                      .sort_by!(&:rule)
+        @tags = Hash[aws.tags.map { |tag| [tag.key, tag.value] }]
+
+        # If there is not a name then add a name tag using the id,
+        # since we depend on having some name in the diffs
+        if !@tags["Name"]
+          puts "Network ACL #{aws.network_acl_id} does not have a Name defined. Cumulus will use the id as the name when migrated."
+          @tags["Name"] = aws.network_acl_id
+        end
+
+        @name = @tags["Name"]
+
+        self
+      end
+
       # Public: Produce an array of differences between this local configuration and the
       # configuration in AWS
       #

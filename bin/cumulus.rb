@@ -378,6 +378,8 @@ module Modules
       end
     elsif ARGV[1] == "list"
       vpc.list
+    elsif ARGV[1] == "migrate"
+      vpc.migrate
     end
   end
 

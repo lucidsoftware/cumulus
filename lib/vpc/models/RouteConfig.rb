@@ -38,6 +38,16 @@ module Cumulus
         }.reject { |k, v| v.nil? }
       end
 
+      def populate!(aws)
+        @dest_cidr = aws.destination_cidr_block
+        @gateway_id = aws.gateway_id
+        @instance_id = aws.instance_id
+        @network_interface_id = aws.network_interface_id
+        @vpc_peering_connection_id = aws.vpc_peering_connection_id
+
+        self
+      end
+
       # Public: Produce an array of differences between this local configuration and the
       # configuration in AWS
       #

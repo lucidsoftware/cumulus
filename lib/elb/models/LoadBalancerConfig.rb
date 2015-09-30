@@ -57,7 +57,7 @@ module Cumulus
 
           # Map subnets to their actual subnet description from aws
           @subnets = (json["subnets"] || []).map do |subnet|
-            full_subnet = EC2::named_subnets[subnet] || EC2::id_subnets[subnet]
+            full_subnet = EC2::named_subnets[subnet]
 
             if full_subnet.nil?
               raise "#{subnet} is not a valid subnet name or id"
