@@ -8,6 +8,7 @@ begin
   Bundler.require
 rescue LoadError
   puts "Bundler required. Run `gem install bundler`"
+  exit 1
 end
 
 module Modules
