@@ -172,7 +172,7 @@ module Cumulus
         Hash[EC2::named_subnets.map do |name, subnet|
           puts "Migrating subnet #{name}"
 
-          cumulus_subnet = SubnetConfig.new(name).populate!(subnet)
+          cumulus_subnet = SubnetConfig.new(name).populate!(subnet, rt_map)
 
           json = JSON.pretty_generate(cumulus_subnet.to_hash)
           File.open("#{dir}/#{name}.json", "w") { |f| f.write(json) }
