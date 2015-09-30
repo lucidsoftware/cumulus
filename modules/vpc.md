@@ -93,7 +93,7 @@ Here is an example of a VPC configuration:
 
 ### Route Tables
 
-In Cumulus, route tables are configured in separate files from the VPC config to keep the VPC config simple for higher level changes. Route table configurations are stored in a [configurable](#configuration) route-tables directory. A route table has the following properties:
+In Cumulus, route tables are configured in separate files from the VPC config to keep the VPC config simple for higher level changes. Route table configurations are stored in a [configurable](#configuration) directory for route tables. A route table has the following properties:
 
 * `routes` - an array of route configurations for the route table. When creating a route, only one of `gateway-id`, `instance-id`, `network-interface-id` or `vpc-peering-connection-id` should be specified. Each route is a JSON object with the following properties:
   * `dest-cidr` - the CIDR address block used for the destination match. Routing is based on the most specific match
@@ -125,6 +125,7 @@ Here is an example of a route table with two routes
 }
 {% endhighlight %}
 
+
 ### Endpoint Policies
 
 The EC2 API requires you to specify a policy when configuring a service endpoint. These policies are in the same format as [IAM policies]({{ site.baseurl }}/modules/iam.html#policy-definitions) and are stored in a [configurable](#configuration) policies directory
@@ -148,12 +149,13 @@ Here is an example of the current default policy used for service endpoints whic
 
 For more information see the [IAM module]({{ site.baseurl }}/modules/iam.html)
 
+
 ### Network ACLs
 
 Network ACLs provide an optional layer of security for the instances in your VPC. Each Network ACL configuration is a JSON object with the following properties:
 
 * `inbound` - an array of Network ACL entries defining inbound (ingress) rules for the ACL. Each entry is a JSON object with the following properties:
-  * `rule` - the rule number for the entry. ACL entries are processed in ascneding order by rule number. Valid values are in the range [1, 32766]. AWS recommends leaving large spaces between rule numbers so it is easier to add rules between other rules
+  * `rule` - the rule number for the entry. ACL entries are processed in ascending order by rule number. Valid values are in the range [1, 32766]. AWS recommends leaving large spaces between rule numbers so it is easier to add rules between other rules
   * `protocol` - a protocol keyword as defined by the [IANA](http://www.iana.org/assignments/protocol-numbers/protocol-numbers.xhtml). Any protocols without keywords should instead be referred to by its decimal value
   * `action` - indicates where to allow or deny traffic matching the rule. Valid values are `"allow"` and `"deny"`
   * `cidr-block` - the network range in CIDR notation to allow or deny
@@ -170,7 +172,7 @@ Here is an example of a Network ACL Configuration:
   "inbound": [
     {
       "rule": 100,
-      "protocol": "ICMP",
+      "protocol": "icmp",
       "action": "allow",
       "cidr-block": "10.1.0.0/16",
       "icmp-type": -1,
@@ -178,14 +180,14 @@ Here is an example of a Network ACL Configuration:
     },
     {
       "rule": 200,
-      "protocol": "TCP",
+      "protocol": "tcp",
       "action": "allow",
       "cidr-block": "10.2.0.0/16",
       "ports": "8000-8080"
     },
     {
       "rule": 300,
-      "protocol": "ALL",
+      "protocol": "all",
       "action": "deny",
       "cidr-block": "0.0.0.0/0"
     }
@@ -193,7 +195,7 @@ Here is an example of a Network ACL Configuration:
   "outbound": [
     {
       "rule": 300,
-      "protocol": "ALL",
+      "protocol": "all",
       "action": "deny",
       "cidr-block": "0.0.0.0/0"
     }
@@ -210,7 +212,7 @@ Here is an example of a Network ACL Configuration:
 In Cumulus, subnets are configured in separate files from the VPC config to keep the VPC config simple for higher level changes. Subnet configurations are stored in a [configurable](#configuration) subnets directory. A subnet has the following properties:
 
 * `cidr-block` - the network range for the subnet in CIDR notation. Cannot be updated once a subnet is created
-* `availability-zone` - the availability zone for the subnet. Cannot be udpated once a subnet is created
+* `availability-zone` - the availability zone for the subnet. Cannot be updated once a subnet is created
 * `map-public-ip` - specify `true` to indicate that instances launched within the subnet should be assigned public IP addresses
 * `route-table` - the name or id of a route table to associate with the subnet
 * `network-acl` - the name or id of a network acl to associate with the subnet
@@ -231,7 +233,6 @@ Here is an example of a subnet configuration
 }
 {% endhighlight %}
 
-For more information see the [IAM module]({{ site.baseurl }}/modules/iam.html)
 
 Diffing and Syncing VPCs
 ------------------------------
