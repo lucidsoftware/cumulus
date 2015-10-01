@@ -92,12 +92,7 @@
 			"directory": "conf/vpc/subnets"
 		},
 		"route-tables": {
-			"directory": "conf/vpc/route-tables",
-			"routes": {
-				"exclude-cidr-blocks": [
-					"0.0.0.0/0"
-				]
-			}
+			"directory": "conf/vpc/route-tables"
 		},
 		"policies": {
 			"directory": "conf/vpc/policies"

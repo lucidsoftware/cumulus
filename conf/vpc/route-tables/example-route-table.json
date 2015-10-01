@@ -30,5 +30,8 @@
   ],
   "tags": {
     "Name": "example-route-table"
-  }
+  },
+  "exclude-cidr-blocks": [
+    "0.0.0.0/0"
+  ]
 }

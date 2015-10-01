@@ -24,6 +24,7 @@ module Cumulus
           @routes = (json["routes"] || []).map { |route| RouteConfig.new(route) }
           @propagate_vgws = json["propagate-vgws"] || []
           @tags = json["tags"]
+          @excludes = json["exclude-cidr-blocks"] || []
         end
       end
 
@@ -36,8 +37,7 @@ module Cumulus
       end
 
       def populate!(aws)
-        ignored_cidrs = Configuration.instance.vpc.routes_cidr_exclude_list
-        @routes = aws.diffable_routes.reject { |route| ignored_cidrs.include? route.destination_cidr_block }.map do |aws_route|
+        @routes = aws.diffable_routes.reject { |route| @excludes.include? route.destination_cidr_block }.map do |aws_route|
           cumulus_route = RouteConfig.new
           cumulus_route.populate!(aws_route)
           cumulus_route
@@ -59,12 +59,11 @@ module Cumulus
       def diff(aws)
         diffs = []
 
-        ignored_cidrs = Configuration.instance.vpc.routes_cidr_exclude_list
-        aws_routes = aws.diffable_routes.reject { |route| ignored_cidrs.include? route.destination_cidr_block }
-        local_routes = @routes.reject { |route| ignored_cidrs.include? route.dest_cidr }
+        aws_routes = aws.diffable_routes.reject { |route| @excludes.include? route.destination_cidr_block }
+        local_routes = @routes.reject { |route| @excludes.include? route.dest_cidr }
 
-        ignored_aws_routes = aws.diffable_routes.select { |route| ignored_cidrs.include? route.destination_cidr_block }.map(&:destination_cidr_block).join(", ")
-        ignored_local_routes = @routes.select { |route| ignored_cidrs.include? route.dest_cidr }.map(&:dest_cidr).join(", ")
+        ignored_aws_routes = aws.diffable_routes.select { |route| @excludes.include? route.destination_cidr_block }.map(&:destination_cidr_block).join(", ")
+        ignored_local_routes = @routes.select { |route| @excludes.include? route.dest_cidr }.map(&:dest_cidr).join(", ")
 
         puts "Ignoring local routes: #{ignored_local_routes}" if !ignored_local_routes.empty?
         puts "Ignoring AWS routes: #{ignored_aws_routes}" if !ignored_aws_routes.empty?

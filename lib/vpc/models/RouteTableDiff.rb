@@ -77,9 +77,9 @@ module Cumulus
             "Routes:",
             @changes.removed.map { |s, _| Colors.unmanaged("\t#{s} will be deleted") },
             @changes.added.map { |s, _| Colors.added("\t#{s} will be created") },
-            @changes.modified.map do |route, diff|
+            @changes.modified.map do |cidr, diff|
               [
-                "\t#{route.dest_cidr}:",
+                "\t#{cidr}:",
                 diff.changes.map do |diff|
                   diff.to_s.lines.map { |l| "\t\t#{l}".chomp("\n") }
                 end
