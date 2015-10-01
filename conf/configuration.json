@@ -101,6 +101,9 @@
 		},
 		"policies": {
 			"directory": "conf/vpc/policies"
+		},
+		"network-acls": {
+			"directory": "conf/vpc/network-acls"
 		}
 	},
 	"region": "us-east-1"

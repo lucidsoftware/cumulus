@@ -280,6 +280,7 @@ module Cumulus
       attr_reader :subnets_directory
       attr_reader :route_tables_directory
       attr_reader :policies_directory
+      attr_reader :network_acls_directory
       attr_reader :routes_cidr_exclude_list
 
       def initialize
@@ -287,6 +288,7 @@ module Cumulus
         @subnets_directory = conf_abs_path "vpc.subnets.directory"
         @route_tables_directory = conf_abs_path "vpc.route-tables.directory"
         @policies_directory = conf_abs_path "vpc.policies.directory"
+        @network_acls_directory = conf_abs_path "vpc.network-acls.directory"
         @routes_cidr_exclude_list = conf "vpc.route-tables.routes.exclude-cidr-blocks"
       end
     end

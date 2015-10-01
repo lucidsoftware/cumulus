@@ -11,7 +11,7 @@ module Cumulus
     # Public: An object representing configuration for a VPC endpoint
     class EndpointConfig
       attr_reader :service_name
-      attr_reader :policy
+      attr_accessor :policy
       attr_reader :route_tables
 
       # Public: Constructor

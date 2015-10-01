@@ -58,13 +58,16 @@ function _cumulus {
             configs=$(cumulus security-groups list)
             COMPREPLY=( $(compgen -W "$configs" -- $cur) )
           fi
-          ;;
+        ;;
         vpc)
           if [ "$prev" == "diff" ] || [ "$prev" == "sync" ]; then
             configs=$(cumulus vpc list)
             COMPREPLY=( $(compgen -W "$configs" -- $cur) )
           fi
-          ;;
+          if [ "$prev" == "rename" ]; then
+            COMPREPLY=( $(compgen -W "network-acl policy route-table subnet vpc" -- $cur) )
+          fi
+        ;;
         *)
           case "$prev" in
             iam)
@@ -92,7 +95,7 @@ function _cumulus {
               COMPREPLY=( $(compgen -W "diff list migrate sync" -- $cur) )
             ;;
             vpc)
-              COMPREPLY=( $(compgen -W "diff list migrate sync" -- $cur) )
+              COMPREPLY=( $(compgen -W "diff list migrate sync rename" -- $cur) )
             ;;
           esac
         ;;

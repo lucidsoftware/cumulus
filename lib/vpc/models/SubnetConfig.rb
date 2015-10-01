@@ -13,8 +13,8 @@ module Cumulus
       attr_reader :name
       attr_reader :cidr_block
       attr_reader :map_public_ip
-      attr_reader :route_table
-      attr_reader :network_acl
+      attr_accessor :route_table
+      attr_accessor :network_acl
       attr_reader :availability_zone
       attr_reader :tags
 
@@ -48,7 +48,8 @@ module Cumulus
       #
       # aws - the AWS configuration for the subnet
       # route_table_map - an optional mapping of route table ids to names
-      def populate!(aws, route_table_map = {})
+      # network_acl_map - an optional mapping of network acl ids to names
+      def populate!(aws, route_table_map = {}, network_acl_map = {})
         @cidr_block = aws.cidr_block
         @map_public_ip = aws.map_public_ip_on_launch
 
@@ -56,7 +57,7 @@ module Cumulus
         @route_table = if subnet_rt then route_table_map[subnet_rt.route_table_id] || subnet_rt.route_table_id end
 
         subnet_acl = EC2::subnet_network_acls[aws.subnet_id]
-        @network_acl = subnet_acl.name || subnet_acl.network_acl_id
+        @network_acl = network_acl_map[subnet_acl.network_acl_id] || subnet_acl.network_acl_id
 
         @availability_zone = aws.availability_zone
         @tags = Hash[aws.tags.map { |tag| [tag.key, tag.value] }]

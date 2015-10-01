@@ -16,13 +16,14 @@ module Cumulus
 
       # Public: Constructor
       #
+      # name - the name of the network acl config
       # json - a hash containing the JSON configuration for the Network ACL
-      def initialize(json = nil)
+      def initialize(name, json = nil)
+        @name = name
         if !json.nil?
           @inbound = (json["inbound"] || []).map { |entry| AclEntryConfig.new(entry) }
           @outbound = (json["outbound"] || []).map { |entry| AclEntryConfig.new(entry) }
           @tags = json["tags"] || {}
-          @name = @tags["Name"]
         end
       end
 
@@ -43,14 +44,11 @@ module Cumulus
                       .sort_by!(&:rule)
         @tags = Hash[aws.tags.map { |tag| [tag.key, tag.value] }]
 
-        # If there is not a name then add a name tag using the id,
-        # since we depend on having some name in the diffs
+        # If there is not a name then add a name tag using the given name
         if !@tags["Name"]
-          puts "Network ACL #{aws.network_acl_id} does not have a Name defined. Cumulus will use the id as the name when migrated."
-          @tags["Name"] = aws.network_acl_id
+          puts "Network ACL #{aws.network_acl_id} does not have a Name defined. Cumulus will use #{name} as the name when migrated."
+          @tags["Name"] = @name
         end
-
-        @name = @tags["Name"]
 
         self
       end

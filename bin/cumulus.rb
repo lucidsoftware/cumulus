@@ -343,8 +343,8 @@ module Modules
 
   # Public: Run the vpc module
   def self.vpc
-    if ARGV.size < 2 or (ARGV[1] != "help" and ARGV[1] != "diff" and ARGV[1] != "list" and ARGV[1] != "sync" and ARGV[1] != "migrate")
-      puts "Usage: cumulus vpc [diff|help|list|migrate|sync] <asset>"
+    if ARGV.size < 2 or (ARGV[1] != "help" and ARGV[1] != "diff" and ARGV[1] != "list" and ARGV[1] != "sync" and ARGV[1] != "migrate" and ARGV[1] != "rename")
+      puts "Usage: cumulus vpc [diff|help|list|migrate|sync|rename] <asset>"
       exit
     end
 
@@ -352,13 +352,14 @@ module Modules
       puts "elb: Manage Virtual Private Cloud"
       puts "\tDiff and sync VPC configuration with AWS."
       puts
-      puts "Usage: cumulus vpc [diff|help|list|migrate|sync] <asset>"
+      puts "Usage: cumulus vpc [diff|help|list|migrate|sync|rename] <asset>"
       puts
       puts "Commands"
       puts "\tdiff\t- print out differences between local configuration and AWS (supplying the name of the VPC will diff only that VPC)"
       puts "\tlist\t- list the locally defined VPCs"
       puts "\tsync\t- sync local VPC definitions with AWS (supplying the name of the VPC will sync only that VPC)"
       puts "\tmigrate\t- migrate AWS configuration to Cumulus"
+      puts "\trename\t- renames a cumulus asset and all references to it"
       exit
     end
 
@@ -380,6 +381,12 @@ module Modules
       vpc.list
     elsif ARGV[1] == "migrate"
       vpc.migrate
+    elsif ARGV[1] == "rename"
+      if ARGV.size == 5
+        vpc.rename(ARGV[2], ARGV[3], ARGV[4])
+      else
+        puts "Usage: cumulus vpc rename [network-acl|policy|route-table|subnet|vpc] <old-asset-name> <new-asset-name>"
+      end
     end
   end
 

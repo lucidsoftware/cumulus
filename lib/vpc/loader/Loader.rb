@@ -16,12 +16,20 @@ module Cumulus
       @@subnets_dir = Configuration.instance.vpc.subnets_directory
       @@route_tables_dir = Configuration.instance.vpc.route_tables_directory
       @@policies_dir = Configuration.instance.vpc.policies_directory
+      @@network_acls_dir = Configuration.instance.vpc.network_acls_directory
 
       # Public: Load all the VPC configurations as VpcConfig objects
       #
       # Returns an array of VpcConfig
       def self.vpcs
         Common::BaseLoader::resources(@@vpcs_dir, &VpcConfig.method(:new))
+      end
+
+      # Public: Load a single VPC configuration
+      #
+      # Returns a VpcConfig
+      def self.vpc(vpc_name)
+        Common::BaseLoader::resource(vpc_name, @@vpcs_dir, &VpcConfig.method(:new))
       end
 
       # Public: Load the specified policy as a JSON object
@@ -31,6 +39,13 @@ module Cumulus
         Common::BaseLoader::resource(policy_name, @@policies_dir) do |policy_name, policy|
           policy
         end
+      end
+
+      # Public: Load all subnets as SubnetConfig objects
+      #
+      # Returns an array of SubnetConfig
+      def self.subnets
+        Common::BaseLoader::resources(@@subnets_dir, &SubnetConfig.method(:new))
       end
 
       # Public: Load a subnet as a SubnetConfig
@@ -45,6 +60,13 @@ module Cumulus
       # Returns the RouteTableConfig
       def self.route_table(rt_name)
         Common::BaseLoader::resource(rt_name, @@route_tables_dir, &RouteTableConfig.method(:new))
+      end
+
+      # Public: Load a network acl as a NetworkAclConfig
+      #
+      # Returns the NetworkAclConfig
+      def self.network_acl(acl_name)
+        Common::BaseLoader::resource(acl_name, @@network_acls_dir, &NetworkAclConfig.method(:new))
       end
     end
   end

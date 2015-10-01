@@ -1,0 +1,21 @@
+{
+  "inbound": [
+    {
+      "rule": 1,
+      "protocol": "all",
+      "action": "allow",
+      "cidr-block": "0.0.0.0/0"
+    }
+  ],
+  "outbound": [
+    {
+      "rule": 1,
+      "protocol": "all",
+      "action": "allow",
+      "cidr-block": "0.0.0.0/0"
+    }
+  ],
+  "tags": {
+    "Name": "example-net-acl"
+  }
+}
