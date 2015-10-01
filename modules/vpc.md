@@ -83,8 +83,9 @@ In Cumulus, route tables are configured in separate files from the VPC config to
   * `vpc-peering-connection-id` - the ID of a VPC peering connection
 * `propagate-vgws` - an optional array of virtual private gateway IDs that are allowed to propagate routes to this route table
 * `tags - an optional JSON object whose key/value pairs correspond to tag keys and values for the VPC e.g. `{ "TagName": "TagValue" }`. In Cumulus, a route table can be referred to by the value of its `"Name"` tag in the VPC, VPC Endpoint, and Subnet configurations
+* `exclude-cidr-blocks` - an optional array of CIDR address blocks to exlude when migrating, diffing, or syncing route tables with Cumulus. Any routes with a CIDR block in this list will not be created, deleted, or modified when syncing.
 
-Here is an example of a route table with two routes
+Here is an example of a route table with two routes that excludes routes with the address `"0.0.0.0/0"`
 
 {% highlight json %}
 {
@@ -101,7 +102,10 @@ Here is an example of a route table with two routes
   "propagate-vgws": ["vgw-abc123"],
   "tags": {
     "Name": "route-table-1"
-  }
+  },
+  "exclude-cidr-blocks": [
+    "0.0.0.0/0"
+  ]
 }
 {% endhighlight %}
 
