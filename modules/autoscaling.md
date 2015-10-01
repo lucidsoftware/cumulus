@@ -113,6 +113,6 @@ Cumulus provides a `migrate` task that makes migrating to Cumulus easy. Autoscal
 Cumulus reads configuration from a configuration file, `conf/configuration.json` (the location of this file can also be specified by running cumulus with the `--config` option). The values in `configuration.json` can be changed to customized to change some of Cumulus's behavior. The following is a list of the values in `configuration.json` that pertain to the Autoscaling module:
 
 * `$.autoscaling.groups.directory` - the directory where Cumulus expects to find autoscaling group definitions. Defaults to `conf/autoscaling/groups`
-* `$.autoscaling.groups.override-launch-config-on-sync` - whether to change the launch configuration when syncing a group. If set to false, changing the launch configuration will need to be done from the AWS console. Defaults to `false`
+* `$.autoscaling.groups.override-launch-config-on-sync` - whether to change the launch configuration when syncing a group, or show differences in launch configuration when diffing a group. If set to false, changing the launch configuration will need to be done from the AWS console. Defaults to `false`
 * `$.autoscaling.policies.static.directory` - the directory where Cumulus expects to find static scaling policy definitions. Defaults to `conf/autoscaling/policies/static`
 * `$.autoscaling.policies.templates.directory` - the directory where Cumulus expects to find scaling policy templates. Defaults to `conf/autoscaling/policies/templates`
