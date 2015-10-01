@@ -6,7 +6,7 @@ description: Create and manage VPCs
 ---
 Overview
 --------
-Cumulus makes configuring Virtual Private Clouds simpler. Easily configure VPCs, route table definitions, subnets, and endpoint policies. Read the following sections to learn about configuring your VPCs with Cumulus. Example configuration can be found in the [Cumulus repo](https://github.com/lucidsoftware/cumulus).
+Cumulus makes configuring Virtual Private Clouds simpler. Easily configure VPCs, route table definitions, subnets, and network acls. Read the following sections to learn about configuring your VPCs with Cumulus. Example configuration can be found in the [Cumulus repo](https://github.com/lucidsoftware/cumulus).
 
 Virtual Private Cloud
 ---------------------
@@ -27,7 +27,7 @@ Each VPC is defined in its own file where the file name is the name of the VPC. 
   * `policy` - the name of the policy file to use for the endpoint. If omitted, AWS will replace the policy with a default policy. See [Endpoint Policies](#endpoint-policies) for more information on configuring policies
   * `route-tables` - an array of route table names or ids that are associated with the endpoint
 * `address-associations` - a JSON object describing which Elastic IP addresses should be associated to network interfaces. The keys of the object are IP addresses while the values are network interface ids
-* `network-acls` - an array of Network ACL configurations to associate with the VPC. See [Network ACLs](#network-acls) for more information on configuration for individual ACLs
+* `network-acls` - an array of named Network ACL configurations to associate with the VPC. See [Network ACLs](#network-acls) for more information on configuration for individual ACLs
 * `subnets` - an array of named subnet configurations to create in the VPC. See [Subnets](#subnets) for more information
 * `tags` - an optional JSON object whose key/value pairs correspond to tag keys and values for the VPC e.g. `{ "TagName": "TagValue" }`
 
@@ -60,27 +60,7 @@ Here is an example of a VPC configuration:
     "50.20.50.160": "eni-abc123"
   },
   "network-acls": [
-    {
-      "inbound": [
-        {
-          "rule": 1,
-          "protocol": "ALL",
-          "action": "allow",
-          "cidr-block": 10.1.0.0/16
-        }
-      ],
-      "outbound": [
-        {
-          "rule": 1,
-          "protocol": "ALL",
-          "action": "deny",
-          "cidr-block": 10.1.0.0/16
-        }
-      ],
-      "tags": {
-        "Name": "network-acl-1"
-      }
-    }
+    "network-acl-1"
   ],
   "subnets": [
     "subnet-1"
@@ -152,7 +132,7 @@ For more information see the [IAM module]({{ site.baseurl }}/modules/iam.html)
 
 ### Network ACLs
 
-Network ACLs provide an optional layer of security for the instances in your VPC. Each Network ACL configuration is a JSON object with the following properties:
+Network ACLs provide an optional layer of security for the instances in your VPC. In Cumulus, network acls are configured in separate files from the VPC config to keep the VPC config simple for higher level changes. Network ACL configurations are stored in a [configurable](#configuration) directory for network acls. A Network ACL has the following properties:
 
 * `inbound` - an array of Network ACL entries defining inbound (ingress) rules for the ACL. Each entry is a JSON object with the following properties:
   * `rule` - the rule number for the entry. ACL entries are processed in ascending order by rule number. Valid values are in the range [1, 32766]. AWS recommends leaving large spaces between rule numbers so it is easier to add rules between other rules
@@ -240,14 +220,15 @@ Diffing and Syncing VPCs
 Cumulus's VPC module has the following usage:
 
 {% highlight bash %}
-cumulus vpc [diff|help|list|migrate|sync] <asset>
+cumulus vpc [diff|help|list|migrate|sync|rename] <asset>
 {% endhighlight %}
 
-VPCs can be diffed, listed, and synced (migration is covered in the [following section](#migration)). The three actions do the following:
+VPCs can be diffed, listed, and synced (migration is covered in the [following section](#migration), and renaming is covered in a [later section](#renaming-assets)). The three actions do the following:
 
 * `diff` - Shows the differences between the local definition and the AWS VPC configuration. If `<asset>` is specified, Cumulus will diff only the VPC with that name.
 * `list` - Lists the names of all of the locally defined VPCs
 * `sync` - Syncs local configuration with AWS. If `<asset>` is specified, Cumulus will sync only the VPC with that name.
+
 
 Migration
 ---------
@@ -258,9 +239,25 @@ If your environment is anything like ours, you have dozens of VPCs, route tables
 cumulus vpc migrate
 {% endhighlight %}
 
-This command will migrate all of the VPC configurations from AWS into identical local json versions in the `vpc/vpcs` directory, each named with the VPC name or id. Any route tables defined on the VPC will be migrated into `vpc/route-tables` and named with the route table name or id. Similarly, subnets will be migrated into the `vpc/subnets` directory and named with the subnet name or id. Finally, endpoint policies that are attached to VPC endpoints will be migrated to `vpc/policies` and named with the `Version` of the policy.
+This command will migrate all of the VPC configurations from AWS into identical local json versions in the `vpc/vpcs` directory, each named with the VPC name or id. Any route tables defined on the VPC will be migrated into `vpc/route-tables` and named with the route table name or id. Similarly, network acls and subnets will be migrated into the `vpc/network-acls` and `vpc/subnets` directories and named with network acl name or id and subnet name or id, respectively. Finally, endpoint policies that are attached to VPC endpoints will be migrated to `vpc/policies` and named with the `Version` of the policy.
 
-After migration, you will notice that Network ACLs will have a `Name` tag added to their tags (if there was not one previously) with the id of the Network ACL as the value. This is because we prefer to refer to Network ACLs from Subnet config (instead of subnets from ACL config) and need a way to identify a Network ACL besides its ID. We suggest changing the Name of each migrated Network ACL to be more descriptive, and then updating each subnet config that refers to it.
+After migration, you will notice that network acls will have a `Name` tag added to their tags (if there was not one previously) with the id of the Network ACL as the value. This is because we prefer to refer to network acls from Subnet config (instead of referring to subnets from ACL config) and need a way to identify a Network ACL besides its ID. We suggest using the [rename](#renaming-assets) command to update the name of migrated network acls and other assets to be more descriptive.
+
+
+Renaming Assets
+---------------
+
+The VPC module provides a `rename` commmand to easily update the names of the various assets needed to manage a vpc. The rename command can be used as follows:
+
+{% highlight bash %}
+cumulus vpc rename [network-acl|policy|route-table|subnet|vpc] <old-asset-name> <new-asset-name>
+{% endhighlight %}
+
+Renaming an asset does 3 things:
+
+1. The file name of the asset is updated to the new name
+2. The value of the `"Name"` tag is updated with the new name (or created if it did not exist)
+3. All references in other assets using the old name are updated to the new name, and affected files are saved again
 
 Configuration
 -------------
@@ -269,5 +266,6 @@ Cumulus reads configuration from a configuration file, `conf/configuration.json`
 * `$.vpc.vpcs.directory` - the directory where Cumulus expects to find VPC definitions. Defaults to `conf/vpc/vpcs`.
 * `$.vpc.subnets.directory` - the directory where Cumulus expects to find subnet definitions. Defaults to `conf/vpc/subnets`.
 * `$.vpc.route-tables.directory` - the directory where Cumulus expects to find route table definitions. Defaults to `conf/vpc/route-tables`.
-* `$.vpc.route-tables.routes.exclude-cidr-blocks` - an array of strings describing which CIDR blocks should be exluded from diffing and syncing when syncing a VPC's route tables
+* `$.vpc.route-tables.routes.exclude-cidr-blocks` - an array of strings describing which CIDR blocks should be exluded from diffing, syncing and migrating when syncing a VPC's route tables.
 * `$.vpc.policies.directory` - the directory where Cumulus expects to find policy definitions. Defaults to `conf/vpc/policies`.
+* `$.vpc.network-acls.directory` - the directory where Cumulus expects to find network acl definitions. Defaults to `conf/vpc/network-acls`.
