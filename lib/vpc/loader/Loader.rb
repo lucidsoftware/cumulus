@@ -25,6 +25,13 @@ module Cumulus
         Common::BaseLoader::resources(@@vpcs_dir, &VpcConfig.method(:new))
       end
 
+      # Public: Load a single VPC configuration
+      #
+      # Returns a VpcConfig
+      def self.vpc(vpc_name)
+        Common::BaseLoader::resource(vpc_name, @@vpcs_dir, &VpcConfig.method(:new))
+      end
+
       # Public: Load the specified policy as a JSON object
       #
       # Returns the JSON object for the policy
@@ -32,6 +39,13 @@ module Cumulus
         Common::BaseLoader::resource(policy_name, @@policies_dir) do |policy_name, policy|
           policy
         end
+      end
+
+      # Public: Load all subnets as SubnetConfig objects
+      #
+      # Returns an array of SubnetConfig
+      def self.subnets
+        Common::BaseLoader::resources(@@subnets_dir, &SubnetConfig.method(:new))
       end
 
       # Public: Load a subnet as a SubnetConfig
