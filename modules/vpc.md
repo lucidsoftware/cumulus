@@ -75,10 +75,9 @@ Here is an example of a VPC configuration:
 
 In Cumulus, route tables are configured in separate files from the VPC config to keep the VPC config simple for higher level changes. Route table configurations are stored in a [configurable](#configuration) directory for route tables. A route table has the following properties:
 
-* `routes` - an array of route configurations for the route table. When creating a route, only one of `gateway-id`, `instance-id`, `network-interface-id` or `vpc-peering-connection-id` should be specified. Each route is a JSON object with the following properties:
+* `routes` - an array of route configurations for the route table. When creating a route, only one of `gateway-id`, `network-interface-id` or `vpc-peering-connection-id` should be specified. Each route is a JSON object with the following properties:
   * `dest-cidr` - the CIDR address block used for the destination match. Routing is based on the most specific match
   * `gateway-id` - the ID of an Internet gateway or virtual private gateway attached to your VPC
-  * `instance-id` - the ID of a NAT instance in the VPC
   * `network-interface-id` - the ID of a network interface
   * `vpc-peering-connection-id` - the ID of a VPC peering connection
 * `propagate-vgws` - an optional array of virtual private gateway IDs that are allowed to propagate routes to this route table
@@ -92,7 +91,7 @@ Here is an example of a route table with two routes that excludes routes with th
   "routes": [
     {
       "dest-cidr": "10.3.0.0/16",
-      "instance-id": "i-abc123"
+      "gateway-id": "vgw-abc123"
     },
     {
       "dest-cidr": "10.0.0.0/0",
