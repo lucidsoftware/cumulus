@@ -139,7 +139,7 @@ module Cumulus
         if @check_grace != aws.health_check_grace_period
           diffs << AutoScalingDiff.new(AutoScalingChange::CHECK_GRACE, aws, self)
         end
-        if @launch != aws.launch_configuration_name
+        if @launch != aws.launch_configuration_name and Configuration.instance.autoscaling.override_launch_config_on_sync
           diffs << AutoScalingDiff.new(AutoScalingChange::LAUNCH, aws, self)
         end
         if @load_balancers != aws.load_balancer_names

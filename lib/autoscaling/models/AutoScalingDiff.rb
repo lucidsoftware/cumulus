@@ -77,7 +77,7 @@ module Cumulus
       def diff_string
         case @type
         when LAUNCH
-          "Launch configuration: AWS - #{Colors.aws_changes(@aws.launch_configuration_name)}, Local - #{@local.launch}"
+          "Launch configuration: AWS - #{Colors.aws_changes(@aws.launch_configuration_name)}, Local - #{Colors.local_changes(@local.launch)}"
         when MIN
           "Min size: AWS - #{Colors.aws_changes(@aws)}, Local - #{Colors.local_changes(@local)}"
         when MAX
