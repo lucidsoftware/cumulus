@@ -20,6 +20,7 @@ module Cumulus
       # json - a hash containing the JSON configuration for the route table
       def initialize(name, json = nil)
         @name = name
+        @excludes = []
         if !json.nil?
           @routes = (json["routes"] || []).map { |route| RouteConfig.new(route) }
           @propagate_vgws = json["propagate-vgws"] || []
