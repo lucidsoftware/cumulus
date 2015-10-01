@@ -22,7 +22,6 @@ module Cumulus
         if !json.nil?
           @dest_cidr = json["dest-cidr"]
           @gateway_id = json["gateway-id"]
-          @instance_id = json["instance-id"]
           @network_interface_id = json["network-interface-id"]
           @vpc_peering_connection_id = json["vpc-peering-connection-id"]
         end
@@ -32,7 +31,6 @@ module Cumulus
         {
           "dest-cidr" => @dest_cidr,
           "gateway-id" => @gateway_id,
-          "instance-id" => @instance_id,
           "network-interface-id" => @network_interface_id,
           "vpc-peering-connection-id" => @vpc_peering_connection_id,
         }.reject { |k, v| v.nil? }
@@ -41,7 +39,6 @@ module Cumulus
       def populate!(aws)
         @dest_cidr = aws.destination_cidr_block
         @gateway_id = aws.gateway_id
-        @instance_id = aws.instance_id
         @network_interface_id = aws.network_interface_id
         @vpc_peering_connection_id = aws.vpc_peering_connection_id
 
@@ -59,10 +56,6 @@ module Cumulus
 
         if @gateway_id != aws.gateway_id
           diffs << RouteDiff.new(RouteChange::GATEWAY, aws.gateway_id, @gateway_id)
-        end
-
-        if @instance_id != aws.instance_id
-          diffs << RouteDiff.new(RouteChange::INSTANCE, aws.instance_id, @instance_id)
         end
 
         if @network_interface_id != aws.network_interface_id

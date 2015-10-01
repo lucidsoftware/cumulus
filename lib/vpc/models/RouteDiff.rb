@@ -9,7 +9,6 @@ module Cumulus
       include Common::DiffChange
 
       GATEWAY = Common::DiffChange.next_change_id
-      INSTANCE = Common::DiffChange.next_change_id
       NETWORK = Common::DiffChange.next_change_id
       VPC_PEERING = Common::DiffChange.next_change_id
     end
@@ -30,8 +29,6 @@ module Cumulus
         resource = case @type
         when GATEWAY
           "Gateway"
-        when INSTANCE
-          "Instance"
         when NETWORK
           "Network Interface"
         when VPC_PEERING

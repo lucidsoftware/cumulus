@@ -531,7 +531,6 @@ module Cumulus
           route_table_id: rt_id,
           destination_cidr_block: route.dest_cidr,
           gateway_id: if route.gateway_id then route.gateway_id end,
-          instance_id: if route.instance_id then route.instance_id end,
           network_interface_id: if route.network_interface_id then route.network_interface_id end,
           vpc_peering_connection_id: if route.vpc_peering_connection_id then route.vpc_peering_connection_id end
         })
@@ -551,7 +550,6 @@ module Cumulus
           route_table_id: rt_id,
           destination_cidr_block: route.dest_cidr,
           gateway_id: if route.gateway_id then route.gateway_id end,
-          instance_id: if route.instance_id then route.instance_id end,
           network_interface_id: if route.network_interface_id then route.network_interface_id end,
           vpc_peering_connection_id: if route.vpc_peering_connection_id then route.vpc_peering_connection_id end
         })
