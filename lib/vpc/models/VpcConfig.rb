@@ -37,7 +37,7 @@ module Cumulus
           @route_tables = json["route-tables"] || []
           @endpoints = (json["endpoints"] || []).map { |endpoint| EndpointConfig.new(endpoint) }
           @address_associations = json["address-associations"] || {}
-          @network_acls = (json["network-acls"] || []).map { |acl| NetworkAclConfig.new(acl) }
+          @network_acls = json["network-acls"] || []
           @subnets = json["subnets"] || []
           @tags = json["tags"] || {}
         end
@@ -51,7 +51,7 @@ module Cumulus
           "route-tables" => @route_tables,
           "endpoints" => @endpoints.map(&:to_hash),
           "address-associations" => @address_associations,
-          "network-acls" => @network_acls.map(&:to_hash),
+          "network-acls" => @network_acls,
           "subnets" => @subnets,
           "tags" => @tags,
         }
@@ -62,7 +62,8 @@ module Cumulus
       # aws - the AWS configuration for the subnet
       # route_table_map - an optional mapping of route table ids to names
       # subnet_map - an optional mapping of subnet ids to names
-      def populate!(aws, route_table_map = {}, subnet_map = {})
+      # network_acl_map - an optional mapping of network acl ids to names
+      def populate!(aws, route_table_map = {}, subnet_map = {}, network_acl_map = {})
         @cidr_block = aws.cidr_block
         @tenancy = aws.instance_tenancy
 
@@ -83,8 +84,8 @@ module Cumulus
         end]
 
         aws_network_acls = EC2::vpc_network_acls[aws.vpc_id]
-        cumulus_network_acls = aws_network_acls.map { |acl| NetworkAclConfig.new().populate!(acl) }
-        @network_acls = cumulus_network_acls.sort_by!(&:name)
+        cumulus_network_acls = aws_network_acls.map { |acl| network_acl_map[acl.network_acl_id] || acl.network_acl_id }
+        @network_acls = cumulus_network_acls.sort
 
         aws_subnets = EC2::vpc_subnets[aws.vpc_id]
         subnet_names = aws_subnets.map { |subnet| subnet_map[subnet.subnet_id] || subnet.subnet_id }
@@ -141,8 +142,9 @@ module Cumulus
         end
 
         # Inbound and outbound network acls
+        local_network_acls = @network_acls.map { |acl_name| Loader.network_acl(acl_name) }
         aws_network_acls = EC2::vpc_network_acls[aws.vpc_id]
-        network_acl_diff = VpcDiff.network_acls(aws_network_acls, @network_acls)
+        network_acl_diff = VpcDiff.network_acls(aws_network_acls, local_network_acls)
         if network_acl_diff
           diffs << network_acl_diff
         end

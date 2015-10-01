@@ -93,11 +93,14 @@ module Cumulus
         end
       end
 
+
+      # Public: Migrates the existing AWS config to Cumulus
       def migrate
         # Create the directories
         vpc_dir = "#{@migration_root}/vpc"
         policies_dir = "#{vpc_dir}/policies"
         route_tables_dir = "#{vpc_dir}/route-tables"
+        network_acls_dir = "#{vpc_dir}/network-acls"
         subnets_dir = "#{vpc_dir}/subnets"
         vpcs_dir = "#{vpc_dir}/vpcs"
 
@@ -113,6 +116,9 @@ module Cumulus
         if !Dir.exists?(route_tables_dir)
           Dir.mkdir(route_tables_dir)
         end
+        if !Dir.exists?(network_acls_dir)
+          Dir.mkdir(network_acls_dir)
+        end
         if !Dir.exists?(subnets_dir)
           Dir.mkdir(subnets_dir)
         end
@@ -123,15 +129,16 @@ module Cumulus
         # Migrate the different assets
         migrate_policies(policies_dir)
         route_table_names = migrate_route_tables(route_tables_dir)
-        subnet_names = migrate_subnets(subnets_dir, route_table_names)
-        migrate_vpcs(vpcs_dir, route_table_names, subnet_names)
+        network_acl_names = migrate_network_acls(network_acls_dir)
+        subnet_names = migrate_subnets(subnets_dir, route_table_names, network_acl_names)
+        migrate_vpcs(vpcs_dir, route_table_names, subnet_names, network_acl_names)
       end
 
       # Public: Migrates the endpoint policies. Uses Version to name the file
       #
       # dir - the directory to store policies in
       def migrate_policies(dir)
-        puts "Migrating policies to #{dir}"
+        puts Colors.blue("Migrating policies to #{dir}")
         # Get the policies for each endpoint
         policies = EC2::endpoints.map { |endpoint| endpoint.parsed_policy }
         policies.each do |policy|
@@ -148,7 +155,7 @@ module Cumulus
       #
       # Returns a Hash of route table id to file name
       def migrate_route_tables(dir)
-        puts "Migrating route tables to #{dir}"
+        puts Colors.blue("Migrating route tables to #{dir}")
         Hash[EC2::named_route_tables.map do |name, route_table|
           puts "Migrating route table #{name}"
 
@@ -161,18 +168,38 @@ module Cumulus
         end]
       end
 
+      # Public: Migrate Network ACLs. Uses name if available or id to name file.
+      #
+      # dir - the directory to store network acl configurations in
+      #
+      # Returns a Hash of network acl id to file name
+      def migrate_network_acls(dir)
+        puts Colors.blue("Migrating network acls to #{dir}")
+        Hash[EC2::named_network_acls.map do |name, network_acl|
+          puts "Migrating network acl #{name}"
+
+          cumulus_acl = NetworkAclConfig.new(name).populate!(network_acl)
+
+          json = JSON.pretty_generate(cumulus_acl.to_hash)
+          File.open("#{dir}/#{name}.json", "w") { |f| f.write(json) }
+
+          [network_acl.network_acl_id, name]
+        end]
+      end
+
       # Public: Migrates subnets. Uses name if available or id to name file.
       #
       # dir - the directory to store subnet configurations in
       # rt_map - a map of route table ids to names to substitute for in the subnet config
+      # acl_map - a map of network acl ids to names to substitute for in the subnet config
       #
       # Returns a hash of subnet id to file name
-      def migrate_subnets(dir, rt_map)
-        puts "Migrating subnets to #{dir}"
+      def migrate_subnets(dir, rt_map, acl_map)
+        puts Colors.blue("Migrating subnets to #{dir}")
         Hash[EC2::named_subnets.map do |name, subnet|
           puts "Migrating subnet #{name}"
 
-          cumulus_subnet = SubnetConfig.new(name).populate!(subnet, rt_map)
+          cumulus_subnet = SubnetConfig.new(name).populate!(subnet, rt_map, acl_map)
 
           json = JSON.pretty_generate(cumulus_subnet.to_hash)
           File.open("#{dir}/#{name}.json", "w") { |f| f.write(json) }
@@ -186,12 +213,13 @@ module Cumulus
       # dir - the directory to store vpc configurations in
       # rt_map - a map of route table ids to names to substitute for in the vpc config
       # subnet_map - a map of subnet ids to names to substitute for in the vpc config
-      def migrate_vpcs(dir, rt_map, subnet_map)
-        puts "Migrating vpcs to #{dir}"
+      # acl_map - a map of network acl ids to names to substitute fo rin the vpc config
+      def migrate_vpcs(dir, rt_map, subnet_map, acl_map)
+        puts Colors.blue("Migrating vpcs to #{dir}")
         Hash[EC2::named_vpcs.map do |name, vpc|
           puts "Migrating vpc #{name}"
 
-          cumulus_vpc = (VpcConfig.new(name)).populate!(vpc, rt_map, subnet_map)
+          cumulus_vpc = (VpcConfig.new(name)).populate!(vpc, rt_map, subnet_map, acl_map)
 
           json = JSON.pretty_generate(cumulus_vpc.to_hash)
           File.open("#{dir}/#{name}.json", "w") { |f| f.write(json) }
