@@ -25,17 +25,17 @@ An autoscaling group definition is just a JSON object. By default, the definitio
 * `load-balancers` - an array of the names of load balancers to assign this autoscaling group to
 * `policies` - a JSON object defining the scaling policies to attach to the autoscaling group. Details are in a [later section](#scaling-policies).
 * `scheduled` - an array of JSON objects, each describing a scheduled scaling action. More details in the [next section](#scheduled-scaling-actions).
-* `size` - a JSON object containing the following attributes that have to do with group size.
+* `size` - a JSON object containing the following attributes that have to do with group size. These attributes are not necessarily the values that will be used when diffing or syncing. See [Syncing Size](#syncing-size) for more information
   * `min` - the minimum number of instances in the autoscaling group
   * `max` - the maximum number of instances in the autoscaling group
-  * `desired` - the desired number of instances in the autoscaling group
+  * `desired` - the desired number of instances in the autoscaling group. If not set, `desired` will bet set to `min` when creating the autoscaling group
 * `subnets` - an array of the subnets the autoscaling group should belong to
 * `tags` - a JSON object who's keys and values will be used as tags for the autoscaling group
 * `termination` - an array of the termination policies that should be applied to the autoscaling group. Amazon provides a <a href="http://docs.aws.amazon.com/AutoScaling/latest/DeveloperGuide/AutoScalingBehavior.InstanceTermination.html#custom-termination-policy" target="_blank">list of termination policies</a>.
 
 ### Scheduled Scaling Actions
 
-An autoscaling group can be configured such that scaling actions take place on a scheduled basis. Scheduled scaling actions change the min, max, and desired number of instances in the autoscaling group on a scheduled basis. Each scheduled scaling action is a JSON object in the `scheduled` array of the autoscaling group definition, and contains the following attributes:
+An autoscaling group can be configured such that scaling actions take place on a scheduled basis. Scheduled scaling actions change the min, max, and desired number of instances in the autoscaling group. When syncing autoscaling groups that have scheduled actions, the size of the group may depend on what is configured in a scheduled action (see [Syncing Size](#syncing-size) for more information). Each scheduled scaling action is a JSON object in the `scheduled` array of the autoscaling group definition, and contains the following attributes:
 
 * `name` - the name of the scheduled action
 * `start` - the starting time of the scheduled action in "YYYY-MM-DDThh:mm:ssZ" format
@@ -96,11 +96,39 @@ Cumulus's autoscaling module has the following usage:
 cumulus autoscaling [diff|help|list|migrate|sync] <asset>
 {% endhighlight %}
 
-Autoscaling groups can be diffed, listed, and synced (migrate is covered in the [following section](#migration)). These three actions do the following:
+Autoscaling groups can be diffed, listed, and synced (migrate is covered in [migration](#migration)). These three actions do the following:
 
 * `diff` - Shows the differences between the local definition and the AWS autoscaling configuration. If `<asset>` is specified, Cumulus will diff only the autoscaling group with that name.
 * `list` - Lists the names of all the autoscaling groups defined in local configuration
 * `sync` - Syncs local configuration with AWS. If `<asset>` is specified, Cumulus will sync only the autoscaling group with that name.
+
+
+### Syncing Size
+
+Because autoscaling groups can change in size in response to alarms or scheduled actions, the size (min, max, and desired instances) of an autoscaling group is synced a little differently than the other configuration options. If the local configuration has any scheduled actions configured, we will set the min and max size of the autoscaling group to match the last scheduled action that would have ran. Desired is never updated unless it is not in the min/max bounds. This behavior can be overridden by passing the `--autoscaling-force-size` argument with the sync command, which will use the configured size on the autoscaling group instead of the most recent scheduled action.
+
+For example, suppose we have an autoscaling group configured as follows:
+
+{% highlight json %}
+{
+  ...
+  "scheduled": [
+    {
+      "name": "Scale up at 9am UTC",
+      "recurrence": "0 9 * * *",
+      "min": 9
+    }
+  ],
+  "size": {
+    "min": 3,
+    "max": 21,
+    "desired": 4
+  }
+  ...
+}
+{% endhighlight %}
+
+If the current time is 10am UTC, we will use a `min` value of 9, a `max` value of 21, and a `desired` value of 9 when comparing the local configuration to AWS configuration. Notice that if the `desired` value in AWS is outside of the new range, it will be updated to be within the range by raising the value to the `min` or lowering it to the `max`. If using the `--autoscaling-force-size` argument when diffing or syncing, the values of 3, 21, and 4 will be used for `min`, `max`, and `desired` respectively.
 
 ### Migration
 
