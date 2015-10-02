@@ -31,7 +31,7 @@ module Cumulus
         aws_resources.each_value do |resource|
           puts "Processing #{resource.group_name}..."
           config = SecurityGroupConfig.new(resource.group_name)
-          config.populate(resource, sg_ids_to_names)
+          config.populate!(resource)
 
           puts "Writing #{resource.group_name} configuration to file..."
           File.open("#{groups_dir}/#{config.name}.json", "w") { |f| f.write(config.pretty_json) }
@@ -60,10 +60,6 @@ module Cumulus
         @aws_resources ||= SecurityGroups::name_security_groups
       end
 
-      def sg_ids_to_names
-        @sg_ids_to_names ||= Hash[aws_resources.map { |name, aws| [aws.group_id, aws.group_name] }]
-      end
-
       def unmanaged_diff(aws)
         SecurityGroupDiff.unmanaged(aws)
       end
@@ -73,7 +69,7 @@ module Cumulus
       end
 
       def diff_resource(local, aws)
-        local.diff(aws, sg_ids_to_names)
+        local.diff(aws)
       end
 
       def create(local)
@@ -84,12 +80,7 @@ module Cumulus
         })
         security_group_id = result.group_id
 
-        # make sure the hash exists before we try to update it
-        if @sg_ids_to_names.nil?
-          sg_ids_to_names
-        end
-
-        @sg_ids_to_names[security_group_id] = local.name
+        SecurityGroups::sg_id_names[security_group_id] = local.name
         update_tags(security_group_id, local.tags, {})
         update_inbound(security_group_id, local.inbound, [])
 
@@ -199,32 +190,12 @@ module Cumulus
           options[:remove_action].call({
             group_id: security_group_id,
             ip_permissions: remove.map do |removed|
-              permission = {
-                ip_protocol: removed.protocol,
-                from_port: removed.from,
-                to_port: removed.to
-              }
-
-              if removed.security_groups.any? { |s| @sg_ids_to_names.key(s).nil? }
-                security_group = removed.security_groups.find { |s| @sg_ids_to_names.key(s).nil? }
-                puts Colors.red("\t\tNo such security group: #{security_group}. Security group not removed.")
+              missing_group = removed.security_groups.find { |s| !SecurityGroups::sg_id_names.value? s }
+              if missing_group
+                puts Colors.red("\t\tNo such security group: #{missing_group}. Security group not removed.")
               end
 
-              # put the security group or subnets into the request
-              if !removed.security_groups.empty?
-                permission[:user_id_group_pairs] = removed.security_groups.map do |security_group|
-                  {
-                    group_id: @sg_ids_to_names.key(security_group)
-                  }
-                end
-              end
-              if !removed.subnets.empty?
-                permission[:ip_ranges] = removed.subnets.map do |subnet|
-                  { cidr_ip: subnet }
-                end
-              end
-
-              permission
+              removed.to_aws
             end
           })
         end
@@ -234,30 +205,12 @@ module Cumulus
           options[:add_action].call({
             group_id: security_group_id,
             ip_permissions: add.map do |added|
-              permission = {
-                ip_protocol: added.protocol,
-                from_port: added.from,
-                to_port: added.to
-              }
-
-              if added.security_groups.any? { |s| @sg_ids_to_names.key(s).nil? }
-                security_group = added.security_groups.find { |s| @sg_ids_to_names.key(s).nil? }
-                puts Colors.red("\t\tNo such security group: #{security_group}. Security group not added.")
+              missing_group = added.security_groups.find { |s| !SecurityGroups::sg_id_names.value? s }
+              if missing_group
+                puts Colors.red("\t\tNo such security group: #{missing_group}. Security group not added.")
               end
 
-              # put the security group or subnets into the request
-              if !added.security_groups.empty?
-                permission[:user_id_group_pairs] = added.security_groups.map do |security_group|
-                  { group_id: @sg_ids_to_names.key(security_group) }
-                end
-              end
-              if !added.subnets.empty?
-                permission[:ip_ranges] = added.subnets.map do |subnet|
-                  { cidr_ip: subnet }
-                end
-              end
-
-              permission
+              added.to_aws
             end
           })
         end

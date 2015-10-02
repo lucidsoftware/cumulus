@@ -4,6 +4,8 @@ module Cumulus
     class RuleMigration
 
       attr_reader :ports
+      attr_reader :icmp_type
+      attr_reader :icmp_code
       attr_reader :protocol
       attr_reader :security_groups
       attr_reader :subnets
@@ -14,7 +16,7 @@ module Cumulus
       #
       # Returns the corresponding RuleMigration
       def self.from_rule_config(rule_config)
-        ports = if rule_config.from.nil? and rule_config.to.nil?
+        ports = if (rule_config.from.nil? and rule_config.to.nil?) or rule_config.protocol == "icmp"
           nil
         else
           if rule_config.from == rule_config.to
@@ -23,6 +25,9 @@ module Cumulus
             ["#{rule_config.from}-#{rule_config.to}"]
           end
         end
+
+        icmp_type = if rule_config.protocol == "icmp" then rule_config.from end
+        icmp_code = if rule_config.protocol == "icmp" then rule_config.to end
 
         # we're gonna replace any "0.0.0.0/0" with all to educate users on subnets.json
         subnets = rule_config.subnets.map do |subnet|
@@ -36,6 +41,8 @@ module Cumulus
         RuleMigration.new(
           ports,
           rule_config.protocol,
+          icmp_type,
+          icmp_code,
           rule_config.security_groups,
           subnets
         )
@@ -45,11 +52,15 @@ module Cumulus
       #
       # ports           - an array of the ports to put into cumulus config, or nil for all
       # protocol        - the protocol for the rule
+      # icmp_type       - if protocol is icmp, the icmp type
+      # icmp_code       - if protocol is icmp, the icmp code
       # security_groups - an array of security group names for the rule, or nil if there are no security groups
       # subnets         - an array of subnets to include in the rule, or nil if there are no subnets
-      def initialize(ports, protocol, security_groups, subnets)
+      def initialize(ports, protocol, icmp_type, icmp_code, security_groups, subnets)
         @ports = ports
         @protocol = protocol
+        @icmp_type = icmp_type
+        @icmp_code = icmp_code
         @security_groups = security_groups
         @subnets = subnets
       end
@@ -62,6 +73,8 @@ module Cumulus
           "security-groups" => @security_groups,
           "protocol" => @protocol,
           "ports" => @ports,
+          "icmp-type" => @icmp_type,
+          "icmp-code" => @icmp_code,
           "subnets" => @subnets,
         }.reject { |k, v| v.nil? }
       end
@@ -76,6 +89,8 @@ module Cumulus
         RuleMigration.new(
           @ports,
           @protocol,
+          @icmp_type,
+          @icmp_code,
           @security_groups + other.security_groups,
           @subnets + other.subnets
         )
@@ -91,7 +106,7 @@ module Cumulus
       # or an array of the two original RuleMigrations
       def combine_ports(other)
         # In this case, they should be identical, we just return self
-        if @ports.nil? and other.ports.nil?
+        if !@ports and !other.ports
           self
         # at this point we're guaranteed that if one of the ports is nil, the other is not
         elsif @ports.nil? or other.ports.nil?
@@ -100,6 +115,8 @@ module Cumulus
           RuleMigration.new(
             @ports + other.ports,
             @protocol,
+            @icmp_type,
+            @icmp_code,
             @security_groups,
             @subnets
           )

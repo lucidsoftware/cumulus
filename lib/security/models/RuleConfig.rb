@@ -1,4 +1,5 @@
 require "security/loader/Loader"
+require "security/SecurityGroups"
 
 module Cumulus
   module SecurityGroups
@@ -14,24 +15,22 @@ module Cumulus
       # Public: Static method that will produce a RuleConfig from an AWS rule resource.
       #
       # aws - the aws resource to use
-      # sg_ids_to_names - a mapping of security group ids to their names
       #
       # Returns a RuleConfig containing the data in the AWS rule
-      def RuleConfig.from_aws(aws, sg_ids_to_names)
-        from_port = aws.from_port
-        to_port = aws.to_port
-        if from_port == -1 or to_port == -1
-          from_port = nil
-          to_port = nil
-        end
-
+      def RuleConfig.from_aws(aws)
         RuleConfig.new({
-          "security-groups" => aws.user_id_group_pairs.map { |security| sg_ids_to_names[security.group_id] },
-          "protocol" => aws.ip_protocol,
-          "from-port" => from_port,
-          "to-port" => to_port,
-          "subnets" => aws.ip_ranges.map { |ip| ip.cidr_ip }
-        })
+          "security-groups" => aws.user_id_group_pairs.map { |security| SecurityGroups::sg_id_names[security.group_id] },
+          "protocol" => if aws.ip_protocol == "-1" then "all" else aws.ip_protocol end,
+          "from-port" => if aws.ip_protocol != "icmp" and aws.from_port != -1 then aws.from_port end,
+          "to-port" => if aws.ip_protocol != "icmp" and aws.to_port != -1 then aws.to_port end,
+          "icmp-type" => if aws.ip_protocol == "icmp"
+            if aws.from_port != -1 then aws.from_port else "all" end
+          end,
+          "icmp-code" => if aws.ip_protocol == "icmp"
+            if aws.to_port != -1 then aws.to_port  else "all" end
+          end,
+          "subnets" => aws.ip_ranges.map { |ip| ip.cidr_ip },
+        }.reject { |k, v| v.nil? })
       end
 
       # Public: Static method that will produce a RuleConfig that allows all access
@@ -77,9 +76,16 @@ module Cumulus
       #
       # json - a hash containing the JSON configuration for the rule
       def initialize(json)
-        @from = json["from-port"]
         @protocol = json["protocol"]
-        @to = json["to-port"]
+
+        if @protocol.downcase == "icmp"
+          @from = json["icmp-type"]
+          @to = json["icmp-code"]
+        else
+          @from = json["from-port"]
+          @to = json["to-port"]
+        end
+
         @security_groups = if !json["security-groups"].nil? then json["security-groups"] else [] end
         @subnets = if !json["subnets"].nil?
           json["subnets"].flat_map do |subnet|
@@ -94,14 +100,6 @@ module Cumulus
         end
       end
 
-      # Public: Get the protocol. If "all" was specified in the configuration,
-      # "-1" will be returned, which is what AWS uses to specify all.
-      #
-      # Returns the protocol
-      def protocol
-        if @protocol == "all" then "-1" else @protocol end
-      end
-
       # Public: Get the configuration as a hash
       #
       # Returns the hash
@@ -109,22 +107,51 @@ module Cumulus
         security_hashes = @security_groups.map do |security_group|
           {
             "security-groups" => [security_group],
-            "protocol" => protocol,
-            "from-port" => @from,
-            "to-port" => @to,
+            "protocol" => @protocol,
+            "from-port" => if @protocol != "icmp" then @from end,
+            "to-port" => if @protocol != "icmp" then @to end,
             "subnets" => [],
+            "icmp-type" => if @protocol == "icmp" then @from end,
+            "icmp-code" => if @protocol == "icmp" then @to end,
           }.reject { |k, v| v.nil? }
         end
         subnet_hashes = @subnets.map do |subnet|
           {
             "security-groups" => [],
-            "protocol" => protocol,
-            "from-port" => @from,
-            "to-port" => @to,
-            "subnets" => [subnet]
+            "protocol" => @protocol,
+            "from-port" => if @protocol != "icmp" then @from end,
+            "to-port" => if @protocol != "icmp" then @to end,
+            "subnets" => [subnet],
+            "icmp-type" => if @protocol == "icmp" then @from end,
+            "icmp-code" => if @protocol == "icmp" then @to end,
           }.reject { |k, v| v.nil? }
         end
+
         security_hashes + subnet_hashes
+      end
+
+      # Public: Converts the RuleConfig into the format needed by AWS
+      # to authorize/deauthorize rules
+      def to_aws
+        {
+          ip_protocol: if @protocol == "all" then "-1" else @protocol end,
+          from_port: if @from == "all" then "-1" else @from end,
+          to_port: if @to == "all" then "-1" else @to end,
+          user_id_group_pairs: if !@security_groups.empty?
+            @security_groups.map do |sg|
+              {
+                group_id: SecurityGroups::sg_id_names.key(sg)
+              }
+            end
+          end,
+          ip_ranges: if !@subnets.empty?
+            @subnets.map do |subnet|
+              {
+                cidr_ip: subnet
+              }
+            end
+          end
+        }
       end
 
     end

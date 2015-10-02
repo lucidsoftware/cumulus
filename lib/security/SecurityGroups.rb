@@ -20,6 +20,10 @@ module Cumulus
         @security_groups ||= @@client.describe_security_groups.security_groups
       end
 
+      def sg_id_names
+        @sg_id_names ||= Hash[security_groups.map { |sg| [sg.group_id, sg.group_name] }]
+      end
+
     end
   end
 end
