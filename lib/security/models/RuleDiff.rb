@@ -55,7 +55,9 @@ module Cumulus
         allowed = (config.security_groups + config.subnets).join(", ")
 
         temp = "Allowed: #{allowed}, Protocol: #{protocol}, "
-        if config.from != config.to
+        if protocol.downcase == "icmp"
+          temp << "Type: #{config.from}, Code: #{config.to}"
+        elsif config.from != config.to
           temp << "Ports: #{config.from}-#{config.to}"
         elsif config.from.nil?
           temp << "Ports: All"

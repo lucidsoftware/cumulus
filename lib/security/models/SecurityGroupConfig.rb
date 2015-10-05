@@ -45,10 +45,9 @@ module Cumulus
       # configuration in AWS
       #
       # aws - the aws resource
-      # sg_ids_to_names - a mapping of security group ids to their names
       #
       # Returns an array of the SecurityGroupDiffs that were found
-      def diff(aws, sg_ids_to_names)
+      def diff(aws)
         diffs = []
 
         if @description != aws.description
@@ -61,12 +60,12 @@ module Cumulus
           diffs << SecurityGroupDiff.new(SecurityGroupChange::TAGS, aws, self)
         end
 
-        inbound_diffs = diff_rules(@inbound, aws.ip_permissions, sg_ids_to_names)
+        inbound_diffs = diff_rules(@inbound, aws.ip_permissions)
         if !inbound_diffs.empty?
           diffs << SecurityGroupDiff.inbound(aws, self, inbound_diffs)
         end
 
-        outbound_diffs = diff_rules(@outbound, aws.ip_permissions_egress, sg_ids_to_names)
+        outbound_diffs = diff_rules(@outbound, aws.ip_permissions_egress)
         if !outbound_diffs.empty?
           diffs << SecurityGroupDiff.outbound(aws, self, outbound_diffs)
         end
@@ -77,13 +76,12 @@ module Cumulus
       # Public: Populate this SecurityGroupConfig from an AWS resource
       #
       # aws             - the aws resource
-      # sg_ids_to_names - a mapping of security group ids to their names
-      def populate(aws, sg_ids_to_names)
+      def populate!(aws)
         @description = aws.description
         @vpc_id = aws.vpc_id
         @tags = Hash[aws.tags.map { |t| [t.key, t.value] }]
-        @inbound = combine_rules(aws.ip_permissions.map { |rule| RuleConfig.from_aws(rule, sg_ids_to_names) })
-        @outbound = combine_rules(aws.ip_permissions_egress.map { |rule| RuleConfig.from_aws(rule, sg_ids_to_names) })
+        @inbound = combine_rules(aws.ip_permissions.map { |rule| RuleConfig.from_aws(rule) })
+        @outbound = combine_rules(aws.ip_permissions_egress.map { |rule| RuleConfig.from_aws(rule) })
       end
 
       # Public: Get the config as a prettified JSON string.
@@ -95,8 +93,8 @@ module Cumulus
           "vpc-id" => @vpc_id,
           "tags" => @tags,
           "rules" => {
-            "inbound" => @inbound.map(&:hash).each { |r| if r["protocol"] == "-1" then r["protocol"] = "all" end },
-            "outbound" => @outbound.map(&:hash).each { |r| if r["protocol"] == "-1" then r["protocol"] = "all" end }
+            "inbound" => @inbound.map(&:hash),
+            "outbound" => @outbound.map(&:hash),
           }
         }.reject { |k, v| v.nil? })
       end
@@ -107,15 +105,14 @@ module Cumulus
       #
       # local_rules     - the rules defined locally
       # aws_rules       - the rules in AWS
-      # sg_ids_to_names - a mapping of security group ids to their names
       #
       # Returns an array of RuleDiffs that represent differences between local and AWS configuration
-      def diff_rules(local_rules, aws_rules, sg_ids_to_names)
+      def diff_rules(local_rules, aws_rules)
         diffs = []
 
         # get the aws config into a format that mirrors cumulus so we can compare
         aws = aws_rules.map do |rule|
-          RuleConfig.from_aws(rule, sg_ids_to_names)
+          RuleConfig.from_aws(rule)
         end
         aws_hashes = aws.flat_map(&:hash)
         local_hashes = local_rules.flat_map(&:hash)
@@ -133,11 +130,15 @@ module Cumulus
       #
       # Returns an array of compact rules
       def combine_rules(rules)
+        # separate out icmp rules
+        all_rules = rules.map(&RuleMigration.method(:from_rule_config))
+        icmp_rules = all_rules.select { |rule| rule.protocol == "icmp" }
+
         # first we find the ones that have the same protocol and port
-        rules.map(&RuleMigration.method(:from_rule_config)).group_by do |rule|
+        other_rules = all_rules.reject { |rule| rule.protocol == "icmp" }.group_by do |rule|
           [rule.protocol, rule.ports]
         # next, we combine the matching rules together
-        end.flat_map do |ignored, matches|
+        end.flat_map do |_, matches|
           if matches.size == 1
             matches
           else
@@ -147,13 +148,15 @@ module Cumulus
         end.group_by do |rule|
           [rule.protocol, rule.security_groups, rule.subnets]
         # finally, we'll combine ports for the matches
-        end.flat_map do |ignored, matches|
+        end.flat_map do |_, matches|
           if matches.size == 1
             matches
           else
             matches[1..-1].inject(matches[0]) { |prev, cur| prev.combine_ports(cur) }
           end
         end
+
+        icmp_rules + other_rules
       end
     end
   end
