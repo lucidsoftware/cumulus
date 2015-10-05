@@ -400,13 +400,11 @@ module Cumulus
       def update_dhcp_options(aws_vpc, dhcp_config)
         old_options_id = aws_vpc.dhcp_options_id
 
-        dhcp_options = dhcp_config.to_aws
-
-        options_id = if dhcp_options.empty?
+        options_id = if !dhcp_config or dhcp_config.to_aws.empty?
           "default"
         else
           @client.create_dhcp_options({
-            dhcp_configurations: dhcp_options
+            dhcp_configurations: dhcp_config.to_aws
           }).dhcp_options.dhcp_options_id
         end
 
@@ -418,7 +416,7 @@ module Cumulus
         EC2::refresh_vpcs!
 
         # Delete the old options if no other vpc depends on it
-        if !EC2::vpcs.any? { |vpc| vpc.dhcp_options_id == old_options_id }
+        if old_options_id != "default" and !EC2::vpcs.any? { |vpc| vpc.dhcp_options_id == old_options_id }
           @client.delete_dhcp_options({
             dhcp_options_id: old_options_id
           })

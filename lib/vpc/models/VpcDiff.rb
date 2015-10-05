@@ -56,8 +56,15 @@ module Cumulus
       end
 
       def self.dhcp(aws, local)
-        dhcp_diffs = local.diff(aws)
-        if !dhcp_diffs.empty?
+        dhcp_diffs = if !aws and local
+          [DhcpDiff.added(local)]
+        elsif !local and aws
+          [DhcpDiff.unmanaged(aws)]
+        elsif local and aws
+          local.diff(aws)
+        end
+
+        if dhcp_diffs and !dhcp_diffs.empty?
           diff = VpcDiff.new(DHCP, aws, local)
           diff.changes = dhcp_diffs
           diff
@@ -223,8 +230,16 @@ module Cumulus
         when DHCP
           [
             "DHCP Options:",
-            @dhcp.map do |diff|
-              diff.to_s.lines.map { |l| "\t#{l}".chomp("\n") }
+            if !@aws
+              Colors.added(
+                JSON.pretty_generate(@local.to_hash).lines.map { |l| "\t#{l}".chomp("\n") }.join("\n")
+              )
+            elsif !@local
+              Colors.unmanaged("\tChanging DHCP options to default")
+            else
+              @changes.map do |diff|
+                diff.to_s.lines.map { |l| "\t#{l}".chomp("\n") }
+              end
             end
           ].flatten.join("\n")
         when ROUTE_TABLES
