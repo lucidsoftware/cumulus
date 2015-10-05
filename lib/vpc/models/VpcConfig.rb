@@ -67,8 +67,10 @@ module Cumulus
         @cidr_block = aws.cidr_block
         @tenancy = aws.instance_tenancy
 
-        aws_dhcp = EC2::id_dhcp_options[aws.dhcp_options_id]
-        @dhcp = DhcpConfig.new().populate!(aws_dhcp)
+        if aws.dhcp_options_id != "default"
+          aws_dhcp = EC2::id_dhcp_options[aws.dhcp_options_id]
+          @dhcp = DhcpConfig.new().populate!(aws_dhcp)
+        end
 
         aws_rts = EC2::vpc_route_tables[aws.vpc_id]
         rt_names = aws_rts.map { |rt| route_table_map[rt.route_table_id] || rt.route_table_id }

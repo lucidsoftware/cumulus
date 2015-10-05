@@ -51,10 +51,6 @@ module Cumulus
         "DHCP Options"
       end
 
-      def aws_name
-        @aws.name
-      end
-
       def diff_string
         case @type
         when DOMAIN_SERVERS

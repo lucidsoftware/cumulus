@@ -68,8 +68,9 @@ module Cumulus
       def diff(aws)
         diffs = []
 
-        if @domain_name_servers.sort != aws.domain_name_servers.sort
-          domain_servers_diff = DhcpDiff.domain_servers(aws.domain_name_servers, @domain_name_servers)
+        aws_domain_name_servers = (aws.domain_name_servers || []).sort
+        if @domain_name_servers.sort != aws_domain_name_servers
+          domain_servers_diff = DhcpDiff.domain_servers(aws_domain_name_servers, @domain_name_servers)
           diffs << domain_servers_diff if domain_servers_diff
         end
 
