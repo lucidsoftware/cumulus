@@ -1,5 +1,6 @@
 require "common/models/Diff"
 require "util/Colors"
+require "util/StatusCodes"
 
 module Cumulus
   module Common
@@ -87,6 +88,9 @@ module Cumulus
       # diffs - the differences between local configuration and AWS
       def print_difference(key, diffs)
         if diffs.size > 0
+
+          StatusCodes::set_status(StatusCodes::DIFFS)
+
           if diffs.size == 1 and (diffs[0].type == DiffChange::ADD or
             diffs[0].type == DiffChange::UNMANAGED)
             puts diffs[0]
@@ -106,6 +110,9 @@ module Cumulus
       # diffs - the differences between local configuration and AWS
       def sync_difference(key, diffs)
         if diffs.size > 0
+
+          StatusCodes::set_status(StatusCodes::SYNC_DIFFS)
+
           if diffs[0].type == DiffChange::UNMANAGED
             puts diffs[0]
           elsif diffs[0].type == DiffChange::ADD
