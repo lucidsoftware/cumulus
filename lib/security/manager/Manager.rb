@@ -185,6 +185,21 @@ module Cumulus
       #   - add_action        - the client method to call to add rules
       #   - remove_action     - the client method to call to remove rules
       def update_rules(security_group_id, add, remove, options)
+        if !add.empty?
+          puts Colors.blue("\tadding #{options[:type]} rules...")
+          options[:add_action].call({
+            group_id: security_group_id,
+            ip_permissions: add.map do |added|
+              missing_group = added.security_groups.find { |s| !SecurityGroups::sg_id_names.value? s }
+              if missing_group
+                puts Colors.red("\t\tNo such security group: #{missing_group}. Security group not added.")
+              end
+
+              added.to_aws
+            end
+          })
+        end
+
         if !remove.empty?
           puts Colors.blue("\tremoving #{options[:type]} rules...")
           options[:remove_action].call({
@@ -200,20 +215,6 @@ module Cumulus
           })
         end
 
-        if !add.empty?
-          puts Colors.blue("\tadding #{options[:type]} rules...")
-          options[:add_action].call({
-            group_id: security_group_id,
-            ip_permissions: add.map do |added|
-              missing_group = added.security_groups.find { |s| !SecurityGroups::sg_id_names.value? s }
-              if missing_group
-                puts Colors.red("\t\tNo such security group: #{missing_group}. Security group not added.")
-              end
-
-              added.to_aws
-            end
-          })
-        end
       end
     end
   end
