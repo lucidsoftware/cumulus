@@ -349,7 +349,7 @@ module Modules
     end
 
     if ARGV[1] == "help"
-      puts "elb: Manage Virtual Private Cloud"
+      puts "vpc: Manage Virtual Private Cloud"
       puts "\tDiff and sync VPC configuration with AWS."
       puts
       puts "Usage: cumulus vpc [diff|help|list|migrate|sync|rename] <asset>"

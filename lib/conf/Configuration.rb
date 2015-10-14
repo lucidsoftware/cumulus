@@ -272,7 +272,7 @@ module Cumulus
       end
     end
 
-    # Public: Inner class that contains elb configuration options
+    # Public: Inner class that contains vpc configuration options
     class VpcConfig
       include Config
 
