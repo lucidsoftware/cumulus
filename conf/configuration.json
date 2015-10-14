@@ -101,5 +101,8 @@
 			"directory": "conf/vpc/network-acls"
 		}
 	},
+	"kinesis": {
+		"directory": "conf/kinesis"
+	},
 	"region": "us-east-1"
 }

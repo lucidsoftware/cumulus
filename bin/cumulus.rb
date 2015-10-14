@@ -390,6 +390,48 @@ module Modules
     end
   end
 
+  # Public: Run the kinesis module
+  def self.kinesis
+    if ARGV.size < 2 or (ARGV[1] != "help" and ARGV[1] != "diff" and ARGV[1] != "list" and ARGV[1] != "sync" and ARGV[1] != "migrate")
+      puts "Usage: cumulus kinesis [diff|help|list|migrate|sync] <asset>"
+      exit
+    end
+
+    if ARGV[1] == "help"
+      puts "kinesis: Manage Kinesis Streams"
+      puts "\tDiff and sync Kinesis configuration with AWS."
+      puts
+      puts "Usage: cumulus kinesis [diff|help|list|migrate|sync] <asset>"
+      puts
+      puts "Commands"
+      puts "\tdiff\t- print out differences between local configuration and AWS (supplying the name of the stream will diff only that stream)"
+      puts "\tlist\t- list the locally defined VPCs"
+      puts "\tsync\t- sync local stream definitions with AWS (supplying the name of the stream will sync only that stream)"
+      puts "\tmigrate\t- migrate AWS configuration to Cumulus"
+      exit
+    end
+
+    require "kinesis/manager/Manager"
+    kinesis = Cumulus::Kinesis::Manager.new
+    if ARGV[1] == "diff"
+      if ARGV.size == 2
+        kinesis.diff
+      else
+        kinesis.diff_one(ARGV[2])
+      end
+    elsif ARGV[1] == "sync"
+      if ARGV.size == 2
+        kinesis.sync
+      else
+        kinesis.sync_one(ARGV[2])
+      end
+    elsif ARGV[1] == "list"
+      kinesis.list
+    elsif ARGV[1] == "migrate"
+      kinesis.migrate
+    end
+  end
+
 end
 
 # read in the optional path to the configuration file to use
@@ -447,8 +489,8 @@ Cumulus::Configuration.init(project_root, options[:config], options[:profile], o
 
 if ARGV.size == 0 or (ARGV[0] != "iam" and ARGV[0] != "help" and ARGV[0] != "autoscaling" and
   ARGV[0] != "route53" and ARGV[0] != "s3" and ARGV[0] != "security-groups" and
-  ARGV[0] != "cloudfront" and ARGV[0] != "elb" and ARGV[0] != "vpc")
-  puts "Usage: cumulus [autoscaling|cloudfront|elb|help|iam|route53|s3|security-groups|vpc]"
+  ARGV[0] != "cloudfront" and ARGV[0] != "elb" and ARGV[0] != "vpc" and ARGV[0] != "kinesis")
+  puts "Usage: cumulus [autoscaling|cloudfront|elb|help|iam|kinesis|route53|s3|security-groups|vpc]"
   exit
 end
 
@@ -461,6 +503,7 @@ if ARGV[0] == "help"
   puts "\tcloudfront\t- Manages configuration for cloudfront distributions"
   puts "\telb\t\t- Manages configuration for elastic load balancers"
   puts "\tiam\t\t- Compiles IAM roles and policies that are defined with configuration files and syncs the resulting IAM roles and policies with AWS"
+  puts "\tkinesis\t- Manages configuration for Kinesis streams"
   puts "\troute53\t\t- Manages configuration for Route53"
   puts "\ts3\t\t- Manages configuration of S3 buckets"
   puts "\tsecurity-groups\t- Manages configuration for EC2 Security Groups"
@@ -475,6 +518,8 @@ elsif ARGV[0] == "cloudfront"
   Modules.cloudfront
 elsif ARGV[0] == "elb"
   Modules.elb
+elsif ARGV[0] == "kinesis"
+  Modules.kinesis
 elsif ARGV[0] == "route53"
   Modules.route53
 elsif ARGV[0] == "security-groups"
