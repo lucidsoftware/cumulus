@@ -78,9 +78,9 @@ module Cumulus
                   value: @suffix
                 } end
               ].reject { |e| e.nil? }
-            }
-          }
-        }.reject { |k, v| v.nil? }
+            }.reject { |k, v| v.nil? or v.empty? }
+          }.reject { |k, v| v.nil? or v.empty? }
+        }.reject { |k, v| v.nil? or v.empty? }
       end
 
       # Public: Produce an AWS compatible hash for this NotificationConfig.
