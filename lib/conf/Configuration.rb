@@ -88,7 +88,7 @@ module Cumulus
     include Config
 
     attr_reader :colors_enabled
-    attr_reader :iam, :autoscaling, :route53, :s3, :security, :cloudfront, :elb, :vpc
+    attr_reader :iam, :autoscaling, :route53, :s3, :security, :cloudfront, :elb, :vpc, :kinesis
     attr_reader :region, :profile
 
     # Internal: Constructor. Sets up the `instance` variable, which is the access
@@ -115,6 +115,7 @@ module Cumulus
       @s3 = S3Config.new
       @elb = ELBConfig.new
       @vpc = VpcConfig.new
+      @kinesis = KinesisConfig.new
     end
 
     class << self
@@ -272,7 +273,7 @@ module Cumulus
       end
     end
 
-    # Public: Inner class that contains elb configuration options
+    # Public: Inner class that contains vpc configuration options
     class VpcConfig
       include Config
 
@@ -289,6 +290,18 @@ module Cumulus
         @policies_directory = conf_abs_path "vpc.policies.directory"
         @network_acls_directory = conf_abs_path "vpc.network-acls.directory"
       end
+    end
+
+    # Public: Inner class that contains kinesis configuration options
+    class KinesisConfig
+      include Config
+
+      attr_reader :directory
+
+      def initialize
+        @directory = conf_abs_path "kinesis.directory"
+      end
+
     end
 
   end

@@ -1,0 +1,7 @@
+{
+  "shards": 2,
+  "retention-period": 24,
+  "tags": {
+  	"Key1": "Value1"
+  }
+}
