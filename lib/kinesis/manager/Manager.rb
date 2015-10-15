@@ -116,15 +116,15 @@ module Cumulus
                 aws_stream.sorted_shards.each do |shard|
                   puts Colors.blue("Splitting shard #{shard.shard_id}")
 
-                  # The splitting point is halfway between the hash start ane end
-                  hash_start = shard.hash_key_range.starting_hash_key.to_i(10)
-                  hash_end = shard.hash_key_range.ending_hash_key.to_i(10)
+                  # The splitting point is halfway between the hash start and end
+                  hash_start = shard.hash_key_range.starting_hash_key.to_i
+                  hash_end = shard.hash_key_range.ending_hash_key.to_i
                   hash_split = hash_start + ((hash_end - hash_start) / 2)
 
                   @client.split_shard({
                     stream_name: local.name,
                     shard_to_split: shard.shard_id,
-                    new_starting_hash_key: hash_split.to_s(10)
+                    new_starting_hash_key: hash_split.to_s
                   })
 
                   # After every split we have to wait until the stream is ready
@@ -135,19 +135,13 @@ module Cumulus
 
               end
             elsif diff.aws > diff.local
-              if diff.aws != diff.local * 2.0
+              aws_stream = Kinesis::named_streams[local.name]
+
+              if aws_stream.sorted_shards.length != local.shards * 2.0
                 puts Colors.red("Can only decrease the number of shards by a factor of 2")
               else
-
-                aws_stream = Kinesis::named_streams[local.name]
-
                 # Merge the sorted shards in groups of 2
                 aws_stream.sorted_shards.each_slice(2) do |slice|
-
-                  if slice.length != 2
-                    raise "Cannot merge shards because there are not enough to merge"
-                  end
-
                   puts Colors.blue("Merging shards #{slice[0].shard_id} and #{slice[1].shard_id}")
 
                   @client.merge_shards({
