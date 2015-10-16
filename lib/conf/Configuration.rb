@@ -88,7 +88,7 @@ module Cumulus
     include Config
 
     attr_reader :colors_enabled
-    attr_reader :iam, :autoscaling, :route53, :s3, :security, :cloudfront, :elb, :vpc, :kinesis
+    attr_reader :iam, :autoscaling, :route53, :s3, :security, :cloudfront, :elb, :vpc, :kinesis, :sqs
     attr_reader :region, :profile
 
     # Internal: Constructor. Sets up the `instance` variable, which is the access
@@ -116,6 +116,7 @@ module Cumulus
       @elb = ELBConfig.new
       @vpc = VpcConfig.new
       @kinesis = KinesisConfig.new
+      @sqs = SQSConfig.new
     end
 
     class << self
@@ -302,6 +303,19 @@ module Cumulus
         @directory = conf_abs_path "kinesis.directory"
       end
 
+    end
+
+    # Public: Inner class that contains SQS configuration options
+    class SQSConfig
+      include Config
+
+      attr_reader :queues_directory
+      attr_reader :policies_directory
+
+      def initialize
+        @queues_directory = conf_abs_path "sqs.queues.directory"
+        @policies_directory = conf_abs_path "sqs.policies.directory"
+      end
     end
 
   end

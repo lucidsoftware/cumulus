@@ -1,0 +1,15 @@
+{
+  "Version": "2008-10-17",
+  "Id": "example-ID",
+  "Statement": [
+    {
+      "Sid": "example-statement-ID",
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": "*"
+      },
+      "Action": "SQS:SendMessage",
+      "Resource": "arn:aws:sqs:us-east-1:AWS_ACCOUNT_ID:example-queue"
+    }
+  ]
+}

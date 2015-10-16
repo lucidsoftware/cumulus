@@ -104,5 +104,13 @@
 	"kinesis": {
 		"directory": "conf/kinesis"
 	},
+	"sqs": {
+		"queues": {
+			"directory": "conf/sqs/queues"
+		},
+		"policies": {
+			"directory": "conf/sqs/policies"
+		}
+	},
 	"region": "us-east-1"
 }
