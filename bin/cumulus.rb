@@ -432,6 +432,50 @@ module Modules
     end
   end
 
+  # Public: Run the SQS module
+  def self.sqs
+    if ARGV.size < 2 or (ARGV[1] != "help" and ARGV[1] != "diff" and ARGV[1] != "list" and ARGV[1] != "urls" and ARGV[1] != "sync" and ARGV[1] != "migrate")
+      puts "Usage: cumulus sqs [diff|help|list|migrate|sync|urls] <asset>"
+    end
+
+    if ARGV[1] == "help"
+      puts "SQS: Manage SQS"
+      puts "\tDiff and sync SQS configuration with AWS."
+      puts
+      puts "Usage: cumulus sqs [diff|help|list|migrate|sync|urls] <asset>"
+      puts
+      puts "Commands"
+      puts "\tdiff\t- print out differences between local configuration and AWS (supplying the name of the queue will diff only that queue)"
+      puts "\tlist\t- list the locally defined queues"
+      puts "\turls\t- list the url for each locally defined queue"
+      puts "\tsync\t- sync local queue definitions with AWS (supplying the name of the queue will sync only that queue)"
+      puts "\tmigrate\t- migrate AWS configuration to Cumulus"
+      exit
+    end
+
+    require "sqs/manager/Manager"
+    sqs = Cumulus::SQS::Manager.new
+    if ARGV[1] == "diff"
+      if ARGV.size == 2
+        sqs.diff
+      else
+        sqs.diff_one(ARGV[2])
+      end
+    elsif ARGV[1] == "sync"
+      if ARGV.size == 2
+        sqs.sync
+      else
+        sqs.sync_one(ARGV[2])
+      end
+    elsif ARGV[1] == "list"
+      sqs.list
+    elsif ARGV[1] == "urls"
+      sqs.urls
+    elsif ARGV[1] == "migrate"
+      sqs.migrate
+    end
+  end
+
 end
 
 # read in the optional path to the configuration file to use
@@ -489,8 +533,9 @@ Cumulus::Configuration.init(project_root, options[:config], options[:profile], o
 
 if ARGV.size == 0 or (ARGV[0] != "iam" and ARGV[0] != "help" and ARGV[0] != "autoscaling" and
   ARGV[0] != "route53" and ARGV[0] != "s3" and ARGV[0] != "security-groups" and
-  ARGV[0] != "cloudfront" and ARGV[0] != "elb" and ARGV[0] != "vpc" and ARGV[0] != "kinesis")
-  puts "Usage: cumulus [autoscaling|cloudfront|elb|help|iam|kinesis|route53|s3|security-groups|vpc]"
+  ARGV[0] != "cloudfront" and ARGV[0] != "elb" and ARGV[0] != "vpc" and ARGV[0] != "kinesis" and
+  ARGV[0] != "sqs")
+  puts "Usage: cumulus [autoscaling|cloudfront|elb|help|iam|kinesis|route53|s3|security-groups|sqs|vpc]"
   exit
 end
 
@@ -507,6 +552,7 @@ if ARGV[0] == "help"
   puts "\troute53\t\t- Manages configuration for Route53"
   puts "\ts3\t\t- Manages configuration of S3 buckets"
   puts "\tsecurity-groups\t- Manages configuration for EC2 Security Groups"
+  puts "\tsqs\t\t- Manages configuration for SQS Queues"
   puts "\tvpc\t\t- Manages configuration for Virtual Private Clouds"
 end
 
@@ -526,6 +572,8 @@ elsif ARGV[0] == "security-groups"
   Modules.security
 elsif ARGV[0] == "s3"
   Modules.s3
+elsif ARGV[0] == "sqs"
+  Modules.sqs
 elsif ARGV[0] == "vpc"
   Modules.vpc
 end

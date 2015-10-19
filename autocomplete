@@ -74,6 +74,12 @@ function _cumulus {
             COMPREPLY=( $(compgen -W "$configs" -- $cur) )
           fi
         ;;
+        sqs)
+          if [ "$prev" == "diff" ] || [ "$prev" == "sync" ]; then
+            configs=$(cumulus sqs list)
+            COMPREPLY=( $(compgen -W "$configs" -- $cur) )
+          fi
+        ;;
         *)
           case "$prev" in
             iam)
@@ -83,7 +89,7 @@ function _cumulus {
               COMPREPLY=( $(compgen -W "diff list migrate sync" -- $cur) )
             ;;
             cumulus)
-              COMPREPLY=( $(compgen -W "autoscaling cloudfront elb help iam kinesis route53 s3 security-groups vpc" -- $cur) )
+              COMPREPLY=( $(compgen -W "autoscaling cloudfront elb help iam kinesis route53 s3 security-groups sqs vpc" -- $cur) )
             ;;
             cloudfront)
               COMPREPLY=( $(compgen -W "diff invalidate list migrate sync" -- $cur) )
@@ -105,6 +111,9 @@ function _cumulus {
             ;;
             kinesis)
               COMPREPLY=( $(compgen -W "diff list migrate sync" -- $cur) )
+            ;;
+            sqs)
+              COMPREPLY=( $(compgen -W "diff list migrate sync urls" -- $cur) )
             ;;
           esac
         ;;
