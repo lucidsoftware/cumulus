@@ -50,11 +50,11 @@ module Cumulus
       #
       # attributes - the queue attributes in AWS
       def populate!(attributes)
-        @delay = attributes["DelaySeconds"]
-        @max_message_size = attributes["MaximumMessageSize"]
-        @message_retention = attributes["MessageRetentionPeriod"]
-        @receive_wait_time = attributes["ReceiveMessageWaitTimeSeconds"]
-        @visibility_timeout = attributes["VisibilityTimeout"]
+        @delay = if attributes["DelaySeconds"] then attributes["DelaySeconds"].to_i end
+        @max_message_size = if attributes["MaximumMessageSize"] then attributes["MaximumMessageSize"].to_i end
+        @message_retention = if attributes["MessageRetentionPeriod"] then attributes["MessageRetentionPeriod"].to_i end
+        @receive_wait_time = if attributes["ReceiveMessageWaitTimeSeconds"] then attributes["ReceiveMessageWaitTimeSeconds"].to_i end
+        @visibility_timeout = if attributes["VisibilityTimeout"] then attributes["VisibilityTimeout"].to_i end
         @dead_letter = if attributes["RedrivePolicy"] then DeadLetterConfig.new().populate!(attributes["RedrivePolicy"]) end
 
         # Policy is handled specially because we store them in a separate file locally.

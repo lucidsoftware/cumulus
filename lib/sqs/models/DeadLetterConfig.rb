@@ -41,7 +41,7 @@ module Cumulus
         attributes = JSON.parse(URI.decode(aws))
 
         @target = SQS::queue_arns.key(attributes["deadLetterTargetArn"])
-        @max_receives = attributes["maxReceiveCount"]
+        @max_receives = if attributes["maxReceiveCount"] then attributes["maxReceiveCount"].to_i end
 
         self
       end
