@@ -43,7 +43,7 @@ module Cumulus
           "receive-wait-time" => @receive_wait_time,
           "visibility-timeout" => @visibility_timeout,
           "dead-letter" => if @dead_letter then @dead_letter.to_hash end,
-        }
+        }.reject { |k, v| v.nil? }
       end
 
       # Public: Populate a config object with AWS configuration
@@ -57,7 +57,7 @@ module Cumulus
         @visibility_timeout = attributes["VisibilityTimeout"]
         @dead_letter = if attributes["RedrivePolicy"] then DeadLetterConfig.new().populate!(attributes["RedrivePolicy"]) end
 
-        # Policy is handled specially because we store them in a separate file locally
+        # Policy is handled specially because we store them in a separate file locally.
         # For migrating we assume the policy is the same as the queue name, otherwise this
         # attribute is not used from AWS config
         @policy = if attributes["Policy"] then @name end
