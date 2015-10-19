@@ -181,11 +181,13 @@ module Cumulus
             SecurityGroups::name_security_groups[sg_name].group_id
           end,
           scheme: if local.internal then "internal" end,
-          tags: local.tags.to_a.map do |tagKey, tagValue|
-            {
-              key: tagKey,
-              value: tagValue
-            }
+          tags: if !local.tags.empty?
+            local.tags.map do |tagKey, tagValue|
+              {
+                key: tagKey,
+                value: tagValue
+              }
+            end
           end
         })
 
