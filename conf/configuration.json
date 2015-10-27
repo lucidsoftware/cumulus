@@ -112,5 +112,10 @@
 			"directory": "conf/sqs/policies"
 		}
 	},
+	"ec2": {
+		"ebs": {
+			"directory": "conf/ec2/ebs"
+		}
+	},
 	"region": "us-east-1"
 }

@@ -1,4 +1,5 @@
 require "conf/Configuration"
+require "ec2/models/EbsGroupConfig"
 
 require "aws-sdk"
 
@@ -24,6 +25,12 @@ module Cumulus
 
       require "aws_extensions/ec2/VpcEndpoint"
       Aws::EC2::Types::VpcEndpoint.send(:include, AwsExtensions::EC2::VpcEndpoint)
+
+      require "aws_extensions/ec2/Volume"
+      Aws::EC2::Types::Volume.send(:include, AwsExtensions::EC2::Volume)
+
+      require "aws_extensions/ec2/Instance"
+      Aws::EC2::Types::Instance.send(:include, AwsExtensions::EC2::Instance)
 
       # Public
       #
@@ -237,6 +244,45 @@ module Cumulus
         @network_interfaces ||= init_network_interfaces
       end
 
+      # Public
+      #
+      # Returns a Hash of ebs volume group name to EbsGroupConfig
+      def group_ebs_volumes
+        @group_ebs_volumes ||= Hash[ebs_groups.map do |group_name|
+          vols = ebs_volumes.select { |vol| vol.group == group_name}
+          [group_name, EbsGroupConfig.new(group_name).populate!(vols)]
+        end]
+      end
+
+      # Public
+      #
+      # Returns an array of the group names used by all ebs volumes
+      def ebs_groups
+        @ebs_groups ||= ebs_volumes.map(&:group).reject(&:nil?).uniq
+      end
+
+      # Public: Lazily loads EBS volumes, rejecting all root-mounted volumes
+      def ebs_volumes
+        @ebs_volumes ||= init_ebs_volumes.reject do |vol|
+          vol.attachments.any? do |att|
+            attached_instance = id_instances[att.instance_id]
+            attached_instance.root_device_name == att.device
+          end
+        end
+      end
+
+      # Public
+      #
+      # Returns a Hash of instance id to Aws::EC2::Types::Instance
+      def id_instances
+        @id_instances ||= Hash[instances.map { |i| [i.instance_id, i] }]
+      end
+
+      # Public: Lazily loads instances
+      def instances
+        @instances ||= init_instances
+      end
+
       private
 
       # Internal: Load all subnets
@@ -306,6 +352,33 @@ module Cumulus
       # Returns the network interface as Aws::EC2::Types::NetworkInterface
       def init_network_interfaces
         @@client.describe_network_interfaces.network_interfaces
+      end
+
+      # Internal: Load EBS Volumes
+      #
+      # Returns the volumes as Aws::EC2::Types::Volume
+      def init_ebs_volumes
+        @@client.describe_volumes.volumes
+      end
+
+      # Internal: Load instances
+      #
+      # Returns the instances as Aws::EC2::Types::Instance
+      def init_instances
+        instances = []
+        next_token = nil
+        all_records_retrieved = false
+
+        until all_records_retrieved
+          response = @@client.describe_instances({
+            next_token: next_token
+          })
+          next_token = response.next_token
+          all_records_retrieved = next_token.nil? || next_token.empty?
+          instances << response.reservations.map { |r| r.instances }
+        end
+
+        instances.flatten
       end
 
     end

@@ -1,0 +1,19 @@
+{
+  "availability-zone": "us-east-1a",
+  "volumes": [
+    {
+      "size": 32,
+      "type": "standard", // standard, io1, gp2
+      "iops": null, // only if type is io1
+      "encrypted": false,
+      "kms-key": null, // only if encrypted and not using default
+      "count": 1
+    },
+    {
+      "size": 16,
+      "type": "gp2",
+      "count": 4,
+      "encrypted": false
+    }
+  ]
+}

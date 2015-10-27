@@ -88,7 +88,7 @@ module Cumulus
     include Config
 
     attr_reader :colors_enabled
-    attr_reader :iam, :autoscaling, :route53, :s3, :security, :cloudfront, :elb, :vpc, :kinesis, :sqs
+    attr_reader :iam, :autoscaling, :route53, :s3, :security, :cloudfront, :elb, :vpc, :kinesis, :sqs, :ec2
     attr_reader :region, :profile
 
     # Internal: Constructor. Sets up the `instance` variable, which is the access
@@ -117,6 +117,7 @@ module Cumulus
       @vpc = VpcConfig.new
       @kinesis = KinesisConfig.new
       @sqs = SQSConfig.new
+      @ec2 = EC2Config.new
     end
 
     class << self
@@ -315,6 +316,17 @@ module Cumulus
       def initialize
         @queues_directory = conf_abs_path "sqs.queues.directory"
         @policies_directory = conf_abs_path "sqs.policies.directory"
+      end
+    end
+
+    # Public: Inner class that contains EC2 configuration options
+    class EC2Config
+      include Config
+
+      attr_reader :ebs_directory
+
+      def initialize
+        @ebs_directory = conf_abs_path "ec2.ebs.directory"
       end
     end
 
