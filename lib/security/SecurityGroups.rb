@@ -16,8 +16,9 @@ module Cumulus
         @name_security_groups ||= Hash[security_groups.map { |a| [a.group_name, a] }]
       end
 
+      # Describe all security groups that are in a vpc
       def security_groups
-        @security_groups ||= @@client.describe_security_groups.security_groups
+        @security_groups ||= @@client.describe_security_groups.security_groups.reject { |sg| sg.vpc_id.nil? }
       end
 
       def sg_id_names
