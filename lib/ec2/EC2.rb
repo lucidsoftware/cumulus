@@ -283,6 +283,18 @@ module Cumulus
         @instances ||= init_instances
       end
 
+      # Public
+      #
+      # Returns a Hash of key pair name to Aws::EC2::Types::KeyPairInfo
+      def name_key_pairs
+        @name_key_pairs ||= Hash[key_pairs.map { |kp| [kp.key_name, kp] }]
+      end
+
+      # Public: Lazily load key pairs
+      def key_pairs
+        @key_pairs ||= init_key_pairs
+      end
+
       private
 
       # Internal: Load all subnets
@@ -379,6 +391,13 @@ module Cumulus
         end
 
         instances.flatten
+      end
+
+      # Internal: Load SSH key pairs
+      #
+      # Returns the keys as Aws::EC2::Types::KeyPairInfo
+      def init_key_pairs
+        @@client.describe_key_pairs.key_pairs
       end
 
     end

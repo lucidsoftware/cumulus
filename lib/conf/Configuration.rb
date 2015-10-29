@@ -324,9 +324,11 @@ module Cumulus
       include Config
 
       attr_reader :ebs_directory
+      attr_reader :network_interfaces_directory
 
       def initialize
         @ebs_directory = conf_abs_path "ec2.ebs.directory"
+        @network_interfaces_directory = conf_abs_path "ec2.network-interfaces.directory"
       end
     end
 

@@ -1,5 +1,4 @@
 require "common/models/Diff"
-require "common/models/ListChange"
 require "util/Colors"
 
 require 'json'
@@ -35,7 +34,7 @@ module Cumulus
             "Availability Zone:",
             Colors.aws_changes("\tAWS - #{aws}"),
             Colors.local_changes("\tLocal - #{local}"),
-          ].flatten.join("\n")
+          ].join("\n")
         when VG_ADDED
           Colors.added("Volume Group Added: #{local.count} x #{local.description}")
         when VG_REMOVED

@@ -1,0 +1,8 @@
+{
+  "subnet": "example-subnet",
+  "description": "",
+  "groups": [
+    "default"
+  ],
+  "source-dest-check": true
+}
