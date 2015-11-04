@@ -480,15 +480,15 @@ module Modules
   def self.ec2
     if ARGV.size < 2 or
       (ARGV.size == 2 and ARGV[1] != "help") or
-      (ARGV.size >= 3 and ((ARGV[1] != "ebs" and ARGV[1] != "instances" and ARGV[1] != "network-interfaces") or (ARGV[2] != "diff" and ARGV[2] != "list" and ARGV[2] != "migrate" and ARGV[2] != "sync")))
-      puts "Usage: cumulus ec2 [help|ebs|instances|network-interfaces] [diff|list|migrate|sync] <asset>"
+      (ARGV.size >= 3 and ((ARGV[1] != "ebs" and ARGV[1] != "instances") or (ARGV[2] != "diff" and ARGV[2] != "list" and ARGV[2] != "migrate" and ARGV[2] != "sync")))
+      puts "Usage: cumulus ec2 [help|ebs|instances] [diff|list|migrate|sync] <asset>"
       exit
     end
 
     if ARGV[1] == "help"
       puts "ec2: Manage EC2 instances and related configuration."
       puts
-      puts "Usage: cumulus ec2 [help|ebs|instances|network-interfaces] [diff|list|migrate|sync] <asset>"
+      puts "Usage: cumulus ec2 [help|ebs|instances] [diff|list|migrate|sync] <asset>"
       puts
       puts "Commands"
       puts "\tebs - Manage EBS volumes in groups"
@@ -501,23 +501,15 @@ module Modules
       puts "\t\tlist\t- list the instances defined in configuration"
       puts "\t\tmigrate\t - create instances configuration files that match the definitions in AWS"
       puts "\t\tsync\t- sync the local instance definition with AWS (supplying the name of the instance will sync only that instance)"
-      puts "\tnetwork-interfaces - Manager network interfaces"
-      puts "\t\tdiff\t- get a list of network interfaces that have different definitions locally than in AWS (supplying the name of the interface will diff only that interface)"
-      puts "\t\tlist\t- list the network interfaces defined in configuration"
-      puts "\t\tmigrate\t - create network interface configuration files that match the definitions in AWS"
-      puts "\t\tsync\t- sync the local network interface definition with AWS (supplying the name of the interface will sync only that interface)"
       exit
     end
 
     require "ec2/managers/EbsManager"
-    require "ec2/managers/NetworkInterfaceManager"
 
     # Get the manager depending on which submodule is ran
     manager = nil
     if ARGV[1] == "ebs"
       manager = Cumulus::EC2::EbsManager.new
-    elsif ARGV[1] == "network-interfaces"
-      manager = Cumulus::EC2::NetworkInterfaceManager.new
     end
 
     # Run actions on the manager

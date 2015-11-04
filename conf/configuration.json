@@ -116,9 +116,6 @@
 		"ebs": {
 			"directory": "conf/ec2/ebs"
 		},
-		"network-interfaces": {
-			"directory": "conf/ec2/network-interfaces"
-		}
 	},
 	"region": "us-east-1"
 }
