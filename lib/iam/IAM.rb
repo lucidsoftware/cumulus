@@ -11,14 +11,13 @@ module Cumulus
       #
       # name - the name of the role to get
       #
-      # Returns the String ARN
+      # Returns the String ARN or nil if there is no role
       def get_role_arn(name)
         @@client.get_role({
           role_name: name
         }).role.arn
       rescue Aws::IAM::Errors::NoSuchEntity
-        puts "No IAM role named #{name}"
-        exit
+        nil
       end
     end
   end
