@@ -324,9 +324,23 @@ module Cumulus
       include Config
 
       attr_reader :ebs_directory
+      attr_reader :instances_directory
+      attr_reader :ignore_unmanaged_instances
+      attr_reader :user_data_directory
+      attr_reader :default_image_id
+      attr_reader :volume_mount_base
+      attr_reader :volume_mount_start
+      attr_reader :volume_mount_end
 
       def initialize
         @ebs_directory = conf_abs_path "ec2.ebs.directory"
+        @instances_directory = conf_abs_path "ec2.instances.directory"
+        @ignore_unmanaged_instances = conf "ec2.instances.ignore-unmanaged"
+        @user_data_directory = conf_abs_path "ec2.instances.user-data-directory"
+        @default_image_id = conf "ec2.instances.default-image-id"
+        @volume_mount_base = conf "ec2.instances.volume-mounting.base"
+        @volume_mount_start = conf "ec2.instances.volume-mounting.start"
+        @volume_mount_end = conf "ec2.instances.volume-mounting.end"
       end
     end
 

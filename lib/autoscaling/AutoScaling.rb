@@ -9,6 +9,13 @@ module Cumulus
 
       # Public
       #
+      # Returns an array of instance ids that are in any autoscaling groups
+      def instance_ids
+        @instance_ids ||= groups.map { |gr| gr.instances.map { |i| i.instance_id } }.flatten
+      end
+
+      # Public
+      #
       # Returns a Hash of autoscaling group name to Aws::AutoScaling::Types::AutoScalingGroup
       def named_groups
         @named_groups ||= Hash[groups.map { [group.auto_scaling_group_name, group] }]

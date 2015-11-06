@@ -116,6 +116,18 @@
 		"ebs": {
 			"directory": "conf/ec2/ebs"
 		},
+		"instances": {
+			"directory": "conf/ec2/instances",
+			"ignore-unmanaged": true,
+			"user-data-directory": "conf/ec2/user-data-scripts",
+			"default-image-id": null,
+			"volume-mounting": {
+				"base": "/dev/xvd",
+				"start": "f",
+				"end": "z"
+			}
+
+		}
 	},
 	"region": "us-east-1"
 }

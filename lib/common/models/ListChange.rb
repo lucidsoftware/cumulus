@@ -11,6 +11,11 @@ module Cumulus
           ListChange.new(added, removed, nil)
         end
       end
+
+      # Public: Returns true if all of added, removed, and modified are either nil or empty
+      def empty?
+        (self.added.nil? or self.added.empty?) and (self.removed.nil? or self.removed.empty?) and (self.modified.nil? or self.modified.empty?)
+      end
     end
   end
 end

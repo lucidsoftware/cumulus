@@ -32,6 +32,15 @@ module Cumulus
       require "aws_extensions/ec2/Instance"
       Aws::EC2::Types::Instance.send(:include, AwsExtensions::EC2::Instance)
 
+      # Easily load instance attribute data individually and lazy
+      InstanceAttributes = Struct.new(:instance_id) do
+
+        def user_data
+          @user_data ||= EC2::init_instance_attribute(self.instance_id, "userData").user_data.value
+        end
+
+      end
+
       # Public
       #
       # Returns a Hash of subnet id to Aws::EC2::Types::Subnet
@@ -256,9 +265,26 @@ module Cumulus
 
       # Public
       #
+      # Returns a Hash of ebs volume group name to Aws::EC2::Types::Volume
+      def group_ebs_volumes_aws
+        @group_ebs_volumes_aws ||= Hash[ebs_groups.map do |group_name|
+          vols = ebs_volumes.select { |vol| vol.group == group_name}
+          [group_name, vols]
+        end]
+      end
+
+      # Public
+      #
       # Returns an array of the group names used by all ebs volumes
       def ebs_groups
         @ebs_groups ||= ebs_volumes.map(&:group).reject(&:nil?).uniq
+      end
+
+      # Public
+      #
+      # Returns a Hash of ebs volume id to volume
+      def id_ebs_volumes
+        @id_ebs_volumes ||= Hash[ebs_volumes.map { |vol| [vol.volume_id, vol] }]
       end
 
       # Public: Lazily loads EBS volumes, rejecting all root-mounted volumes
@@ -278,21 +304,46 @@ module Cumulus
         @id_instances ||= Hash[instances.map { |i| [i.instance_id, i] }]
       end
 
-      # Public: Lazily loads instances
-      def instances
-        @instances ||= init_instances
+      # Public
+      #
+      # Returns a Hash of instance name or id to Aws::EC2::Types::Instance
+      def named_instances
+        @named_instances ||= Hash[instances.map { |i| [i.name || i.instance_id, i] }]
       end
 
       # Public
       #
-      # Returns a Hash of key pair name to Aws::EC2::Types::KeyPairInfo
-      def name_key_pairs
-        @name_key_pairs ||= Hash[key_pairs.map { |kp| [kp.key_name, kp] }]
+      # Returns a Hash of instance id to attributes, lazily loading each attribute
+      def id_instance_attributes(instance_id)
+        @id_instance_attributes ||= {}
+        @id_instance_attributes[instance_id] ||= InstanceAttributes.new(instance_id)
       end
 
-      # Public: Lazily load key pairs
-      def key_pairs
-        @key_pairs ||= init_key_pairs
+      # Public: Load instance attributes
+      #
+      # Returns the instance attribute as whatever type that attribute is
+      def init_instance_attribute(instance_id, attribute)
+        @@client.describe_instance_attribute({
+          instance_id: instance_id,
+          attribute: attribute
+        })
+      end
+
+      # Public: Lazily loads instances
+      def instances
+        @instances ||= init_instances.reject(&:terminated?)
+      end
+
+      # Public
+      #
+      # Returns a Hash of placement group name to Aws::EC2::Types::PlacementGroup
+      def named_placement_groups
+        @named_placement_groups ||= Hash[placement_groups.map { |pg| [pg.group_name, pg] }]
+      end
+
+      # Public: Lazily load placement groups
+      def placement_groups
+        @placement_groups ||= init_placement_groups
       end
 
       private
@@ -393,11 +444,11 @@ module Cumulus
         instances.flatten
       end
 
-      # Internal: Load SSH key pairs
+      # Internal: Load placement groups
       #
-      # Returns the keys as Aws::EC2::Types::KeyPairInfo
-      def init_key_pairs
-        @@client.describe_key_pairs.key_pairs
+      # Returns the placement groups as Aws::EC2::Types::PlacementGroup
+      def init_placement_groups
+        @@client.describe_placement_groups.placement_groups
       end
 
     end

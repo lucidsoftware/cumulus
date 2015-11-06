@@ -1,0 +1,21 @@
+{
+  "ebs-optimized": false,
+  "placement-group": null, // optional
+  "profile": "", // the ARN of the IAM instance profile
+  "image": null, // if set, overrides the default-image-id in configuration.json
+  "key-name": null, // optional
+  "monitoring": false,
+  "network-interfaces": 1, // how many network interfaces should be on the instances
+  "source-dest-check": false,
+  "private-ip-address": null, // if not set, one is picked from the subnet by AWS
+  "security-groups": [ // security group names
+
+  ],
+  "subnet": "", // name or id of a subnet
+  "tenancy": "default", // default or dedicated
+  "type": "t2.micro", // one of the ec2 instance types
+  "user-data": null, // optional, file name in user-data-scripts
+  "volume-groups": [ // names of volume groups from ebs submodule
+    "example-group"
+  ]
+}

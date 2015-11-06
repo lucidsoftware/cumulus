@@ -505,11 +505,14 @@ module Modules
     end
 
     require "ec2/managers/EbsManager"
+    require "ec2/managers/InstanceManager"
 
     # Get the manager depending on which submodule is ran
     manager = nil
     if ARGV[1] == "ebs"
       manager = Cumulus::EC2::EbsManager.new
+    elsif ARGV[1] == "instances"
+      manager = Cumulus::EC2::InstanceManager.new
     end
 
     # Run actions on the manager

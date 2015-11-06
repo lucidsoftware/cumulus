@@ -9,6 +9,16 @@ module AwsExtensions
       	nil
       end
 
+      # Public: Returns true if the volume is attached or attaching to anything
+      def attached?
+        self.attachments.map(&:state).any? { |state| state == "attached" || state == "attaching" }
+      end
+
+      # Public: Returns true if the volume is not attached or attaching to anything
+      def detached?
+        !self.attached?
+      end
+
     end
   end
 end
