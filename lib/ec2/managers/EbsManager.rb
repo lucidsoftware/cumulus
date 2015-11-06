@@ -42,6 +42,7 @@ module Cumulus
         local.diff(aws)
       end
 
+      EbsMigrationData = Struct.new(:cumulus_group, :set_group_vols)
       def migrate
         puts Colors.blue("Migrating EBS Volume Groups...")
 
@@ -59,11 +60,15 @@ module Cumulus
           Dir.mkdir(ebs_dir)
         end
 
+        puts "Would you like Cumulus to automatically update your volumes to have a Group tag that matches the name of the instance they are attached to? (y/n)"
+        update_tags = (STDIN.getc.downcase[0] == "y")
+
+        # Migrate any volumes that have already been grouped
+        vol_groups = Hash[EC2.group_ebs_volumes.map { |group_name, cumulus_group| [group_name, EbsMigrationData.new(cumulus_group, nil)] }]
+
         # Use the instance name to group volumes if they do not have a group.  Anything
         # not attached should not get migrated
-        vol_groups = EC2.group_ebs_volumes
-
-        migratable_vols = EC2.ebs_volumes.select { |vol| vol.group.nil? and !vol.attachments.empty? and vol.attachments.any? { |att| att.state == "attached" || att.state == "attaching" } }
+        migratable_vols = EC2.ebs_volumes.select { |vol| vol.group.nil? and !vol.attachments.empty? and vol.attached? }
         instance_grouped = migratable_vols.group_by do |vol|
           attachments = vol.attachments.select { |att| att.state == "attached" || att.state == "attaching" }
           attachments.first.instance_id
@@ -71,13 +76,21 @@ module Cumulus
 
         instance_grouped.each do |instance_id, vols|
           instance_name = EC2.id_instances[instance_id].name || instance_id
-          vol_groups[instance_name] = EbsGroupConfig.new(instance_name).populate!(vols)
+          vol_groups[instance_name] = EbsMigrationData.new(EbsGroupConfig.new(instance_name).populate!(vols), vols)
         end
 
-        vol_groups.each do |group_name, cumulus_group|
+        vol_groups.each do |group_name, data|
           puts "Migrating group #{group_name}"
 
-          json = JSON.pretty_generate(cumulus_group.to_hash)
+          if update_tags and data.set_group_vols
+            data.set_group_vols.each do |vol|
+              if vol.group.nil?
+                set_group_name(vol.volume_id, group_name)
+              end
+            end
+          end
+
+          json = JSON.pretty_generate(data.cumulus_group.to_hash)
           File.open("#{ebs_dir}/#{group_name}.json", "w") { |f| f.write(json) }
         end
 
