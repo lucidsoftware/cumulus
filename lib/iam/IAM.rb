@@ -19,6 +19,18 @@ module Cumulus
       rescue Aws::IAM::Errors::NoSuchEntity
         nil
       end
+
+      # Public: Get the instance profile arn for a role
+      #
+      # name - the name of the role
+      def get_instance_profile_arn(name)
+        @@client.get_instance_profile({
+          instance_profile_name: name
+        }).instance_profile.arn
+      rescue Aws::IAM::Errors::NoSuchEntity
+        nil
+      end
+
     end
   end
 end
