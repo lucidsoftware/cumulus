@@ -31,6 +31,7 @@ Instances are JSON objects with the following attributes:
 * `type` - the EC2 instance type. Cannot be updated after creation.
 * `user-data` - the name of the user data script to run. The script is located in a [configurable](#configuration) folder. Cannot be updated after creation
 * `volume-groups` - an array of the names of volume groups to attach to the instance. See [Volume Groups](#volume-gorups) for more information
+* `tags` - a JSON object whose key/value pairs are tag names and values
 
 Here is an example of an instance configuration:
 
@@ -54,7 +55,10 @@ Here is an example of an instance configuration:
   "user-data": null,
   "volume-groups": [
     "example-group"
-  ]
+  ],
+  "tags": {
+    "Name": "example-instance"
+  }
 }
 {% endhighlight %}
 
