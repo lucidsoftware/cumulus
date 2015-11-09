@@ -46,7 +46,7 @@ Cumulus's Kinesis module has the following usage:
 cumulus kinesis [diff|help|list|migrate|sync] <asset>
 {% endhighlight %}
 
-VPCs can be diffed, listed, synced, and migrated. The four actions do the following:
+Streams can be diffed, listed, synced, and migrated. The four actions do the following:
 
 * `diff` - Shows the differences between the local definition and the AWS stream configuration. If `<asset>` is specified, Cumulus will diff only the stream with that name.
 * `list` - Lists the names of all of the locally defined streams
