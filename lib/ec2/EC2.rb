@@ -39,6 +39,10 @@ module Cumulus
           @user_data ||= EC2::init_instance_attribute(self.instance_id, "userData").user_data.value
         end
 
+        def tags
+          @tags ||= EC2::init_tags(self.instance_id)
+        end
+
       end
 
       # Public
@@ -344,6 +348,35 @@ module Cumulus
       # Public: Lazily load placement groups
       def placement_groups
         @placement_groups ||= init_placement_groups
+      end
+
+      # Public: Load tags for an ec2 object
+      #
+      # Returns the tags as Hash
+      def init_tags(object_id)
+        next_token = nil
+        tags_loaded = false
+
+        tags = []
+
+        while !tags_loaded do
+          resp = @@client.describe_tags({
+            filters: [
+              {
+                name: "resource-id",
+                values: [object_id]
+              }
+            ]
+          })
+
+          tags.concat(resp.tags)
+          tags_loaded = resp.next_token.nil? || resp.next_token.empty?
+          next_token = resp.next_token
+
+        end
+
+        Hash[tags.map { |tag|  [tag.key, tag.value] }]
+
       end
 
       private

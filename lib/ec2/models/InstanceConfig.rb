@@ -29,6 +29,7 @@ module Cumulus
       attr_reader :type
       attr_reader :user_data
       attr_reader :volume_groups
+      attr_reader :tags
 
       # Public: Constructor
       #
@@ -51,6 +52,7 @@ module Cumulus
           @type = json["type"]
           @user_data = json["user-data"]
           @volume_groups = json["volume-groups"] || []
+          @tags = json["tags"] || {}
         end
       end
 
@@ -71,6 +73,7 @@ module Cumulus
           "type" => @type,
           "user-data" => @user_data,
           "volume-groups" => @volume_groups,
+          "tags" => @tags,
         }
       end
 
@@ -78,7 +81,8 @@ module Cumulus
       #
       # aws_instance - the instance from AWS
       # user_data_file - the name of the user data script file
-      def populate!(aws_instance, user_data_file)
+      # tags - a Hash of tags for the instance
+      def populate!(aws_instance, user_data_file, tags)
         @ebs_optimized = aws_instance.ebs_optimized
         @placement_group = aws_instance.placement.group_name
         if @placement_group.empty? then @placement_group = nil end
@@ -102,6 +106,8 @@ module Cumulus
         @volume_groups = aws_instance.nonroot_devices.map do |m|
           EC2::id_ebs_volumes[m.ebs.volume_id]
         end.map(&:group).reject(&:nil?).uniq.sort
+
+        @tags = tags
 
         self
       end
@@ -150,6 +156,10 @@ module Cumulus
 
         if aws.tenancy != @tenancy
           diffs << InstanceDiff.new(InstanceChange::TENANCY, aws.tenancy, @tenancy)
+        end
+
+        if aws.tags != @tags
+          diffs << InstanceDiff.new(InstanceChange::TAGS, aws.tags, @tags)
         end
 
         # Check for diffs in volume groups and diffs in how many volumes are attached

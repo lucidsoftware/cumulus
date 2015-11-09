@@ -1,4 +1,5 @@
 require "common/models/Diff"
+require "common/models/TagsDiff"
 require "util/Colors"
 
 require 'json'
@@ -19,11 +20,13 @@ module Cumulus
       TYPE = Common::DiffChange.next_change_id
       TENANCY = Common::DiffChange.next_change_id
       VOLUME_GROUPS = Common::DiffChange.next_change_id
+      TAGS = Common::DiffChange.next_change_id
     end
 
     # Public: Represents a single difference between local configuration and AWS configuration
     class InstanceDiff < Common::Diff
       include InstanceChange
+      include Common::TagsDiff
 
       def asset_type
         case @type
@@ -37,6 +40,7 @@ module Cumulus
         when TYPE then "Type"
         when TENANCY then "Tenancy"
         when VOLUME_GROUPS then "Volume Groups"
+        when TAGS then "Tags"
         else
           "EC2 Instance"
         end
@@ -44,6 +48,14 @@ module Cumulus
 
       def aws_name
         @aws.name
+      end
+
+      def local_tags
+        @local
+      end
+
+      def aws_tags
+        @aws
       end
 
       def diff_string
@@ -74,6 +86,8 @@ module Cumulus
               ]
             end
           ].flatten.join("\n")
+        when TAGS
+          tags_diff_string
         end
       end
     end

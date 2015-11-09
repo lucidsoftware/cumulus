@@ -50,7 +50,7 @@ module Cumulus
       def diff_resource(local, aws)
         instance_attributes = EC2::id_instance_attributes(aws.instance_id)
         user_data_file = InstanceLoader.user_data_base64.key(instance_attributes.user_data)
-        cumulus_version = InstanceConfig.new(local.name).populate!(aws, user_data_file)
+        cumulus_version = InstanceConfig.new(local.name).populate!(aws, user_data_file, instance_attributes.tags)
 
         local.diff(cumulus_version)
       end
@@ -94,7 +94,7 @@ module Cumulus
             File.open(file_location, "w") { |f| f.write(file_contents) }
           end
 
-          cumulus_instance = InstanceConfig.new(name).populate!(instance, user_data_file)
+          cumulus_instance = InstanceConfig.new(name).populate!(instance, user_data_file, instance_attributes.tags)
 
           json = JSON.pretty_generate(cumulus_instance.to_hash)
           File.open("#{instances_dir}/#{name}.json", "w") { |f| f.write(json) }
@@ -178,7 +178,7 @@ module Cumulus
             vols
           end.flatten
         else
-          puts "Warning: No volumes will be attached to the instance"
+          puts "Warning: Only the root volume will be attached to the instance"
           []
         end
 
@@ -242,9 +242,21 @@ module Cumulus
         end
         puts ""
 
+        if !local.tags.empty?
+          set_tags(created_instance.instance_id, local.tags)
+        end
         set_name(created_instance.instance_id, local.name)
 
         if created_instance.source_dest_check != local.source_dest_check
+          set_instance_source_dest_check(created_instance.instance_id, local.source_dest_check)
+        end
+
+        # If there are multiple network interfaces, source dest check must be set on each one
+        if created_instance.network_interfaces.length > 1
+          created_instance.network_interfaces.each do |interface|
+            set_interface_source_dest_check(interface.network_interface_id, local.source_dest_check)
+          end
+        else
           set_instance_source_dest_check(created_instance.instance_id, local.source_dest_check)
         end
 
@@ -324,7 +336,6 @@ module Cumulus
             last_device_name = aws_instance.nonroot_devices.map(&:device_name).sort.last
             start_attaching_at = if last_device_name then (last_device_name[-1].ord + 1).chr else @start_device_letter end
 
-
             # Figure out which volumes in the group are not attached
             volumes_to_attach = diff.local.map { |group_name, group_config| EC2::group_ebs_volumes_aws[group_name] }.flatten.select(&:detached?)
 
@@ -336,6 +347,17 @@ module Cumulus
             else
               attach_volumes(aws_instance.instance_id, volumes_to_attach, start_attaching_at)
             end
+          when InstanceChange::TAGS
+            puts "Updating tags..."
+
+            if !diff.tags_to_remove.empty?
+              delete_tags(aws_instance.instance_id, diff.tags_to_remove)
+            end
+
+            if !diff.tags_to_add.empty?
+              set_tags(aws_instance.instance_id, diff.tags_to_add)
+            end
+
           end
         end
       end
@@ -351,6 +373,30 @@ module Cumulus
               value: name
             }
           ]
+        })
+      end
+
+      def set_tags(instance_id, tags)
+        @client.create_tags({
+          resources: [instance_id],
+          tags: tags.map do |key, val|
+            {
+              key: key,
+              value: val
+            }
+          end
+        })
+      end
+
+      def delete_tags(instance_id, tags)
+        @client.delete_tags({
+          resources: [instance_id],
+          tags: tags.map do |key, val|
+            {
+              key: key,
+              value: val
+            }
+          end
         })
       end
 
