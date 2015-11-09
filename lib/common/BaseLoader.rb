@@ -9,8 +9,8 @@ module Cumulus
       # function passed in.
       #
       # dir               - the directory to load resources from
-      # individual_loader - the function that loads a resource from each file name
       # json              - indicates if the resources are in json format
+      # individual_loader - the function that loads a resource from each file name
       #
       # Returns an array of resources
       def self.resources(dir, json = true, &individual_loader)
@@ -24,8 +24,8 @@ module Cumulus
       #
       # file    - the name of the file to load
       # dir     - the directory the file is located in
-      # loader  - the function that will handle the read json
       # json    - indicates if the resources are in json format
+      # loader  - the function that will handle the read json
       def self.resource(file, dir, json = true, &loader)
         name = file.end_with?(".json") ? file[0...-5] : file
 

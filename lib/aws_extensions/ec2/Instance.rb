@@ -9,7 +9,7 @@ module AwsExtensions
       	nil
       end
 
-      # Public: Returns an rray of the block device mappings that are not for the root device
+      # Public: Returns an array of the block device mappings that are not for the root device
       def nonroot_devices
         self.block_device_mappings.reject { |m| m.device_name == self.root_device_name }
       end
