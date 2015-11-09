@@ -78,7 +78,7 @@ Cumulus's SQS module has the following usage:
 cumulus sqs [diff|help|list|migrate|sync|urls] <asset>
 {% endhighlight %}
 
-VPCs can be diffed, listed, synced, and migrated. The four actions do the following:
+Queues can be diffed, listed, synced, and migrated. The four actions do the following:
 
 * `diff` - Shows the differences between the local definition and the AWS queue configuration. If `<asset>` is specified, Cumulus will diff only the queue with that name.
 * `list` - Lists the names of all of the locally defined queues
