@@ -1,4 +1,5 @@
 require "conf/Configuration"
+require "ec2/models/EbsGroupConfig"
 
 require "aws-sdk"
 
@@ -24,6 +25,25 @@ module Cumulus
 
       require "aws_extensions/ec2/VpcEndpoint"
       Aws::EC2::Types::VpcEndpoint.send(:include, AwsExtensions::EC2::VpcEndpoint)
+
+      require "aws_extensions/ec2/Volume"
+      Aws::EC2::Types::Volume.send(:include, AwsExtensions::EC2::Volume)
+
+      require "aws_extensions/ec2/Instance"
+      Aws::EC2::Types::Instance.send(:include, AwsExtensions::EC2::Instance)
+
+      # Easily load instance attribute data individually and lazy
+      InstanceAttributes = Struct.new(:instance_id) do
+
+        def user_data
+          @user_data ||= EC2::init_instance_attribute(self.instance_id, "userData").user_data.value
+        end
+
+        def tags
+          @tags ||= EC2::init_tags(self.instance_id)
+        end
+
+      end
 
       # Public
       #
@@ -237,6 +257,128 @@ module Cumulus
         @network_interfaces ||= init_network_interfaces
       end
 
+      # Public
+      #
+      # Returns a Hash of ebs volume group name to EbsGroupConfig
+      def group_ebs_volumes
+        @group_ebs_volumes ||= Hash[ebs_groups.map do |group_name|
+          vols = ebs_volumes.select { |vol| vol.group == group_name}
+          [group_name, EbsGroupConfig.new(group_name).populate!(vols)]
+        end]
+      end
+
+      # Public
+      #
+      # Returns a Hash of ebs volume group name to Aws::EC2::Types::Volume
+      def group_ebs_volumes_aws
+        @group_ebs_volumes_aws ||= Hash[ebs_groups.map do |group_name|
+          vols = ebs_volumes.select { |vol| vol.group == group_name}
+          [group_name, vols]
+        end]
+      end
+
+      # Public
+      #
+      # Returns an array of the group names used by all ebs volumes
+      def ebs_groups
+        @ebs_groups ||= ebs_volumes.map(&:group).reject(&:nil?).uniq
+      end
+
+      # Public
+      #
+      # Returns a Hash of ebs volume id to volume
+      def id_ebs_volumes
+        @id_ebs_volumes ||= Hash[ebs_volumes.map { |vol| [vol.volume_id, vol] }]
+      end
+
+      # Public: Lazily loads EBS volumes, rejecting all root-mounted volumes
+      def ebs_volumes
+        @ebs_volumes ||= init_ebs_volumes.reject do |vol|
+          vol.attachments.any? do |att|
+            attached_instance = id_instances[att.instance_id]
+            attached_instance.root_device_name == att.device
+          end
+        end
+      end
+
+      # Public
+      #
+      # Returns a Hash of instance id to Aws::EC2::Types::Instance
+      def id_instances
+        @id_instances ||= Hash[instances.map { |i| [i.instance_id, i] }]
+      end
+
+      # Public
+      #
+      # Returns a Hash of instance name or id to Aws::EC2::Types::Instance
+      def named_instances
+        @named_instances ||= Hash[instances.map { |i| [i.name || i.instance_id, i] }]
+      end
+
+      # Public
+      #
+      # Returns a Hash of instance id to attributes, lazily loading each attribute
+      def id_instance_attributes(instance_id)
+        @id_instance_attributes ||= {}
+        @id_instance_attributes[instance_id] ||= InstanceAttributes.new(instance_id)
+      end
+
+      # Public: Load instance attributes
+      #
+      # Returns the instance attribute as whatever type that attribute is
+      def init_instance_attribute(instance_id, attribute)
+        @@client.describe_instance_attribute({
+          instance_id: instance_id,
+          attribute: attribute
+        })
+      end
+
+      # Public: Lazily loads instances
+      def instances
+        @instances ||= init_instances.reject(&:terminated?)
+      end
+
+      # Public
+      #
+      # Returns a Hash of placement group name to Aws::EC2::Types::PlacementGroup
+      def named_placement_groups
+        @named_placement_groups ||= Hash[placement_groups.map { |pg| [pg.group_name, pg] }]
+      end
+
+      # Public: Lazily load placement groups
+      def placement_groups
+        @placement_groups ||= init_placement_groups
+      end
+
+      # Public: Load tags for an ec2 object
+      #
+      # Returns the tags as Hash
+      def init_tags(object_id)
+        next_token = nil
+        tags_loaded = false
+
+        tags = []
+
+        while !tags_loaded do
+          resp = @@client.describe_tags({
+            filters: [
+              {
+                name: "resource-id",
+                values: [object_id]
+              }
+            ]
+          })
+
+          tags.concat(resp.tags)
+          tags_loaded = resp.next_token.nil? || resp.next_token.empty?
+          next_token = resp.next_token
+
+        end
+
+        Hash[tags.map { |tag|  [tag.key, tag.value] }]
+
+      end
+
       private
 
       # Internal: Load all subnets
@@ -306,6 +448,40 @@ module Cumulus
       # Returns the network interface as Aws::EC2::Types::NetworkInterface
       def init_network_interfaces
         @@client.describe_network_interfaces.network_interfaces
+      end
+
+      # Internal: Load EBS Volumes
+      #
+      # Returns the volumes as Aws::EC2::Types::Volume
+      def init_ebs_volumes
+        @@client.describe_volumes.volumes
+      end
+
+      # Internal: Load instances
+      #
+      # Returns the instances as Aws::EC2::Types::Instance
+      def init_instances
+        instances = []
+        next_token = nil
+        all_records_retrieved = false
+
+        until all_records_retrieved
+          response = @@client.describe_instances({
+            next_token: next_token
+          })
+          next_token = response.next_token
+          all_records_retrieved = next_token.nil? || next_token.empty?
+          instances << response.reservations.map { |r| r.instances }
+        end
+
+        instances.flatten
+      end
+
+      # Internal: Load placement groups
+      #
+      # Returns the placement groups as Aws::EC2::Types::PlacementGroup
+      def init_placement_groups
+        @@client.describe_placement_groups.placement_groups
       end
 
     end

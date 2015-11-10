@@ -1,3 +1,4 @@
+require "autoscaling/AutoScaling"
 require "autoscaling/loader/Loader"
 require "autoscaling/models/AlarmDiff"
 require "autoscaling/models/AutoScalingDiff"
@@ -61,7 +62,7 @@ module Cumulus
       end
 
       def aws_resources
-        @aws_resources ||= init_aws_resources
+        @aws_resources ||= AutoScaling::named_groups
       end
 
       def unmanaged_diff(aws)
@@ -358,11 +359,6 @@ module Cumulus
             }.reject { |k, v| v == nil })
           end
         end
-      end
-
-      def init_aws_resources
-        aws = @aws.describe_auto_scaling_groups.auto_scaling_groups
-        Hash[aws.map { |a| [a.auto_scaling_group_name, a] }]
       end
 
     end

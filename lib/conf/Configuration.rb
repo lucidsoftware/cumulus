@@ -88,7 +88,7 @@ module Cumulus
     include Config
 
     attr_reader :colors_enabled
-    attr_reader :iam, :autoscaling, :route53, :s3, :security, :cloudfront, :elb, :vpc, :kinesis, :sqs
+    attr_reader :iam, :autoscaling, :route53, :s3, :security, :cloudfront, :elb, :vpc, :kinesis, :sqs, :ec2
     attr_reader :region, :profile
 
     # Internal: Constructor. Sets up the `instance` variable, which is the access
@@ -117,6 +117,7 @@ module Cumulus
       @vpc = VpcConfig.new
       @kinesis = KinesisConfig.new
       @sqs = SQSConfig.new
+      @ec2 = EC2Config.new
     end
 
     class << self
@@ -315,6 +316,31 @@ module Cumulus
       def initialize
         @queues_directory = conf_abs_path "sqs.queues.directory"
         @policies_directory = conf_abs_path "sqs.policies.directory"
+      end
+    end
+
+    # Public: Inner class that contains EC2 configuration options
+    class EC2Config
+      include Config
+
+      attr_reader :ebs_directory
+      attr_reader :instances_directory
+      attr_reader :ignore_unmanaged_instances
+      attr_reader :user_data_directory
+      attr_reader :default_image_id
+      attr_reader :volume_mount_base
+      attr_reader :volume_mount_start
+      attr_reader :volume_mount_end
+
+      def initialize
+        @ebs_directory = conf_abs_path "ec2.ebs.directory"
+        @instances_directory = conf_abs_path "ec2.instances.directory"
+        @ignore_unmanaged_instances = conf "ec2.instances.ignore-unmanaged"
+        @user_data_directory = conf_abs_path "ec2.instances.user-data-directory"
+        @default_image_id = conf "ec2.instances.default-image-id"
+        @volume_mount_base = conf "ec2.instances.volume-mounting.base"
+        @volume_mount_start = conf "ec2.instances.volume-mounting.start"
+        @volume_mount_end = conf "ec2.instances.volume-mounting.end"
       end
     end
 

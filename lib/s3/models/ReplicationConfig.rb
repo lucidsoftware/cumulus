@@ -1,5 +1,6 @@
 require "s3/models/ReplicationDiff"
 require "iam/IAM"
+require "util/Colors"
 
 module Cumulus
   module S3
@@ -24,8 +25,14 @@ module Cumulus
       #
       # Returns the hash
       def to_aws
+        role_arn = IAM.get_role_arn(@iam_role)
+        if role_arn.nil?
+          puts Colors.red("No IAM role named #{name}")
+          exit
+        end
+
         {
-          role: IAM.get_role_arn(@iam_role),
+          role: role_arn,
           rules: if @prefixes.empty?
             [{
               prefix: "",
