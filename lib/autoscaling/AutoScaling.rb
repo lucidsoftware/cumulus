@@ -18,7 +18,7 @@ module Cumulus
       #
       # Returns a Hash of autoscaling group name to Aws::AutoScaling::Types::AutoScalingGroup
       def named_groups
-        @named_groups ||= Hash[groups.map { [group.auto_scaling_group_name, group] }]
+        @named_groups ||= Hash[groups.map { |group| [group.auto_scaling_group_name, group] }]
       end
 
       # Public: Lazily load auto scaling groups
