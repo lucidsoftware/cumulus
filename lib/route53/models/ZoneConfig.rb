@@ -119,7 +119,7 @@ module Cumulus
         diffs = []
 
         # map the records to their keys
-        aws = Hash[aws.map { |r| [RecordKey.new(r.name, r.type), r] }]
+        aws = Hash[aws.map { |r| [RecordKey.new(r.name.gsub(/\\100/, "@"), r.type), r] }]
         local = Hash[@records.map { |r| [RecordKey.new(r.name, r.type), r] }]
 
         # find records in aws that are not configured locally, ignoring the NS and SOA

@@ -162,7 +162,7 @@ module Cumulus
             {
               action: action,
               resource_record_set: {
-                name: resource.name,
+                name: resource.name.gsub("@", "\\\\100"),
                 type: resource.type,
                 ttl: resource.ttl,
                 resource_records: resource.resource_records,
