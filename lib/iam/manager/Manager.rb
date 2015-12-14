@@ -17,7 +17,7 @@ module Cumulus
 
       # Public: Constructor
       def initialize
-        iam = Aws::IAM::Client.new(region: Configuration.instance.region, profile: Configuration.instance.profile)
+        iam = Aws::IAM::Client.new(Configuration.instance.client)
 
         @groups = IamGroups.new(iam)
         @roles = IamRoles.new(iam)

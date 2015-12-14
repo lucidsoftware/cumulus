@@ -5,7 +5,7 @@ require "aws-sdk"
 module Cumulus
   module AutoScaling
     class << self
-      @@client = Aws::AutoScaling::Client.new(region: Configuration.instance.region, profile: Configuration.instance.profile)
+      @@client = Aws::AutoScaling::Client.new(Configuration.instance.client)
 
       # Public
       #

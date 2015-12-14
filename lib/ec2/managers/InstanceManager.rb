@@ -18,7 +18,7 @@ module Cumulus
       def initialize
         super()
         @create_asset = true
-        @client = Aws::EC2::Client.new(region: Configuration.instance.region, profile: Configuration.instance.profile)
+        @client = Aws::EC2::Client.new(Configuration.instance.client)
         @device_name_base = Configuration.instance.ec2.volume_mount_base
         @device_name_start = Configuration.instance.ec2.volume_mount_start
         @device_name_end = Configuration.instance.ec2.volume_mount_end

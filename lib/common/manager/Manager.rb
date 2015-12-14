@@ -1,4 +1,6 @@
 require "common/models/Diff"
+require "concurrent"
+require "concurrent/patches"
 require "util/Colors"
 require "util/StatusCodes"
 
@@ -68,18 +70,24 @@ module Cumulus
       # f                 - a function that will be passed the name of the resource and an array of
       #                     diffs
       def each_difference(locals, include_unmanaged, &f)
+        pool = Concurrent::ThreadPoolExecutor.new(min_threads: 0, max_threads: Configuration.instance.parallelism)
         if include_unmanaged
           aws_resources.each do |key, resource|
-            f.call(key, [unmanaged_diff(resource)]) if !locals.include?(key)
+            pool.post_with_error do
+              f.call(key, [unmanaged_diff(resource)]) if !locals.include?(key)
+            end
           end
         end
         locals.each do |key, resource|
-          if !aws_resources.include?(key)
-            f.call(key, [added_diff(resource)])
-          else
-            f.call(key, diff_resource(resource, aws_resources[key]))
+          pool.post_with_error do
+            if !aws_resources.include?(key)
+              f.call(key, [added_diff(resource)])
+            else
+              f.call(key, diff_resource(resource, aws_resources[key]))
+            end
           end
         end
+        pool.shutdown_and_wait
       end
 
       # Internal: Print differences.

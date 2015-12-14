@@ -6,7 +6,7 @@ require "aws-sdk"
 module Cumulus
   module SecurityGroups
     class << self
-      @@client = Aws::EC2::Client.new(region: Configuration.instance.region, profile: Configuration.instance.profile)
+      @@client = Aws::EC2::Client.new(Configuration.instance.client)
 
       def id_security_groups
         @id_security_groups ||= Hash[security_groups.map { |a| [a.group_id, a] }]

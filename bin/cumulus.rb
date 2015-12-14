@@ -315,7 +315,7 @@ module Modules
     end
 
     require "elb/manager/Manager"
-    elb = Cumulus::ELB::Manager.new
+    elb = Cumulus::ELB::Manager.new()
     if ARGV[1] == "diff"
       if ARGV.size == 2
         elb.diff
@@ -579,6 +579,8 @@ end
 $LOAD_PATH.unshift(File.expand_path(
   File.join(File.dirname(__FILE__), "../lib")
 ))
+
+require "util/patches"
 
 # set up configuration for the application
 require "conf/Configuration"
