@@ -21,10 +21,7 @@ module Cumulus
       #
       # json - a hash representing the JSON configuration for this scaling policy
       def initialize(json = nil)
-        @@cloudwatch ||= Aws::CloudWatch::Client.new(
-          region: Configuration.instance.region,
-          profile: Configuration.instance.profile
-        )
+        @@cloudwatch ||= Aws::CloudWatch::Client.new(Configuration.instance.client)
 
         if !json.nil?
           @name = json["name"]

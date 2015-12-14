@@ -88,8 +88,9 @@ module Cumulus
     include Config
 
     attr_reader :colors_enabled
-    attr_reader :iam, :autoscaling, :route53, :s3, :security, :cloudfront, :elb, :vpc, :kinesis, :sqs, :ec2
-    attr_reader :region, :profile
+    attr_reader :parallelism
+    attr_reader :client, :iam, :autoscaling, :route53, :s3, :security, :cloudfront, :elb, :vpc, :kinesis, :sqs, :ec2
+    attr_reader :profile
 
     # Internal: Constructor. Sets up the `instance` variable, which is the access
     # point for the Singleton.
@@ -104,9 +105,12 @@ module Cumulus
     def initialize(project_root, file_path, profile, autoscaling_force_size)
       Config.project_root = project_root;
       Config.json = JSON.parse(File.read(absolute_path(file_path)))
-      @profile = profile
       @colors_enabled = conf "colors-enabled"
-      @region = conf "region"
+      @parallelism = conf "parallelism"
+      @client = {:profile => profile}
+      (conf "client").each do |key, value|
+        @client[key.to_sym] = value
+      end
       @iam = IamConfig.new
       @autoscaling = AutoScalingConfig.new(autoscaling_force_size)
       @route53 = Route53Config.new

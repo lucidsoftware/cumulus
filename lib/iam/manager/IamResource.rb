@@ -1,4 +1,5 @@
 require "common/models/Diff"
+require "concurrent"
 require "iam/migration/PolicyUnifier"
 require "iam/models/IamDiff"
 require "util/Colors"
@@ -211,19 +212,24 @@ module Cumulus
       #                     IamDiffs
       def each_difference(locals, include_unmanaged, &f)
         aws = Hash[aws_resources.map { |aws| [aws.name, aws] }]
-
+        pool = Concurrent::ThreadPoolExecutor.new(min_threads: 0, max_threads: Configuration.instance.parallelism)
         if include_unmanaged
-          aws.each do |name, resource|
-            f.call(name, [IamDiff.unmanaged(resource)]) if !locals.include?(name)
+          pool.post do
+            aws.each do |name, resource|
+              f.call(name, [IamDiff.unmanaged(resource)]) if !locals.include?(name)
+            end
           end
         end
         locals.each do |name, resource|
-          if !aws.include?(name)
-            f.call(name, [IamDiff.added(resource)])
-          else
-            f.call(name, resource.diff(aws[name]))
+          pool.post do
+            if !aws.include?(name)
+              f.call(name, [IamDiff.added(resource)])
+            else
+              f.call(name, resource.diff(aws[name]))
+            end
           end
         end
+        pool.shutdown_and_wait
       end
 
       # Internal: Sync differences

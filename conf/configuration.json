@@ -1,5 +1,10 @@
 {
 	"colors-enabled": true,
+	"parallelism": 5,
+	"client": {
+		"region": "us-east-1",
+		"retry_limit": 5,
+	},
 	"iam": {
 		"groups": {
 			"directory": "conf/iam/groups"
@@ -128,6 +133,5 @@
 			}
 
 		}
-	},
-	"region": "us-east-1"
+	}
 }

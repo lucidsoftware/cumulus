@@ -14,7 +14,7 @@ module Cumulus
       def initialize
         super()
         @create_asset = false
-        @route53 = Aws::Route53::Client.new(region: Configuration.instance.region, profile: Configuration.instance.profile)
+        @route53 = Aws::Route53::Client.new(Configuration.instance.client)
       end
 
       # Public: Migrate AWS Route53 configuration to Cumulus configuration.

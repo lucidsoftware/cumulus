@@ -5,7 +5,7 @@ require "aws-sdk"
 module Cumulus
   module SNS
     class << self
-      @@client = Aws::SNS::Client.new(region: Configuration.instance.region, profile: Configuration.instance.profile)
+      @@client = Aws::SNS::Client.new(Configuration.instance.client)
 
       # Public: Static method that will get an SNS topic from AWS by its name
       #
