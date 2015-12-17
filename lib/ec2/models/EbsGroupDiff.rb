@@ -24,7 +24,7 @@ module Cumulus
       end
 
       def aws_name
-        @name
+        @aws.name
       end
 
       def diff_string
