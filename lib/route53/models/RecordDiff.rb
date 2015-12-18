@@ -47,6 +47,7 @@ module Cumulus
       def self.ignored(message, aws)
         diff = RecordDiff.new(IGNORED, aws)
         diff.message = message
+        diff.info_only = true
         diff
       end
 

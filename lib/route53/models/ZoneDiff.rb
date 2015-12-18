@@ -102,6 +102,17 @@ module Cumulus
         @aws.vpc - @local.vpc
       end
 
+      # Public: Override the info_only attribute such that if this diff is a record diff and it
+      # contains only ignored record diffs, we return true.
+      #
+      # Returns whether or not this is an info only diff
+      def info_only
+        if @type == RECORD
+          @changed_records.all? { |r| r.type == RecordChange::IGNORED }
+        else
+          false
+        end
+      end
     end
   end
 end
