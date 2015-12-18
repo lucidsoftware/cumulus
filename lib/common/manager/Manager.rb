@@ -89,7 +89,9 @@ module Cumulus
       def print_difference(key, diffs)
         if diffs.size > 0
 
-          StatusCodes::set_status(StatusCodes::DIFFS)
+          if diffs.reject(&:info_only).size > 0
+            StatusCodes::set_status(StatusCodes::DIFFS)
+          end
 
           if diffs.size == 1 and (diffs[0].type == DiffChange::ADD or
             diffs[0].type == DiffChange::UNMANAGED)

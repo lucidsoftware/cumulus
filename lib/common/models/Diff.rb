@@ -36,7 +36,7 @@ module Cumulus
       include DiffChange
 
       attr_reader :aws, :local, :type
-      attr_accessor :changes
+      attr_accessor :changes, :info_only
 
       # Public: Static method that will produce an "unmanaged" diff
       #
@@ -76,6 +76,7 @@ module Cumulus
         @local = local
         @type = type
         @changes = changes
+        @info_only = false
       end
 
       def to_s
