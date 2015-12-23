@@ -23,6 +23,7 @@ module Cumulus
       STREAMING = Common::DiffChange::next_change_id
       METHODS_ALLOWED = Common::DiffChange::next_change_id
       METHODS_CACHED = Common::DiffChange::next_change_id
+      COMPRESS = Common::DiffChange::next_change_id
     end
 
     # Public: Represents a single difference between local configuration and AWS
@@ -187,6 +188,12 @@ module Cumulus
             cached_methods.removed.map{ |removed| Colors.removed("\t#{removed}")},
             cached_methods.added.map{ |added| Colors.added("\t#{added}")},
           ].flatten.join("\n")
+        when COMPRESS
+          [
+            "compress:",
+            Colors.aws_changes("\tAWS - #{@aws.compress}"),
+            Colors.local_changes("\tLocal - #{@local.compress}"),
+          ].join("\n")
         end
       end
 

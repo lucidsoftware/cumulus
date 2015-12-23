@@ -25,6 +25,7 @@ module Cumulus
       attr_reader :smooth_streaming
       attr_reader :allowed_methods
       attr_reader :cached_methods
+      attr_reader :compress
 
       # Public: Constructor
       #
@@ -47,6 +48,7 @@ module Cumulus
           @smooth_streaming = json["smooth-streaming"]
           @allowed_methods = json["allowed-methods"] || []
           @cached_methods = json["cached-methods"] || []
+          @compress = json["compress"] || false
         end
       end
 
@@ -66,6 +68,7 @@ module Cumulus
         @smooth_streaming = aws.smooth_streaming
         @allowed_methods = aws.allowed_methods.items
         @cached_methods = aws.allowed_methods.cached_methods.items
+        @compress = aws.compress
       end
 
       # Public: Get the config as a hash
@@ -87,6 +90,7 @@ module Cumulus
           "smooth-streaming" => @smooth_streaming,
           "allowed-methods" => @allowed_methods,
           "cached-methods" => @cached_methods,
+          "compress" => @compress
         }.reject { |k, v| v.nil? }
       end
 
@@ -128,7 +132,8 @@ module Cumulus
               quantity: @cached_methods.size,
               items: if @cached_methods.empty? then nil else @cached_methods end
             }
-          }
+          },
+          compress: @compress
         }
       end
 
@@ -218,6 +223,10 @@ module Cumulus
         removed_cached_methods = (aws_cached_methods - @cached_methods)
         if !added_cached_methods.empty? or !removed_cached_methods.empty?
           diffs << CacheBehaviorDiff.cached_methods(added_cached_methods, removed_cached_methods, self)
+        end
+
+        if @compress != aws.compress
+          diffs << CacheBehaviorDiff.new(CacheBehaviorChange::COMPRESS, aws, self)
         end
 
         diffs
