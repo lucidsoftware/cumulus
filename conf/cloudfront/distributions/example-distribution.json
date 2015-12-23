@@ -48,7 +48,8 @@
     "cached-methods": [ // GET, HEAD, POST, PUT, PATCH, OPTIONS, DELETE
       "HEAD",
       "GET"
-    ]
+    ],
+    "compress": true
   },
   "cache-behaviors": [ // optional
     {
@@ -77,7 +78,8 @@
       "cached-methods": [ // GET, HEAD, POST, PUT, PATCH, OPTIONS, DELETE
         "HEAD",
         "GET"
-      ]
+      ],
+      "compress": true
     }
   ],
   "comment": "Created with Cumulus",
