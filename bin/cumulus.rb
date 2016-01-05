@@ -539,18 +539,14 @@ end
 
 # read in the optional path to the configuration file to use
 options = {
-  :config => "conf/configuration.json",
-  :root => nil,
+  :config => File.expand_path(File.join(File.dirname(__FILE__), "../conf")),
   :profile => nil,
-  :autoscaling_force_size => false
+  :autoscaling_force_size => false,
+  :verbose => false
 }
 OptionParser.new do |opts|
-  opts.on("-c", "--config [FILE]", "Specify the configuration file to use") do |c|
-    options[:config] = c
-  end
-
-  opts.on("-r", "--root [DIR]", "Specify the project root to use") do |r|
-    options[:root] = r
+  opts.on("-c", "--config [DIR]", "Specify the configuration directory") do |c|
+    options[:config] = File.expand_path(c)
   end
 
   opts.on("-p", "--aws-profile [NAME]", "Specify the AWS profile to use for API requests") do |p|
@@ -560,15 +556,15 @@ OptionParser.new do |opts|
   opts.on("--autoscaling-force-size", "Forces autoscaling to use configured min/max/desired values instead of scheduled actions") do |f|
     options[:autoscaling_force_size] = true
   end
+
+  opts.on("-v", "--verbose", "Verbose output") do |v|
+    options[:verbose] = true
+  end
 end.parse!
 
 # config parameters can also be read in from environment variables
 if !ENV["CUMULUS_CONFIG"].nil?
   options[:config] = ENV["CUMULUS_CONFIG"]
-end
-
-if !ENV["CUMULUS_ROOT"].nil?
-  options[:root] = ENV["CUMULUS_ROOT"]
 end
 
 if !ENV["CUMULUS_AWS_PROFILE"].nil?
@@ -582,13 +578,12 @@ $LOAD_PATH.unshift(File.expand_path(
 
 # set up configuration for the application
 require "conf/Configuration"
-project_root = File.expand_path(
-  File.join(File.dirname(__FILE__), "../")
-)
-if !options[:root].nil?
-  project_root = File.expand_path(options[:root])
-end
-Cumulus::Configuration.init(project_root, options[:config], options[:profile], options[:autoscaling_force_size])
+
+puts "Reading configuration from '#{options[:config]}'" if options[:verbose]
+
+Cumulus::Configuration.init(options[:config], options[:profile], options[:autoscaling_force_size])
+
+puts "Using aws profile '#{options[:profile]}'" if options[:verbose]
 
 if ARGV.size == 0 or (ARGV[0] != "iam" and ARGV[0] != "help" and ARGV[0] != "autoscaling" and
   ARGV[0] != "route53" and ARGV[0] != "s3" and ARGV[0] != "security-groups" and

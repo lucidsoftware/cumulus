@@ -7,7 +7,7 @@ module Cumulus
   # for what node in the json it expect to get config from, ie. "s3" or "iam"
   module Config
     @@json = nil
-    @@project_root = nil
+    @@conf_dir = nil
 
     class << self
       def json
@@ -18,12 +18,12 @@ module Cumulus
         @@json = value
       end
 
-      def project_root
-        @@project_root
+      def conf_dir
+        @@conf_dir
       end
 
-      def project_root=(value)
-        @@project_root = value
+      def conf_dir=(value)
+        @@conf_dir = value
       end
     end
 
@@ -32,14 +32,14 @@ module Cumulus
     # Internal: Take a path relative to the project root and turn it into an
     # absolute path
     #
-    # relative_path - The String path from `project_root` to the desired file
+    # relative_path - The String path from `conf_dir` to the desired file
     #
     # Returns the absolute path as a String
     def absolute_path(relative_path)
       if relative_path.start_with?("/")
         relative_path
       else
-        File.join(@@project_root, relative_path)
+        File.join(@@conf_dir, relative_path)
       end
     end
 
@@ -94,16 +94,14 @@ module Cumulus
     # Internal: Constructor. Sets up the `instance` variable, which is the access
     # point for the Singleton.
     #
-    # project_root  - The String path to the directory the project is running in
-    # file_path     - The String path from `project_root` to the configuration
-    #                 file
+    # conf_dir  - The String path to the directory the configuration can be found in
     # profile       - The String profile name that will be used to make AWS API calls
     # autoscaling_force_size
     #               -  Determines whether autoscaling should use configured values for
     #                  min/max/desired group size
-    def initialize(project_root, file_path, profile, autoscaling_force_size)
-      Config.project_root = project_root;
-      Config.json = JSON.parse(File.read(absolute_path(file_path)))
+    def initialize(conf_dir, profile, autoscaling_force_size)
+      Config.conf_dir = conf_dir;
+      Config.json = JSON.parse(File.read(absolute_path("configuration.json")))
       @profile = profile
       @colors_enabled = conf "colors-enabled"
       @region = conf "region"
@@ -124,15 +122,13 @@ module Cumulus
       # Public: Initialize the Configuration Singleton. Must be called before any
       # access to `Configuration.instance` is used.
       #
-      # project_root  - The String path to the directory the project is running in
-      # file_path     - The String path from `project_root` to the configuration
-      #                 file
+      # conf_dir  - The String path to the directory the configuration can be found in
       # profile       - The String profile name that will be used to make AWS API calls
       # autoscaling_force_size
       #               -  Determines whether autoscaling should use configured values for
       #                  min/max/desired group size
-      def init(project_root, file_path, profile, autoscaling_force_size)
-        instance = new(project_root, file_path, profile, autoscaling_force_size)
+      def init(conf_dir, profile, autoscaling_force_size)
+        instance = new(conf_dir, profile, autoscaling_force_size)
         @@instance = instance
       end
 
