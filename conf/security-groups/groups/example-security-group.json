@@ -1,6 +1,5 @@
 {
   "description": "an example security group",
-  "vpc-id": "",
   "tags": {
     "tag-key": "tag-value"
   },

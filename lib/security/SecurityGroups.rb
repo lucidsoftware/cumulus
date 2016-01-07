@@ -8,12 +8,16 @@ module Cumulus
     class << self
       @@client = Aws::EC2::Client.new(region: Configuration.instance.region, profile: Configuration.instance.profile)
 
+      require "aws_extensions/ec2/SecurityGroup"
+      Aws::EC2::Types::SecurityGroup.send(:include, AwsExtensions::EC2::SecurityGroup)
+
       def id_security_groups
         @id_security_groups ||= Hash[security_groups.map { |a| [a.group_id, a] }]
       end
 
-      def name_security_groups
-        @name_security_groups ||= Hash[security_groups.map { |a| [a.group_name, a] }]
+      # Public: Returns a Hash of security group name to security group in the specified vpc
+      def name_security_groups(vpc_id)
+        @name_security_groups ||= Hash[security_groups.select { |g| g.vpc_id == vpc_id }.map { |a| [a.group_name, a] }]
       end
 
       # Describe all security groups that are in a vpc

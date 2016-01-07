@@ -56,8 +56,9 @@ module Cumulus
         @local_resources ||= Hash[Loader.groups.map { |local| [local.name, local] }]
       end
 
+      # Hash the aws security groups using the vpc and security group name
       def aws_resources
-        @aws_resources ||= SecurityGroups::name_security_groups
+        @aws_resources ||= Hash[SecurityGroups::security_groups.map { |sg| [sg.vpc_group_name, sg] }]
       end
 
       def unmanaged_diff(aws)
@@ -95,9 +96,7 @@ module Cumulus
       def update(local, diffs)
         diffs_by_type = diffs.group_by(&:type)
 
-        if diffs_by_type.include?(SecurityGroupChange::VPC_ID)
-          puts "\tUnfortunately, you can't change out the vpc id. You'll have to manually manage any dependencies on this security group, delete the security group, and recreate the security group with Cumulus if you'd like to change the vpc id."
-        elsif diffs_by_type.include?(SecurityGroupChange::DESCRIPTION)
+        if diffs_by_type.include?(SecurityGroupChange::DESCRIPTION)
           puts "\tUnfortunately, AWS's SDK does not allow updating the description."
         else
           diffs.each do |diff|

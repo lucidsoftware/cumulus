@@ -1,0 +1,48 @@
+{
+  "description": "default VPC security group",
+  "tags": {
+  },
+  "rules": {
+    "inbound": [
+      {
+        "security-groups": [
+          "default"
+        ],
+        "protocol": "all",
+        "subnets": [
+        ]
+      },
+      {
+        "security-groups": [
+          "default"
+        ],
+        "protocol": "icmp",
+        "icmp-type": "all",
+        "icmp-code": "all",
+        "subnets": [
+        ]
+      },
+      {
+        "security-groups": [
+          "sec1"
+        ],
+        "protocol": "icmp",
+        "icmp-type": 0,
+        "icmp-code": "all",
+        "subnets": [
+        ]
+      }
+    ],
+    "outbound": [
+      {
+        "security-groups": [
+
+        ],
+        "protocol": "all",
+        "subnets": [
+          "all"
+        ]
+      }
+    ]
+  }
+}
