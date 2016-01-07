@@ -5,22 +5,33 @@
       // One of these ids must be defined
       "gateway-id": "local",
       "network-interface-id": null,
-      "vpc-peering-connection-id": null
+      "vpc-peering-connection-id": null,
+      "nat-gateway-id": null
     },
     {
       "dest-cidr": "10.2.0.0/0",
       // One of these ids must be defined
       "gateway-id": null,
       "network-interface-id": "eni-abc123",
-      "vpc-peering-connection-id": null
-    }
+      "vpc-peering-connection-id": null,
+      "nat-gateway-id": null
+    },
     {
       "dest-cidr": "10.3.0.0/0",
       // One of these ids must be defined
       "gateway-id": null,
       "network-interface-id": null,
-      "vpc-peering-connection-id": "vpc-abc123"
+      "vpc-peering-connection-id": "vpc-abc123",
+      "nat-gateway-id": null
     },
+    {
+      "dest-cidr": "10.4.0.0/0",
+      // One of these ids must be defined
+      "gateway-id": null,
+      "network-interface-id": null,
+      "vpc-peering-connection-id": null,
+      "nat-gateway-id": "nat-asdf1234"
+    }
   ],
   "propagate-vgws": [
     "vgw-abc123"

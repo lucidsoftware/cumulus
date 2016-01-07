@@ -11,6 +11,7 @@ module Cumulus
       GATEWAY = Common::DiffChange.next_change_id
       NETWORK = Common::DiffChange.next_change_id
       VPC_PEERING = Common::DiffChange.next_change_id
+      NAT_GATEWAY = Common::DiffChange.next_change_id
     end
 
     # Public: Represents a single difference between local configuration AWS configuration
@@ -33,6 +34,8 @@ module Cumulus
           "Network Interface"
         when VPC_PEERING
           "VPC Peering Connection"
+        when NAT_GATEWAY
+          "NAT Gateway"
         end
 
         [

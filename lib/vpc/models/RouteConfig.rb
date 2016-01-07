@@ -14,6 +14,7 @@ module Cumulus
       attr_reader :instance_id
       attr_reader :network_interface_id
       attr_reader :vpc_peering_connection_id
+      attr_reader :nat_gateway_id
 
       # Public: Constructor
       #
@@ -24,6 +25,7 @@ module Cumulus
           @gateway_id = json["gateway-id"]
           @network_interface_id = json["network-interface-id"]
           @vpc_peering_connection_id = json["vpc-peering-connection-id"]
+          @nat_gateway_id = json["nat-gateway-id"]
         end
       end
 
@@ -33,6 +35,7 @@ module Cumulus
           "gateway-id" => @gateway_id,
           "network-interface-id" => @network_interface_id,
           "vpc-peering-connection-id" => @vpc_peering_connection_id,
+          "nat-gateway-id" => @nat_gateway_id,
         }.reject { |k, v| v.nil? }
       end
 
@@ -41,6 +44,7 @@ module Cumulus
         @gateway_id = aws.gateway_id
         @network_interface_id = aws.network_interface_id
         @vpc_peering_connection_id = aws.vpc_peering_connection_id
+        @nat_gateway_id = aws.nat_gateway_id
 
         self
       end
@@ -64,6 +68,10 @@ module Cumulus
 
         if @vpc_peering_connection_id != aws.vpc_peering_connection_id
           diffs << RouteDiff.new(RouteChange::VPC_PEERING, aws.vpc_peering_connection_id, @vpc_peering_connection_id)
+        end
+
+        if @nat_gateway_id != aws.nat_gateway_id
+          diffs << RouteDiff.new(RouteChange::NAT_GATEWAY, aws.nat_gateway_id, @nat_gateway_id)
         end
 
         diffs
