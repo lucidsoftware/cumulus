@@ -72,6 +72,7 @@ A cache behavior controls how itemes accessed using the distribution are cached.
 * `smooth-streaming` - a true/false value indicating if smooth streaming is enabled for this behavior
 * `allowed-methods` - an array defining the HTTP methods that are allowed in this behavior. Methods can include `"HEAD"`, `"GET"`, `"POST"`, `"PUT"`, `"OPTIONS"`, `"DELETE"`, and `"PATCH"`
 * `cached-methods` - a subset of `allowed-methods` defining the HTTP methods that are cached in this behavior
+* `compressed` - an optional true/false value indicating whether CloudFront should serve gzipped content for clients that support it
 
 Here is an example cache behavior configuration that could be used for the `default-cache-behavior`:
 
@@ -102,7 +103,8 @@ Here is an example cache behavior configuration that could be used for the `defa
   "cached-methods": [
     "HEAD",
     "GET"
-  ]
+  ],
+  "compressed": true
 }
 {% endhighlight %}
 
@@ -137,7 +139,8 @@ Here is a full example of a distribution config with an S3 origin and another ca
     "cached-methods": [
       "HEAD",
       "GET"
-    ]
+    ],
+    "compressed": true
   },
   "cache-behaviors": [
     {
@@ -161,7 +164,8 @@ Here is a full example of a distribution config with an S3 origin and another ca
         "HEAD",
         "GET",
         "OPTIONS"
-      ]
+      ],
+      "compressed": false
     }
   ],
   "comment": "Created with Cumulus",
