@@ -178,7 +178,7 @@ module Cumulus
           listeners: local.listeners.map(&:to_aws),
           subnets: local.subnets.map { |subnet| subnet.subnet_id },
           security_groups: local.security_groups.map do |sg_name|
-            SecurityGroups::name_security_groups(local.vpc_id)[sg_name].group_id
+            SecurityGroups::vpc_security_groups[local.vpc_id][sg_name].group_id
           end,
           scheme: if local.internal then "internal" end,
           tags: if !local.tags.empty?
@@ -404,7 +404,7 @@ module Cumulus
         @elb.apply_security_groups_to_load_balancer({
           load_balancer_name: elb_name,
           security_groups: security_groups.map do |sg_name|
-            SecurityGroups::name_security_groups(vpc_id)[sg_name].group_id
+            SecurityGroups::vpc_security_groups[vpc_id][sg_name].group_id
           end
         })
       end
