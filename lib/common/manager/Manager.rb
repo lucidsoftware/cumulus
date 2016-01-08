@@ -37,8 +37,7 @@ module Cumulus
       #
       # name - the name of the resource to diff
       def diff_one(name)
-        local = local_resources.reject { |key, l| l.name != name }
-        each_difference(local, false) { |key, diffs| print_difference(key, diffs) }
+        each_difference(filter_local(name), false) { |key, diffs| print_difference(key, diffs) }
       end
 
       # Public: Print out the names of all resources managed by Cumulus
@@ -55,8 +54,12 @@ module Cumulus
       #
       # name - the name of the resource to sync
       def sync_one(name)
-        local = local_resources.reject { |key, l| l.name != name }
-        each_difference(local, false) { |key, diffs| sync_difference(key, diffs) }
+        each_difference(filter_local(name), false) { |key, diffs| sync_difference(key, diffs) }
+      end
+
+      # Public: Select local resources based on name
+      def filter_local(name)
+        local_resources.reject { |key, l| l.name != name }
       end
 
       private
@@ -68,17 +71,27 @@ module Cumulus
       # f                 - a function that will be passed the name of the resource and an array of
       #                     diffs
       def each_difference(locals, include_unmanaged, &f)
-        if include_unmanaged
-          aws_resources.each do |key, resource|
-            f.call(key, [unmanaged_diff(resource)]) if !locals.include?(key)
-          end
+
+        unmanaged = if include_unmanaged
+          Hash[aws_resources.map do |key, resource|
+            [key, [unmanaged_diff(resource)]] if !locals.include?(key)
+          end.compact]
+        else
+          {}
         end
-        locals.each do |key, resource|
+
+        managed = Hash[locals.map do |key, resource|
           if !aws_resources.include?(key)
-            f.call(key, [added_diff(resource)])
+            [key, [added_diff(resource)]]
           else
-            f.call(key, diff_resource(resource, aws_resources[key]))
+            [key, diff_resource(resource, aws_resources[key])]
           end
+        end]
+
+        combined = unmanaged.merge(managed)
+        sorted_keys = combined.keys.sort
+        sorted_keys.each do |key|
+          f.call(key, combined[key])
         end
       end
 

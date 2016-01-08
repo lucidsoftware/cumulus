@@ -1,6 +1,8 @@
 require "common/BaseLoader"
 require "conf/Configuration"
 require "security/models/SecurityGroupConfig"
+require "util/Colors"
+require "util/StatusCodes"
 
 module Cumulus
   module SecurityGroups
@@ -15,7 +17,33 @@ module Cumulus
       #
       # Returns an array of SecurityGroupConfig
       def Loader.groups
-        Common::BaseLoader.resources(@@groups_dir, &SecurityGroupConfig.method(:new))
+        # List all the directories to load groups from each vpc
+        vpc_dirs = Dir.entries(@@groups_dir).reject { |f| f == "." or f == ".."}.select { |f| File.directory?(File.join(@@groups_dir, f)) }
+
+        vpc_groups = vpc_dirs.map do |d|
+          aws_vpc = EC2::named_vpcs[d]
+
+          if aws_vpc.nil?
+            puts Colors.red("No VPC named #{d} exists")
+            exit StatusCodes::EXCEPTION
+          end
+
+          Common::BaseLoader.resources(File.join(@@groups_dir, d)) do |file_name, json|
+            name = "#{aws_vpc.name}/#{file_name}"
+            SecurityGroupConfig.new(name, aws_vpc.vpc_id, json)
+          end
+        end.flatten
+
+        non_vpc_groups = if EC2::supports_ec2_classic
+          Common::BaseLoader.resources(@@groups_dir) do |file_name, json|
+            SecurityGroupConfig.new(file_name, nil, json)
+          end
+        else
+          puts "Ignoring Non-VPC Security Groups because your account does not support them"
+          []
+        end
+
+        vpc_groups + non_vpc_groups
       end
 
       # Public: Get the local definition of a subnet group.

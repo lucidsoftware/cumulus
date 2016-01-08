@@ -87,6 +87,12 @@ module Cumulus
         end
       end
 
+      # Public: Returns the vpc id for the load balancer config using the first subnet
+      def vpc_id
+        first_subnet = @subnets.first
+        EC2::named_subnets[first_subnet].vpc_id if first_subnet
+      end
+
       # Public: Get the config as a prettified JSON string.
       #
       # Returns the JSON string

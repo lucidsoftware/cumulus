@@ -379,6 +379,20 @@ module Cumulus
 
       end
 
+      def supports_vpc
+        @supports_vpc ||= supported_platforms.include?("VPC")
+      end
+
+      def supports_ec2_classic
+        @supports_ec2_classic ||= supported_platforms.include?("EC2")
+      end
+
+      def supported_platforms
+        @supported_platforms ||= @@client.describe_account_attributes({
+          attribute_names: ["supported-platforms"]
+        }).account_attributes.first.attribute_values.map(&:attribute_value)
+      end
+
       private
 
       # Internal: Load all subnets

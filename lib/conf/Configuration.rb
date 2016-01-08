@@ -7,7 +7,7 @@ module Cumulus
   # for what node in the json it expect to get config from, ie. "s3" or "iam"
   module Config
     @@json = nil
-    @@project_root = nil
+    @@conf_dir = nil
 
     class << self
       def json
@@ -18,12 +18,12 @@ module Cumulus
         @@json = value
       end
 
-      def project_root
-        @@project_root
+      def conf_dir
+        @@conf_dir
       end
 
-      def project_root=(value)
-        @@project_root = value
+      def conf_dir=(value)
+        @@conf_dir = value
       end
     end
 
@@ -32,14 +32,14 @@ module Cumulus
     # Internal: Take a path relative to the project root and turn it into an
     # absolute path
     #
-    # relative_path - The String path from `project_root` to the desired file
+    # relative_path - The String path from `conf_dir` to the desired file
     #
     # Returns the absolute path as a String
     def absolute_path(relative_path)
       if relative_path.start_with?("/")
         relative_path
       else
-        File.join(@@project_root, relative_path)
+        File.join(@@conf_dir, relative_path)
       end
     end
 
@@ -71,15 +71,6 @@ module Cumulus
       exit
     end
 
-    # Internal: A version of `conf` that will apply the `absolute_path` method to
-    # the configuration value.
-    #
-    # key - the full key to get. ex. `s3.buckets.directory`
-    #
-    # Returns the configuration value as an absolute path
-    def conf_abs_path(key)
-      conf(key) { |value| absolute_path(value) }
-    end
   end
 
   # Public: Contains the configuration values set in the configuration.json file.
@@ -94,16 +85,14 @@ module Cumulus
     # Internal: Constructor. Sets up the `instance` variable, which is the access
     # point for the Singleton.
     #
-    # project_root  - The String path to the directory the project is running in
-    # file_path     - The String path from `project_root` to the configuration
-    #                 file
+    # conf_dir  - The String path to the directory the configuration can be found in
     # profile       - The String profile name that will be used to make AWS API calls
     # autoscaling_force_size
     #               -  Determines whether autoscaling should use configured values for
     #                  min/max/desired group size
-    def initialize(project_root, file_path, profile, autoscaling_force_size)
-      Config.project_root = project_root;
-      Config.json = JSON.parse(File.read(absolute_path(file_path)))
+    def initialize(conf_dir, profile, autoscaling_force_size)
+      Config.conf_dir = conf_dir;
+      Config.json = JSON.parse(File.read(absolute_path("configuration.json")))
       @profile = profile
       @colors_enabled = conf "colors-enabled"
       @region = conf "region"
@@ -124,15 +113,13 @@ module Cumulus
       # Public: Initialize the Configuration Singleton. Must be called before any
       # access to `Configuration.instance` is used.
       #
-      # project_root  - The String path to the directory the project is running in
-      # file_path     - The String path from `project_root` to the configuration
-      #                 file
+      # conf_dir  - The String path to the directory the configuration can be found in
       # profile       - The String profile name that will be used to make AWS API calls
       # autoscaling_force_size
       #               -  Determines whether autoscaling should use configured values for
       #                  min/max/desired group size
-      def init(project_root, file_path, profile, autoscaling_force_size)
-        instance = new(project_root, file_path, profile, autoscaling_force_size)
+      def init(conf_dir, profile, autoscaling_force_size)
+        instance = new(conf_dir, profile, autoscaling_force_size)
         @@instance = instance
       end
 
@@ -162,15 +149,15 @@ module Cumulus
 
       # Public: Constructor.
       def initialize
-        @groups_directory = conf_abs_path "iam.groups.directory"
-        @policy_document_directory = conf_abs_path "iam.roles.policy-document-directory"
+        @groups_directory = absolute_path "iam/groups"
+        @policy_document_directory = absolute_path "iam/roles/policy-documents"
         @policy_prefix = conf "iam.policies.prefix"
         @policy_suffix = conf "iam.policies.suffix"
         @policy_version = conf "iam.policies.version"
-        @roles_directory = conf_abs_path "iam.roles.directory"
-        @static_policy_directory = conf_abs_path "iam.policies.static.directory"
-        @template_policy_directory = conf_abs_path "iam.policies.templates.directory"
-        @users_directory = conf_abs_path "iam.users.directory"
+        @roles_directory = absolute_path "iam/roles"
+        @static_policy_directory = absolute_path "iam/policies/static"
+        @template_policy_directory = absolute_path "iam/policies/template"
+        @users_directory = absolute_path "iam/users"
       end
     end
 
@@ -186,10 +173,10 @@ module Cumulus
 
       # Public: Constructor.
       def initialize(force_size = false)
-        @groups_directory = conf_abs_path "autoscaling.groups.directory"
+        @groups_directory = absolute_path "autoscaling/groups"
         @override_launch_config_on_sync = conf "autoscaling.groups.override-launch-config-on-sync"
-        @static_policy_directory = conf_abs_path "autoscaling.policies.static.directory"
-        @template_policy_directory = conf_abs_path "autoscaling.policies.templates.directory"
+        @static_policy_directory = absolute_path "autoscaling/policies/static"
+        @template_policy_directory = absolute_path "autoscaling/policies/templates"
         @force_size = force_size
       end
 
@@ -205,9 +192,9 @@ module Cumulus
 
       # Public: Constructor
       def initialize
-        @includes_directory = conf_abs_path "route53.includes.directory"
+        @includes_directory = absolute_path "route53/includes"
         @print_all_ignored = conf "route53.print-all-ignored"
-        @zones_directory = conf_abs_path "route53.zones.directory"
+        @zones_directory = absolute_path "route53/zones"
       end
     end
 
@@ -223,9 +210,9 @@ module Cumulus
       # Public: Constructor
       def initialize
         @node = "s3"
-        @buckets_directory = conf_abs_path "s3.buckets.directory"
-        @cors_directory = conf_abs_path "s3.buckets.cors.directory"
-        @policies_directory = conf_abs_path "s3.buckets.policies.directory"
+        @buckets_directory = absolute_path "s3/buckets"
+        @cors_directory = absolute_path "s3/cors"
+        @policies_directory = absolute_path "s3/policies"
         @print_progress = conf "s3.print-progress"
       end
     end
@@ -240,9 +227,9 @@ module Cumulus
 
       # Public: Constructor.
       def initialize
-        @groups_directory = conf_abs_path "security.groups.directory"
+        @groups_directory = absolute_path "security-groups/groups"
         @outbound_default_all_allowed = conf "security.outbound-default-all-allowed"
-        @subnets_file = conf_abs_path "security.subnets-file"
+        @subnets_file = absolute_path "security-groups/subnets.json"
       end
 
     end
@@ -255,8 +242,8 @@ module Cumulus
       attr_reader :invalidations_directory
 
       def initialize
-        @distributions_directory = conf_abs_path "cloudfront.distributions.directory"
-        @invalidations_directory = conf_abs_path "cloudfront.invalidations.directory"
+        @distributions_directory = absolute_path "cloudfront/distributions"
+        @invalidations_directory = absolute_path "cloudfront/invalidations"
       end
     end
 
@@ -269,9 +256,9 @@ module Cumulus
       attr_reader :policies_directory
 
       def initialize
-        @load_balancers_directory = conf_abs_path "elb.load-balancers.directory"
-        @listeners_directory = conf_abs_path "elb.listeners.directory"
-        @policies_directory = conf_abs_path "elb.policies.directory"
+        @load_balancers_directory = absolute_path "elb/load-balancers"
+        @listeners_directory = absolute_path "elb/listeners"
+        @policies_directory = absolute_path "elb/policies"
       end
     end
 
@@ -286,11 +273,11 @@ module Cumulus
       attr_reader :network_acls_directory
 
       def initialize
-        @vpcs_directory = conf_abs_path "vpc.vpcs.directory"
-        @subnets_directory = conf_abs_path "vpc.subnets.directory"
-        @route_tables_directory = conf_abs_path "vpc.route-tables.directory"
-        @policies_directory = conf_abs_path "vpc.policies.directory"
-        @network_acls_directory = conf_abs_path "vpc.network-acls.directory"
+        @vpcs_directory = absolute_path "vpc/vpcs"
+        @subnets_directory = absolute_path "vpc/subnets"
+        @route_tables_directory = absolute_path "vpc/route-tables"
+        @policies_directory = absolute_path "vpc/policies"
+        @network_acls_directory = absolute_path "vpc/network-acls"
       end
     end
 
@@ -301,7 +288,7 @@ module Cumulus
       attr_reader :directory
 
       def initialize
-        @directory = conf_abs_path "kinesis.directory"
+        @directory = absolute_path "kinesis"
       end
 
     end
@@ -314,8 +301,8 @@ module Cumulus
       attr_reader :policies_directory
 
       def initialize
-        @queues_directory = conf_abs_path "sqs.queues.directory"
-        @policies_directory = conf_abs_path "sqs.policies.directory"
+        @queues_directory =  absolute_path "sqs/queues"
+        @policies_directory = absolute_path "sqs/policies"
       end
     end
 
@@ -333,10 +320,10 @@ module Cumulus
       attr_reader :volume_mount_end
 
       def initialize
-        @ebs_directory = conf_abs_path "ec2.ebs.directory"
-        @instances_directory = conf_abs_path "ec2.instances.directory"
+        @ebs_directory = absolute_path "ec2/ebs"
+        @instances_directory = absolute_path "ec2/instances"
+        @user_data_directory = absolute_path "ec2/user-data-scripts"
         @ignore_unmanaged_instances = conf "ec2.instances.ignore-unmanaged"
-        @user_data_directory = conf_abs_path "ec2.instances.user-data-directory"
         @default_image_id = conf "ec2.instances.default-image-id"
         @volume_mount_base = conf "ec2.instances.volume-mounting.base"
         @volume_mount_start = conf "ec2.instances.volume-mounting.start"

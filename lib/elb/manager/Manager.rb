@@ -133,7 +133,7 @@ module Cumulus
             update_subnets(local.name, diff.subnets)
           when SECURITY
             puts "Updating security groups..."
-            update_security_groups(local.name, local.security_groups)
+            update_security_groups(local.name, local.vpc_id, local.security_groups)
           when INTERNAL
             puts "AWS does not allow changing internal after creation"
           when TAGS
@@ -178,7 +178,7 @@ module Cumulus
           listeners: local.listeners.map(&:to_aws),
           subnets: local.subnets.map { |subnet| subnet.subnet_id },
           security_groups: local.security_groups.map do |sg_name|
-            SecurityGroups::name_security_groups[sg_name].group_id
+            SecurityGroups::vpc_security_groups[local.vpc_id][sg_name].group_id
           end,
           scheme: if local.internal then "internal" end,
           tags: if !local.tags.empty?
@@ -398,12 +398,13 @@ module Cumulus
       # Internal: update the security groups for the load balancer
       #
       # elb_name - the name of the load balancer to update
+      # vpc_id - the id of the vpc the elb is in
       # security_groups - an array of security group ids tha will replace the existing config
-      def update_security_groups(elb_name, security_groups)
+      def update_security_groups(elb_name, vpc_id, security_groups)
         @elb.apply_security_groups_to_load_balancer({
           load_balancer_name: elb_name,
           security_groups: security_groups.map do |sg_name|
-            SecurityGroups::name_security_groups[sg_name].group_id
+            SecurityGroups::vpc_security_groups[vpc_id][sg_name].group_id
           end
         })
       end

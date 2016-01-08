@@ -168,7 +168,7 @@ module Cumulus
         set_group_name(resp.volume_id, group_name)
       rescue => e
         puts "Failed to create a volume of #{vg.description}: #{e}"
-        exit StatusCodes.EXCEPTION
+        exit StatusCodes::EXCEPTION
       end
 
     end

@@ -10,7 +10,6 @@ module Cumulus
       include Common::DiffChange
 
       DESCRIPTION = Common::DiffChange::next_change_id
-      VPC_ID = Common::DiffChange::next_change_id
       TAGS = Common::DiffChange::next_change_id
       INBOUND = Common::DiffChange::next_change_id
       OUTBOUND = Common::DiffChange::next_change_id
@@ -56,7 +55,7 @@ module Cumulus
       end
 
       def aws_name
-        @aws.group_name
+        @aws.vpc_group_name
       end
 
       def diff_string
@@ -78,11 +77,6 @@ module Cumulus
           lines.flatten.join("\n")
         when TAGS
           tags_diff_string
-        when VPC_ID
-          [
-            "VPC ID: AWS - #{Colors.aws_changes(@aws.vpc_id)}, Local - #{Colors.local_changes(@local.vpc_id)}",
-            "\tUnfortunately, you can't change out the vpc id. You'll have to manually manage any dependencies on this security group, delete the security group, and recreate the security group with Cumulus if you'd like to change the vpc id."
-          ].join("\n")
         end
       end
 

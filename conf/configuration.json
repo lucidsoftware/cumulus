@@ -1,132 +1,35 @@
 {
 	"colors-enabled": true,
 	"iam": {
-		"groups": {
-			"directory": "conf/iam/groups"
-		},
 		"policies": {
-			"static": {
-				"directory": "conf/iam/policies/static"
-			},
 			"prefix": "",
 			"suffix": "-generated",
-			"templates": {
-				"directory": "conf/iam/policies/template"
-			},
 			"version": "2012-10-17"
-		},
-		"roles": {
-			"directory": "conf/iam/roles",
-			"policy-document-directory": "conf/iam/roles/policy-documents"
-		},
-		"users": {
-			"directory": "conf/iam/users"
 		}
 	},
 	"autoscaling": {
 		"groups": {
-			"directory": "conf/autoscaling/groups",
 			"override-launch-config-on-sync": false
-		},
-		"policies": {
-			"static": {
-				"directory": "conf/autoscaling/policies/static"
-			},
-			"templates": {
-				"directory": "conf/autoscaling/policies/templates"
-			}
 		}
 	},
 	"route53": {
-		"print-all-ignored": true,
-		"includes": {
-			"directory": "conf/route53/includes"
-		},
-		"zones": {
-			"directory": "conf/route53/zones"
-		}
+		"print-all-ignored": true
 	},
 	"s3": {
-		"buckets": {
-			"cors": {
-				"directory": "conf/s3/cors"
-			},
-			"directory": "conf/s3/buckets",
-			"policies": {
-				"directory": "conf/s3/policies"
-			}
-		},
 		"print-progress": true
 	},
 	"security": {
-		"groups": {
-			"directory": "conf/security/groups"
-		},
-		"subnets-file": "conf/security/subnets.json",
 		"outbound-default-all-allowed": true
 	},
-	"cloudfront": {
-		"distributions": {
-			"directory": "conf/cloudfront/distributions"
-		},
-		"invalidations": {
-			"directory": "conf/cloudfront/invalidations"
-		}
-	},
-	"elb": {
-		"load-balancers": {
-			"directory": "conf/elb/load-balancers"
-		},
-		"listeners": {
-			"directory": "conf/elb/listeners"
-		},
-		"policies": {
-			"directory": "conf/elb/policies"
-		}
-	},
-	"vpc": {
-		"vpcs": {
-			"directory": "conf/vpc/vpcs"
-		},
-		"subnets": {
-			"directory": "conf/vpc/subnets"
-		},
-		"route-tables": {
-			"directory": "conf/vpc/route-tables"
-		},
-		"policies": {
-			"directory": "conf/vpc/policies"
-		},
-		"network-acls": {
-			"directory": "conf/vpc/network-acls"
-		}
-	},
-	"kinesis": {
-		"directory": "conf/kinesis"
-	},
-	"sqs": {
-		"queues": {
-			"directory": "conf/sqs/queues"
-		},
-		"policies": {
-			"directory": "conf/sqs/policies"
-		}
-	},
 	"ec2": {
-		"ebs": {
-			"directory": "conf/ec2/ebs"
-		},
 		"instances": {
-			"directory": "conf/ec2/instances",
 			"ignore-unmanaged": true,
-			"user-data-directory": "conf/ec2/user-data-scripts",
 			"default-image-id": null,
 			"volume-mounting": {
 				"base": "/dev/xvd",
 				"start": "f",
 				"end": "z"
 			}
-
 		}
 	},
 	"region": "us-east-1"

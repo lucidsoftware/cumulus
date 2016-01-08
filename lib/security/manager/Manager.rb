@@ -19,7 +19,7 @@ module Cumulus
 
       # Public: Migrate AWS Security Groups to Cumulus configuration.
       def migrate
-        groups_dir = "#{@migration_root}/groups"
+        groups_dir = "#{@migration_root}/security-groups"
 
         if !Dir.exists?(@migration_root)
           Dir.mkdir(@migration_root)
@@ -28,12 +28,24 @@ module Cumulus
           Dir.mkdir(groups_dir)
         end
 
+        # Make the directories needed for resources that require it
+        aws_resources.map do |name, _|
+          parts = name.partition("/")
+          if parts.length > 1
+            "#{groups_dir}/#{parts.first}"
+          end
+        end.uniq.compact.each do |dir|
+          if !Dir.exists?(dir)
+            Dir.mkdir(dir)
+          end
+        end
+
         aws_resources.each_value do |resource|
-          puts "Processing #{resource.group_name}..."
-          config = SecurityGroupConfig.new(resource.group_name)
+          puts "Processing #{resource.vpc_group_name}..."
+          config = SecurityGroupConfig.new(resource.vpc_group_name, resource.vpc_id)
           config.populate!(resource)
 
-          puts "Writing #{resource.group_name} configuration to file..."
+          puts "Writing #{resource.vpc_group_name} configuration to file..."
           File.open("#{groups_dir}/#{config.name}.json", "w") { |f| f.write(config.pretty_json) }
         end
 
@@ -56,8 +68,9 @@ module Cumulus
         @local_resources ||= Hash[Loader.groups.map { |local| [local.name, local] }]
       end
 
+      # Hash the aws security groups using the vpc and security group name
       def aws_resources
-        @aws_resources ||= SecurityGroups::name_security_groups
+        @aws_resources ||= Hash[SecurityGroups::security_groups.map { |sg| [sg.vpc_group_name, sg] }]
       end
 
       def unmanaged_diff(aws)
@@ -95,9 +108,7 @@ module Cumulus
       def update(local, diffs)
         diffs_by_type = diffs.group_by(&:type)
 
-        if diffs_by_type.include?(SecurityGroupChange::VPC_ID)
-          puts "\tUnfortunately, you can't change out the vpc id. You'll have to manually manage any dependencies on this security group, delete the security group, and recreate the security group with Cumulus if you'd like to change the vpc id."
-        elsif diffs_by_type.include?(SecurityGroupChange::DESCRIPTION)
+        if diffs_by_type.include?(SecurityGroupChange::DESCRIPTION)
           puts "\tUnfortunately, AWS's SDK does not allow updating the description."
         else
           diffs.each do |diff|

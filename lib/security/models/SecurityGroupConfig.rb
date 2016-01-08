@@ -21,12 +21,13 @@ module Cumulus
       # Public: Constructor.
       #
       # name - the name of the security group
+      # vpc_id - the id of the vpc the security group belongs in
       # json - a hash containing the JSON configuration for the security group
-      def initialize(name, json = nil)
+      def initialize(name, vpc_id, json = nil)
         @name = name
+        @vpc_id = vpc_id
         if !json.nil?
           @description = if !json["description"].nil? then json["description"] else "" end
-          @vpc_id = json["vpc-id"]
           @tags = if !json["tags"].nil? then json["tags"] else {} end
           @inbound = json["rules"]["inbound"].map(&RuleConfig.method(:expand_ports)).flatten
           @outbound = if !json["rules"]["outbound"].nil?
@@ -53,9 +54,7 @@ module Cumulus
         if @description != aws.description
           diffs << SecurityGroupDiff.new(SecurityGroupChange::DESCRIPTION, aws, self)
         end
-        if @vpc_id != aws.vpc_id
-          diffs << SecurityGroupDiff.new(SecurityGroupChange::VPC_ID, aws, self)
-        end
+
         if @tags != Hash[aws.tags.map { |t| [t.key, t.value] }]
           diffs << SecurityGroupDiff.new(SecurityGroupChange::TAGS, aws, self)
         end
@@ -78,7 +77,6 @@ module Cumulus
       # aws             - the aws resource
       def populate!(aws)
         @description = aws.description
-        @vpc_id = aws.vpc_id
         @tags = Hash[aws.tags.map { |t| [t.key, t.value] }]
         @inbound = combine_rules(aws.ip_permissions.map { |rule| RuleConfig.from_aws(rule) })
         @outbound = combine_rules(aws.ip_permissions_egress.map { |rule| RuleConfig.from_aws(rule) })
@@ -90,7 +88,6 @@ module Cumulus
       def pretty_json
         JSON.pretty_generate({
           "description" => @description,
-          "vpc-id" => @vpc_id,
           "tags" => @tags,
           "rules" => {
             "inbound" => @inbound.map(&:hash),
