@@ -1,3 +1,5 @@
+cumulus_command="cumulus"
+
 function _cumulus {
   local cur=${COMP_WORDS[COMP_CWORD]}
   local prev=${COMP_WORDS[COMP_CWORD-1]}
@@ -7,13 +9,13 @@ function _cumulus {
   case "$threeprev" in
     iam)
       if [ "$prev" == "diff" ] || [ "$prev" == "sync" ]; then
-        configs=$(cumulus iam "$twoprev" list)
+        configs=$(${cumulus_command} iam "$twoprev" list)
         COMPREPLY=( $(compgen -W "$configs" -- $cur ) )
       fi
     ;;
     ec2)
       if [ "$prev" == "diff" ] || [ "$prev" == "sync" ]; then
-        configs=$(cumulus ec2 "$twoprev" list)
+        configs=$(${cumulus_command} ec2 "$twoprev" list)
         COMPREPLY=( $(compgen -W "$configs" -- $cur ) )
       fi
     ;;
@@ -24,23 +26,23 @@ function _cumulus {
         ;;
         autoscaling)
           if [ "$prev" == "diff" ] || [ "$prev" == "sync" ]; then
-            configs=$(cumulus autoscaling list)
+            configs=$(${cumulus_command} autoscaling list)
             COMPREPLY=( $(compgen -W "$configs" -- $cur) )
           fi
         ;;
         cloudfront)
           if [ "$prev" == "diff" ] || [ "$prev" == "sync" ]; then
-            configs=$(cumulus cloudfront list)
+            configs=$(${cumulus_command} cloudfront list)
             COMPREPLY=( $(compgen -W "$configs" -- $cur) )
           fi
           if [ "$prev" == "invalidate" ]; then
-            configs=$(cumulus cloudfront invalidate list)
+            configs=$(${cumulus_command} cloudfront invalidate list)
             COMPREPLY=( $(compgen -W "$configs" -- $cur) )
           fi
         ;;
         elb)
           if [ "$prev" == "diff" ] || [ "$prev" == "sync" ]; then
-            configs=$(cumulus elb list)
+            configs=$(${cumulus_command} elb list)
             COMPREPLY=( $(compgen -W "$configs" -- $cur))
           fi
           if [ "$prev" == "migrate" ]; then
@@ -49,25 +51,25 @@ function _cumulus {
         ;;
         route53)
           if [ "$prev" == "diff" ] || [ "$prev" == "sync" ]; then
-            configs=$(cumulus route53 list)
+            configs=$(${cumulus_command} route53 list)
             COMPREPLY=( $(compgen -W "$configs" -- $cur) )
           fi
         ;;
         s3)
           if [ "$prev" == "diff" ] || [ "$prev" == "sync" ]; then
-            configs=$(cumulus s3 list)
+            configs=$(${cumulus_command} s3 list)
             COMPREPLY=( $(compgen -W "$configs" -- $cur) )
           fi
         ;;
         security-groups)
           if [ "$prev" == "diff" ] || [ "$prev" == "sync" ]; then
-            configs=$(cumulus security-groups list)
+            configs=$(${cumulus_command} security-groups list)
             COMPREPLY=( $(compgen -W "$configs" -- $cur) )
           fi
         ;;
         vpc)
           if [ "$prev" == "diff" ] || [ "$prev" == "sync" ]; then
-            configs=$(cumulus vpc list)
+            configs=$(${cumulus_command} vpc list)
             COMPREPLY=( $(compgen -W "$configs" -- $cur) )
           fi
           if [ "$prev" == "rename" ]; then
@@ -76,13 +78,13 @@ function _cumulus {
         ;;
         kinesis)
           if [ "$prev" == "diff" ] || [ "$prev" == "sync" ]; then
-            configs=$(cumulus kinesis list)
+            configs=$(${cumulus_command} kinesis list)
             COMPREPLY=( $(compgen -W "$configs" -- $cur) )
           fi
         ;;
         sqs)
           if [ "$prev" == "diff" ] || [ "$prev" == "sync" ]; then
-            configs=$(cumulus sqs list)
+            configs=$(${cumulus_command} sqs list)
             COMPREPLY=( $(compgen -W "$configs" -- $cur) )
           fi
         ;;
@@ -97,7 +99,7 @@ function _cumulus {
             autoscaling)
               COMPREPLY=( $(compgen -W "diff list migrate sync" -- $cur) )
             ;;
-            cumulus)
+            ${cumulus_command})
               COMPREPLY=( $(compgen -W "autoscaling cloudfront ec2 elb help iam kinesis route53 s3 security-groups sqs vpc" -- $cur) )
             ;;
             cloudfront)
@@ -132,4 +134,4 @@ function _cumulus {
       esac
   esac
 }
-complete -F _cumulus cumulus
+complete -F _cumulus ${cumulus_command}
