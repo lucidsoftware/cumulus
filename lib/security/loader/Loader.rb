@@ -24,8 +24,8 @@ module Cumulus
           aws_vpc = EC2::named_vpcs[d]
 
           if aws_vpc.nil?
-            Colors.red("No VPC named #{d} exists")
-            exit StatusCodes.EXCEPTION
+            puts Colors.red("No VPC named #{d} exists")
+            exit StatusCodes::EXCEPTION
           end
 
           Common::BaseLoader.resources(File.join(@@groups_dir, d)) do |file_name, json|
