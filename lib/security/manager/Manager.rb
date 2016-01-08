@@ -19,7 +19,7 @@ module Cumulus
 
       # Public: Migrate AWS Security Groups to Cumulus configuration.
       def migrate
-        groups_dir = "#{@migration_root}/groups"
+        groups_dir = "#{@migration_root}/security-groups"
 
         if !Dir.exists?(@migration_root)
           Dir.mkdir(@migration_root)
@@ -28,12 +28,24 @@ module Cumulus
           Dir.mkdir(groups_dir)
         end
 
+        # Make the directories needed for resources that require it
+        aws_resources.map do |name, _|
+          parts = name.partition("/")
+          if parts.length > 1
+            "#{groups_dir}/#{parts.first}"
+          end
+        end.uniq.compact.each do |dir|
+          if !Dir.exists?(dir)
+            Dir.mkdir(dir)
+          end
+        end
+
         aws_resources.each_value do |resource|
-          puts "Processing #{resource.group_name}..."
-          config = SecurityGroupConfig.new(resource.group_name)
+          puts "Processing #{resource.vpc_group_name}..."
+          config = SecurityGroupConfig.new(resource.vpc_group_name, resource.vpc_id)
           config.populate!(resource)
 
-          puts "Writing #{resource.group_name} configuration to file..."
+          puts "Writing #{resource.vpc_group_name} configuration to file..."
           File.open("#{groups_dir}/#{config.name}.json", "w") { |f| f.write(config.pretty_json) }
         end
 

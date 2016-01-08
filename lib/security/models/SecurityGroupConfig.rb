@@ -77,7 +77,6 @@ module Cumulus
       # aws             - the aws resource
       def populate!(aws)
         @description = aws.description
-        @vpc_id = aws.vpc_id
         @tags = Hash[aws.tags.map { |t| [t.key, t.value] }]
         @inbound = combine_rules(aws.ip_permissions.map { |rule| RuleConfig.from_aws(rule) })
         @outbound = combine_rules(aws.ip_permissions_egress.map { |rule| RuleConfig.from_aws(rule) })
