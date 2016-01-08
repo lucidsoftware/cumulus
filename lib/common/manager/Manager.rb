@@ -72,13 +72,13 @@ module Cumulus
       #                     diffs
       def each_difference(locals, include_unmanaged, &f)
 
-        unmanaged = Hash[if include_unmanaged
-          aws_resources.map do |key, resource|
+        unmanaged = if include_unmanaged
+          Hash[aws_resources.map do |key, resource|
             [key, [unmanaged_diff(resource)]] if !locals.include?(key)
-          end.reject(&:nil?)
+          end.compact]
         else
-          []
-        end]
+          {}
+        end
 
         managed = Hash[locals.map do |key, resource|
           if !aws_resources.include?(key)
