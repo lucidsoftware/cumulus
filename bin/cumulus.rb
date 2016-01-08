@@ -539,7 +539,7 @@ end
 
 # read in the optional path to the configuration file to use
 options = {
-  :config => File.expand_path(File.join(File.dirname(__FILE__), "../conf")),
+  :config => Dir.pwd,
   :profile => nil,
   :autoscaling_force_size => false,
   :verbose => false
