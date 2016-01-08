@@ -537,6 +537,36 @@ module Modules
 
 end
 
+def usage_message
+  "Usage: cumulus [autoscaling|cloudfront|ec2|elb|help|iam|kinesis|route53|s3|security-groups|sqs|vpc]"
+end
+
+def help_message
+  [
+    "cumulus: AWS Configuration Manager",
+    "\tConfiguration based management of AWS resources.",
+    "\t#{usage_message}",
+    "",
+    "Modules",
+    "\tautoscaling\t- Manages configuration for EC2 AutoScaling",
+    "\tcloudfront\t- Manages configuration for cloudfront distributions",
+    "\tec2\t\t- Manages configuration for managed EC2 instances, EBS volumes and Network Interfaces",
+    "\telb\t\t- Manages configuration for elastic load balancers",
+    "\tiam\t\t- Compiles IAM roles and policies that are defined with configuration files and syncs the resulting IAM roles and policies with AWS",
+    "\tkinesis\t\t- Manages configuration for Kinesis streams",
+    "\troute53\t\t- Manages configuration for Route53",
+    "\ts3\t\t- Manages configuration of S3 buckets",
+    "\tsecurity-groups\t- Manages configuration for EC2 Security Groups",
+    "\tsqs\t\t- Manages configuration for SQS Queues",
+    "\tvpc\t\t- Manages configuration for Virtual Private Clouds",
+    "\n"
+  ].join("\n")
+end
+
+if ARGV[0] == "help"
+  ARGV[0] = "--help"
+end
+
 # read in the optional path to the configuration file to use
 options = {
   :config => Dir.pwd,
@@ -545,6 +575,8 @@ options = {
   :verbose => false
 }
 OptionParser.new do |opts|
+  opts.banner = help_message
+
   opts.on("-c", "--config [DIR]", "Specify the configuration directory") do |c|
     options[:config] = File.expand_path(c)
   end
@@ -561,6 +593,15 @@ OptionParser.new do |opts|
     options[:verbose] = true
   end
 end.parse!
+
+if ARGV.size == 0 or (ARGV[0] != "iam" and ARGV[0] != "help" and ARGV[0] != "--help" and ARGV[0] != "autoscaling" and
+  ARGV[0] != "route53" and ARGV[0] != "s3" and ARGV[0] != "security-groups" and
+  ARGV[0] != "cloudfront" and ARGV[0] != "elb" and ARGV[0] != "vpc" and ARGV[0] != "kinesis" and
+  ARGV[0] != "sqs" and ARGV[0] != "ec2")
+
+  puts usage_message
+  exit
+end
 
 # config parameters can also be read in from environment variables
 if !ENV["CUMULUS_CONFIG"].nil?
@@ -585,31 +626,6 @@ Cumulus::Configuration.init(options[:config], options[:profile], options[:autosc
 
 puts "Using aws profile '#{options[:profile]}'" if options[:verbose]
 
-if ARGV.size == 0 or (ARGV[0] != "iam" and ARGV[0] != "help" and ARGV[0] != "autoscaling" and
-  ARGV[0] != "route53" and ARGV[0] != "s3" and ARGV[0] != "security-groups" and
-  ARGV[0] != "cloudfront" and ARGV[0] != "elb" and ARGV[0] != "vpc" and ARGV[0] != "kinesis" and
-  ARGV[0] != "sqs" and ARGV[0] != "ec2")
-  puts "Usage: cumulus [autoscaling|cloudfront|ec2|elb|help|iam|kinesis|route53|s3|security-groups|sqs|vpc]"
-  exit
-end
-
-if ARGV[0] == "help"
-  puts "cumulus: AWS Configuration Manager"
-  puts "\tConfiguration based management of AWS resources."
-  puts
-  puts "Modules"
-  puts "\tautoscaling\t- Manages configuration for EC2 AutoScaling"
-  puts "\tcloudfront\t- Manages configuration for cloudfront distributions"
-  puts "\tec2\t\t- Manages configuration for managed EC2 instances, EBS volumes and Network Interfaces"
-  puts "\telb\t\t- Manages configuration for elastic load balancers"
-  puts "\tiam\t\t- Compiles IAM roles and policies that are defined with configuration files and syncs the resulting IAM roles and policies with AWS"
-  puts "\tkinesis\t- Manages configuration for Kinesis streams"
-  puts "\troute53\t\t- Manages configuration for Route53"
-  puts "\ts3\t\t- Manages configuration of S3 buckets"
-  puts "\tsecurity-groups\t- Manages configuration for EC2 Security Groups"
-  puts "\tsqs\t\t- Manages configuration for SQS Queues"
-  puts "\tvpc\t\t- Manages configuration for Virtual Private Clouds"
-end
 
 if ARGV[0] == "iam"
   Modules.iam
