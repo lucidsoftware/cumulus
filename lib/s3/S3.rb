@@ -8,7 +8,7 @@ module Cumulus
       def client(region = nil)
         @clients ||= {}
         if !region then region = "us-east-1" end
-        @clients[region] ||= Aws::S3::Client.new(region: region, force_path_style: true, profile: Configuration.instance.profile)
+        @clients[region] ||= Aws::S3::Client.new(Configuration.instance.client.merge({:force_path_style => true}))
       end
 
       @@zone_ids = {

@@ -5,7 +5,7 @@ require "aws-sdk"
 module Cumulus
   module IAM
     class << self
-      @@client = Aws::IAM::Client.new(region: Configuration.instance.region, profile: Configuration.instance.profile)
+      @@client = Aws::IAM::Client.new(Configuration.instance.client)
 
       # Public: Static method that will get the ARN of an IAM Role
       #

@@ -15,14 +15,8 @@ module Cumulus
       # Public: Constructor. Initializes the AWS client.
       def initialize
         super()
-        @aws = Aws::AutoScaling::Client.new(
-          region: Configuration.instance.region,
-          profile: Configuration.instance.profile
-        )
-        @cloudwatch = Aws::CloudWatch::Client.new(
-          region: Configuration.instance.region,
-          profile: Configuration.instance.profile
-        )
+        @aws = Aws::AutoScaling::Client.new(Configuration.instance.client)
+        @cloudwatch = Aws::CloudWatch::Client.new(Configuration.instance.client)
       end
 
       # Public: Migrate AWS Autoscaling to Cumulus configuration.

@@ -12,7 +12,7 @@ module Cumulus
     class Manager < Common::Manager
       def initialize
         super()
-        @cloudfront = Aws::CloudFront::Client.new(region: Configuration.instance.region, profile: Configuration.instance.profile)
+        @cloudfront = Aws::CloudFront::Client.new(Configuration.instance.client)
       end
 
       def resource_name

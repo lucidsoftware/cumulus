@@ -6,7 +6,7 @@ require "aws-sdk"
 module Cumulus
   module SecurityGroups
     class << self
-      @@client = Aws::EC2::Client.new(region: Configuration.instance.region, profile: Configuration.instance.profile)
+      @@client = Aws::EC2::Client.new(Configuration.instance.client)
 
       require "aws_extensions/ec2/SecurityGroup"
       Aws::EC2::Types::SecurityGroup.send(:include, AwsExtensions::EC2::SecurityGroup)

@@ -1,4 +1,5 @@
 require "json"
+require "aws-sdk"
 
 module Cumulus
   # Public: A module that contains helper methods for the configuration classes.
@@ -80,22 +81,21 @@ module Cumulus
 
     attr_reader :colors_enabled
     attr_reader :iam, :autoscaling, :route53, :s3, :security, :cloudfront, :elb, :vpc, :kinesis, :sqs, :ec2
-    attr_reader :region, :profile
+    attr_reader :client
 
     # Internal: Constructor. Sets up the `instance` variable, which is the access
     # point for the Singleton.
     #
     # conf_dir  - The String path to the directory the configuration can be found in
     # profile       - The String profile name that will be used to make AWS API calls
+    # assume_role - The ARN of the role to assume when making AWS API calls
     # autoscaling_force_size
     #               -  Determines whether autoscaling should use configured values for
     #                  min/max/desired group size
-    def initialize(conf_dir, profile, autoscaling_force_size)
+    def initialize(conf_dir, profile, assume_role, autoscaling_force_size)
       Config.conf_dir = conf_dir;
       Config.json = JSON.parse(File.read(absolute_path("configuration.json")))
-      @profile = profile
       @colors_enabled = conf "colors-enabled"
-      @region = conf "region"
       @iam = IamConfig.new
       @autoscaling = AutoScalingConfig.new(autoscaling_force_size)
       @route53 = Route53Config.new
@@ -107,6 +107,21 @@ module Cumulus
       @kinesis = KinesisConfig.new
       @sqs = SQSConfig.new
       @ec2 = EC2Config.new
+
+      region = conf "region"
+      credentials = if assume_role
+        Aws::AssumeRoleCredentials.new(
+          client: Aws::STS::Client.new(profile: profile, region: region),
+          role_arn: assume_role,
+          role_session_name: "#{region}-#{@profile}"
+        )
+      end
+
+      @client = {
+        :region => region,
+        :profile => profile,
+        :credentials => credentials,
+      }.reject { |_, v| v.nil? }
     end
 
     class << self
@@ -115,11 +130,12 @@ module Cumulus
       #
       # conf_dir  - The String path to the directory the configuration can be found in
       # profile       - The String profile name that will be used to make AWS API calls
+      # assume_role - The ARN of the role to assume when making AWS API calls
       # autoscaling_force_size
       #               -  Determines whether autoscaling should use configured values for
       #                  min/max/desired group size
-      def init(conf_dir, profile, autoscaling_force_size)
-        instance = new(conf_dir, profile, autoscaling_force_size)
+      def init(conf_dir, profile, assume_role, autoscaling_force_size)
+        instance = new(conf_dir, profile, assume_role, autoscaling_force_size)
         @@instance = instance
       end
 

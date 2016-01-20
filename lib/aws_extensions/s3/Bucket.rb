@@ -10,7 +10,7 @@ module AwsExtensions
         def location
           location = Cumulus::S3::client.get_bucket_location({bucket: name}).location_constraint
           if location == ""
-            Cumulus::Configuration.instance.region
+            Cumulus::Configuration.instance.client[:region]
           else
             location
           end
