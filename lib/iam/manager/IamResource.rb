@@ -2,6 +2,7 @@ require "common/models/Diff"
 require "iam/migration/PolicyUnifier"
 require "iam/models/IamDiff"
 require "util/Colors"
+require "util/StatusCodes"
 
 require 'uri'
 
@@ -12,6 +13,11 @@ module Cumulus
     class IamResource
       @@diff = Proc.new do |name, diffs|
         if diffs.size > 0
+
+          if diffs.reject(&:info_only).size > 0
+            StatusCodes::set_status(StatusCodes::DIFFS)
+          end
+
           if diffs.size == 1 and (diffs[0].type == Common::DiffChange::ADD or
             diffs[0].type == Common::DiffChange::UNMANAGED)
             puts diffs[0]
@@ -233,6 +239,8 @@ module Cumulus
       def sync_difference(name, diffs)
         aws = Hash[aws_resources.map { |aws| [aws.name, aws] }]
         if diffs.size > 0
+          StatusCodes::set_status(StatusCodes::SYNC_DIFFS)
+
           if diffs[0].type == Common::DiffChange::UNMANAGED
             puts diffs[0]
           elsif diffs[0].type == Common::DiffChange::ADD
