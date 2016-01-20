@@ -571,6 +571,7 @@ end
 options = {
   :config => Dir.pwd,
   :profile => nil,
+  :assume_role => nil,
   :autoscaling_force_size => false,
   :verbose => false
 }
@@ -591,6 +592,10 @@ OptionParser.new do |opts|
 
   opts.on("-v", "--verbose", "Verbose output") do |v|
     options[:verbose] = true
+  end
+
+  opts.on("-r", "--assume-role [NAME]", "Assume Role") do |a|
+    options[:assume_role] = a
   end
 end.parse!
 
@@ -622,9 +627,10 @@ require "conf/Configuration"
 
 puts "Reading configuration from '#{options[:config]}'" if options[:verbose]
 
-Cumulus::Configuration.init(options[:config], options[:profile], options[:autoscaling_force_size])
+Cumulus::Configuration.init(options[:config], options[:profile], options[:assume_role], options[:autoscaling_force_size])
 
 puts "Using aws profile '#{options[:profile]}'" if options[:verbose]
+puts "Using assume role '#{options[:assume_role]}'" if options[:verbose]
 
 
 if ARGV[0] == "iam"

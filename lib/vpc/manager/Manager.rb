@@ -25,7 +25,7 @@ module Cumulus
       def initialize
         super()
         @create_asset = false
-        @client = Aws::EC2::Client.new(region: Configuration.instance.region, profile: Configuration.instance.profile)
+        @client = Aws::EC2::Client.new(Configuration.instance.client)
       end
 
       def resource_name

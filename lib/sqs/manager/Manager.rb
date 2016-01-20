@@ -15,7 +15,7 @@ module Cumulus
       def initialize
         super()
         @create_asset = true
-        @client = Aws::SQS::Client.new(region: Configuration.instance.region, profile: Configuration.instance.profile)
+        @client = Aws::SQS::Client.new(Configuration.instance.client)
       end
 
       def resource_name

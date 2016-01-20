@@ -5,7 +5,7 @@ require "aws-sdk"
 module Cumulus
   module ELB
     class << self
-      @@client = Aws::ElasticLoadBalancing::Client.new(region: Configuration.instance.region, profile: Configuration.instance.profile)
+      @@client = Aws::ElasticLoadBalancing::Client.new(Configuration.instance.client)
 
       # Public: Static method that will get an ELB from AWS by its name.
       #

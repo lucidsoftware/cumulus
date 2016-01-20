@@ -4,7 +4,7 @@ module Cumulus
   module Kinesis
     class << self
 
-      @@client = Aws::Kinesis::Client.new(region: Configuration.instance.region, profile: Configuration.instance.profile)
+      @@client = Aws::Kinesis::Client.new(Configuration.instance.client)
 
       require "aws_extensions/kinesis/StreamDescription"
       Aws::Kinesis::Types::StreamDescription.send(:include, AwsExtensions::Kinesis::StreamDescription)
