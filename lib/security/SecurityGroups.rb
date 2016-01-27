@@ -22,13 +22,16 @@ module Cumulus
         end]
       end
 
-      # Describe all security groups that are in a vpc
+      # Describe all security groups
       def security_groups
-        @security_groups ||= @@client.describe_security_groups.security_groups.reject { |sg| sg.vpc_id.nil? }
+        @security_groups ||= @@client.describe_security_groups.security_groups
       end
 
-      def sg_id_names
-        @sg_id_names ||= Hash[security_groups.map { |sg| [sg.group_id, sg.group_name] }]
+      # Public: Returns a Hash of vpc id to Hash of security group id to group name
+      def vpc_security_group_id_names
+        @vpc_security_group_id_names ||= Hash[vpc_security_groups.map do |vpc_id, group_hash|
+          [vpc_id, Hash[group_hash.map {|_, sg| [sg.group_id, sg.group_name]}]]
+        end]
       end
 
     end
