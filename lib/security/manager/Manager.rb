@@ -93,9 +93,8 @@ module Cumulus
         })
         security_group_id = result.group_id
 
-        SecurityGroups::sg_id_names[security_group_id] = local.name
         update_tags(security_group_id, local.tags, {})
-        update_inbound(security_group_id, local.inbound, [])
+        update_inbound(local.vpc_id, security_group_id, local.inbound, [])
 
         outbound_remove = if Configuration.instance.security.outbound_default_all_allowed and local.outbound.empty?
           []
@@ -116,9 +115,9 @@ module Cumulus
             when SecurityGroupChange::TAGS
               update_tags(diff.aws.group_id, diff.tags_to_add, diff.tags_to_remove)
             when SecurityGroupChange::INBOUND
-              update_inbound(diff.aws.group_id, diff.added_inbounds, diff.removed_inbounds)
+              update_inbound(local.vpc_id, diff.aws.group_id, diff.added_inbounds, diff.removed_inbounds)
             when SecurityGroupChange::OUTBOUND
-              update_outbound(diff.aws.group_id, diff.added_outbounds, diff.removed_outbounds)
+              update_outbound(local.vpc_id, diff.aws.group_id, diff.added_outbounds, diff.removed_outbounds)
             end
           end
         end
@@ -150,11 +149,13 @@ module Cumulus
 
       # Internal: Update the inbound rules associated with a security group.
       #
+      # vpc_id -          - the id of the vpc the security groups are in
       # security_group_id - the id of the security group
       # add               - the inbound rules to associate with the security group
       # remove            - the inbound rules to dissociate from the security group
-      def update_inbound(security_group_id, add, remove)
+      def update_inbound(vpc_id, security_group_id, add, remove)
         update_rules(
+          vpc_id,
           security_group_id,
           add,
           remove,
@@ -168,12 +169,14 @@ module Cumulus
 
       # Internal: Update the outbound rules associated with a security group.
       #
+      # vpc_id -          - the id of the vpc the security groups are in
       # security_group_id - the id of the security group
       # add               - the outbound rules to associate with the security group
       # remove            - the outbound rules to associate with the security group
       #
-      def update_outbound(security_group_id, add, remove)
+      def update_outbound(vpc_id, security_group_id, add, remove)
         update_rules(
+          vpc_id,
           security_group_id,
           add,
           remove,
@@ -188,6 +191,7 @@ module Cumulus
       # Internal: Update rules associated with a security group. Called by inbound
       # and outbound.
       #
+      # vpc_id -          - the id of the vpc the security groups are in
       # security_group_id - the id of the security group
       # add               - the rules to associate with the security group
       # remove            - the rules to remove from the security group
@@ -195,18 +199,20 @@ module Cumulus
       #   - type              - a string representing the type of rules to process
       #   - add_action        - the client method to call to add rules
       #   - remove_action     - the client method to call to remove rules
-      def update_rules(security_group_id, add, remove, options)
+      def update_rules(vpc_id, security_group_id, add, remove, options)
         if !add.empty?
           puts Colors.blue("\tadding #{options[:type]} rules...")
           options[:add_action].call({
             group_id: security_group_id,
             ip_permissions: add.map do |added|
-              missing_group = added.security_groups.find { |s| !SecurityGroups::sg_id_names.value? s }
+              missing_group = added.security_groups.find do |s|
+                !SecurityGroups::vpc_security_groups[vpc_id].include?(s)
+              end
               if missing_group
                 puts Colors.red("\t\tNo such security group: #{missing_group}. Security group not added.")
               end
 
-              added.to_aws
+              added.to_aws(vpc_id)
             end
           })
         end
@@ -216,12 +222,14 @@ module Cumulus
           options[:remove_action].call({
             group_id: security_group_id,
             ip_permissions: remove.map do |removed|
-              missing_group = removed.security_groups.find { |s| !SecurityGroups::sg_id_names.value? s }
+              missing_group = removed.security_groups.find do |s|
+                !SecurityGroups::vpc_security_groups[vpc_id].include?(s)
+              end
               if missing_group
                 puts Colors.red("\t\tNo such security group: #{missing_group}. Security group not removed.")
               end
 
-              removed.to_aws
+              removed.to_aws(vpc_id)
             end
           })
         end

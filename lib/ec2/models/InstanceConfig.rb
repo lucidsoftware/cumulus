@@ -96,7 +96,7 @@ module Cumulus
         @network_interfaces = aws_instance.network_interfaces.length
         @source_dest_check = aws_instance.source_dest_check
         @private_ip_address = aws_instance.private_ip_address
-        @security_groups = aws_instance.security_groups.map(&:group_id).map { |id| SecurityGroups::sg_id_names[id] }.sort
+        @security_groups = aws_instance.security_groups.map(&:group_id).map { |id| SecurityGroups::id_security_groups[id].group_name }.sort
         @subnet = EC2::id_subnets[aws_instance.subnet_id].name
         @tenancy = aws_instance.placement.tenancy
         @type = aws_instance.instance_type

@@ -131,8 +131,21 @@ module Cumulus
           errors << "security-groups is required"
         end
 
+        # Check for subnet
+        if local.subnet.nil?
+          errors << "subnet is required"
+        end
+
+        aws_subnet = EC2::named_subnets[local.subnet]
+        if aws_subnet.nil?
+          errors << "subnet #{local.subnet} does not exist"
+        end
+
+        # Get the vpc id from the subnet
+        vpc_id = aws_subnet.vpc_id
+
         security_group_ids = local.security_groups.map do |sg|
-          sg_id = SecurityGroups.sg_id_names.key(sg)
+          sg_id = SecurityGroups.vpc_security_group_id_names[vpc_id].key(sg)
           if sg_id.nil?
             errors << "security group #{sg} does not exist"
           end
@@ -147,16 +160,6 @@ module Cumulus
         # Make sure the placement group exists
         if !local.placement_group.nil? and EC2::named_placement_groups[local.placement_group].nil?
           errors << "placement group #{local.placement_group} does not exist"
-        end
-
-        # Check for subnet
-        if local.subnet.nil?
-          errors << "subnet is required"
-        end
-
-        aws_subnet = EC2::named_subnets[local.subnet]
-        if aws_subnet.nil?
-          errors << "subnet #{local.subnet} does not exist"
         end
 
         availability_zone = if aws_subnet then aws_subnet.availability_zone end
@@ -297,10 +300,10 @@ module Cumulus
             # If there are multiple network interfaces, security groups must be set on each one
             if aws_instance.network_interfaces.length > 1
               aws_instance.network_interfaces.each do |interface|
-                set_interface_security_groups(interface.network_interface_id, local.security_groups)
+                set_interface_security_groups(aws_instance.vpc_id, interface.network_interface_id, local.security_groups)
               end
             else
-              set_instance_security_groups(aws_instance.instance_id, local.security_groups)
+              set_instance_security_groups(aws_instance.vpc_id, aws_instance.instance_id, local.security_groups)
             end
 
           when InstanceChange::SDCHECK
@@ -323,7 +326,7 @@ module Cumulus
 
               (diff.local - diff.aws).times do |i|
                 puts "Creating network interface..."
-                interface_id = create_network_interface(aws_instance.subnet_id, local.security_groups)
+                interface_id = create_network_interface(aws_instance.vpc_id, aws_instance.subnet_id, local.security_groups)
                 set_interface_source_dest_check(interface_id, local.source_dest_check)
 
                 puts "Attaching network interface..."
@@ -427,17 +430,17 @@ module Cumulus
         })
       end
 
-      def set_instance_security_groups(instance_id, sg_names)
+      def set_instance_security_groups(vpc_id, instance_id, sg_names)
         @client.modify_instance_attribute({
           instance_id: instance_id,
-          groups: sg_names.map { |sg| SecurityGroups.sg_id_names.key(sg) }
+          groups: sg_names.map { |sg| SecurityGroups.vpc_security_group_id_names[vpc_id].key(sg) }
         })
       end
 
-      def set_interface_security_groups(interface_id, sg_names)
+      def set_interface_security_groups(vpc_id, interface_id, sg_names)
         @client.modify_network_interface_attribute({
           network_interface_id: interface_id,
-          groups: sg_names.map { |sg| SecurityGroups.sg_id_names.key(sg) }
+          groups: sg_names.map { |sg| SecurityGroups.vpc_security_group_id_names[vpc_id].key(sg) }
         })
       end
 
@@ -453,10 +456,10 @@ module Cumulus
         end
       end
 
-      def create_network_interface(subnet_id, sg_names)
+      def create_network_interface(vpc_id, subnet_id, sg_names)
         @client.create_network_interface({
           subnet_id: subnet_id,
-          groups: sg_names.map { |sg| SecurityGroups.sg_id_names.key(sg) }
+          groups: sg_names.map { |sg| SecurityGroups.vpc_security_group_id_names[vpc_id].key(sg) }
         }).network_interface.network_interface_id
       end
 

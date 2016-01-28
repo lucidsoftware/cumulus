@@ -19,7 +19,7 @@ module Cumulus
       # Returns a RuleConfig containing the data in the AWS rule
       def RuleConfig.from_aws(aws)
         RuleConfig.new({
-          "security-groups" => aws.user_id_group_pairs.map { |security| SecurityGroups::sg_id_names[security.group_id] },
+          "security-groups" => aws.user_id_group_pairs.map { |security| SecurityGroups::id_security_groups[security.group_id].group_name },
           "protocol" => if aws.ip_protocol == "-1" then "all" else aws.ip_protocol end,
           "from-port" => if aws.ip_protocol != "icmp" and aws.from_port != -1 then aws.from_port end,
           "to-port" => if aws.ip_protocol != "icmp" and aws.to_port != -1 then aws.to_port end,
@@ -132,7 +132,9 @@ module Cumulus
 
       # Public: Converts the RuleConfig into the format needed by AWS
       # to authorize/deauthorize rules
-      def to_aws
+      #
+      # vpc_id - the id of the vpc that security group ids should be derived from
+      def to_aws(vpc_id)
         {
           ip_protocol: if @protocol == "all" then "-1" else @protocol end,
           from_port: if @from == "all" then "-1" else @from end,
@@ -140,7 +142,7 @@ module Cumulus
           user_id_group_pairs: if !@security_groups.empty?
             @security_groups.map do |sg|
               {
-                group_id: SecurityGroups::sg_id_names.key(sg)
+                group_id: SecurityGroups::vpc_security_group_id_names[vpc_id].key(sg)
               }
             end
           end,
