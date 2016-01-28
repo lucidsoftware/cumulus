@@ -90,7 +90,7 @@ module Cumulus
       # Public: Returns the vpc id for the load balancer config using the first subnet
       def vpc_id
         first_subnet = @subnets.first
-        EC2::named_subnets[first_subnet].vpc_id if first_subnet
+        first_subnet.vpc_id if first_subnet
       end
 
       # Public: Get the config as a prettified JSON string.
@@ -102,7 +102,7 @@ module Cumulus
             "includes" => [],
             "inlines" => @listeners.map(&:to_hash)
           },
-          "subnets" => @subnets,
+          "subnets" => @subnets.map { |s| s.name || s.subnet_id },
           "security-groups" => @security_groups,
           "internal" => @internal,
           "tags" => @tags,
@@ -130,9 +130,7 @@ module Cumulus
           config.populate!(l)
           config
         end
-        @subnets = aws_elb.subnets.map do |subnet_id|
-          EC2::id_subnets[subnet_id].name || subnet_id
-        end
+        @subnets = aws_elb.subnets.map { |subnet_id| EC2::id_subnets[subnet_id] }
         @security_groups = aws_elb.security_groups.map do |sg_id|
             SecurityGroups::id_security_groups[sg_id].group_name
         end
