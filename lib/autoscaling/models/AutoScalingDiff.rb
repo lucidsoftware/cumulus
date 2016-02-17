@@ -100,9 +100,8 @@ module Cumulus
           lines.flatten.join("\n")
         when SUBNETS
           lines = ["Subnets:"]
-          aws_subnets = @aws.vpc_zone_identifier.split(",")
-          lines << (aws_subnets - @local.subnets).map { |s| "\t#{Colors.removed(s)}" }
-          lines << (@local.subnets - aws_subnets).map { |s| "\t#{Colors.added(s)}" }
+          lines << (@aws - @local).map { |s| s.vpc_subnet_name || s.subnet_id }.map { |s| "\t#{Colors.removed(s)}" }
+          lines << (@local - @aws).map { |s| s.vpc_subnet_name || s.subnet_id }.map { |s| "\t#{Colors.added(s)}" }
           lines.flatten.join("\n")
         when TAGS
           tags_diff_string
