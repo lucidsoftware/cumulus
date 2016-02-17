@@ -71,7 +71,7 @@ module Cumulus
       end
 
       def create(local)
-        S3.client.create_bucket({
+        S3.client(local.region).create_bucket({
           bucket: local.name,
           create_bucket_configuration: if local.region != "us-east-1" then {
             location_constraint: local.region
@@ -93,34 +93,34 @@ module Cumulus
         diffs.each do |diff|
           if diff.type == BucketChange::TAGS
             puts Colors.blue("\tupdating tags...")
-            update_tags(diff.local.name, diff.local.tags)
+            update_tags(diff.local.region, diff.local.name, diff.local.tags)
           elsif diff.type == BucketChange::POLICY
             puts Colors.blue("\tupdating policy...")
-            update_policy(diff.local.name, diff.local.policy)
+            update_policy(diff.local.region, diff.local.name, diff.local.policy)
           elsif diff.type == BucketChange::CORS
             puts Colors.blue("\tupdating CORS rules...")
-            update_cors(diff.local.name, diff.local.cors)
+            update_cors(diff.local.region, diff.local.name, diff.local.cors)
           elsif diff.type == BucketChange::WEBSITE
             puts Colors.blue("\tupdating S3 bucket website...")
-            update_website(diff.local.name, diff.local.website)
+            update_website(diff.local.region, diff.local.name, diff.local.website)
           elsif diff.type == BucketChange::LOGGING
             puts Colors.blue("\tupdating S3 bucket logging..")
-            update_logging(diff.local.name, diff.local.logging)
+            update_logging(diff.local.region, diff.local.name, diff.local.logging)
           elsif diff.type == BucketChange::VERSIONING
             puts Colors.blue("\tupdating versioning status...")
-            update_versioning(diff.local.name, diff.local.versioning)
+            update_versioning(diff.local.region, diff.local.name, diff.local.versioning)
           elsif diff.type == BucketChange::GRANTS
             puts Colors.blue("\tupdating grants...")
-            update_grants(diff.local.name, diff.local.grants)
+            update_grants(diff.local.region, diff.local.name, diff.local.grants)
           elsif diff.type == BucketChange::LIFECYCLE
             puts Colors.blue("\tupdating lifecycle...")
-            update_lifecycle(diff.local.name, diff.local.lifecycle)
+            update_lifecycle(diff.local.region, diff.local.name, diff.local.lifecycle)
           elsif diff.type == BucketChange::NOTIFICATIONS
             puts Colors.blue("\tupdating notifications...")
-            update_notifications(diff.local.name, diff.local.notifications)
+            update_notifications(diff.local.region, diff.local.name, diff.local.notifications)
           elsif diff.type == BucketChange::REPLICATION
             puts Colors.blue("\tupdating replication...")
-            update_replication(diff.local.name, diff.local.replication)
+            update_replication(diff.local.region, diff.local.name, diff.local.replication)
           end
         end
       end
@@ -129,10 +129,11 @@ module Cumulus
 
       # Internal: Update the tags for a bucket.
       #
+      # region - the region of the bucket
       # bucket_name - the name of the bucket
       # tags        - the tags that belong to the bucket
-      def update_tags(bucket_name, tags)
-        S3.client.put_bucket_tagging({
+      def update_tags(region, bucket_name, tags)
+        S3.client(region).put_bucket_tagging({
           bucket: bucket_name,
           tagging: {
             tag_set: tags.map { |k, v| { key: k, value: v } }
@@ -142,16 +143,17 @@ module Cumulus
 
       # Internal: Update the policy for a bucket.
       #
+      # region - the region of the bucket
       # bucket_name - the name of the bucket
       # policy      - the policy to apply to the bucket
-      def update_policy(bucket_name, policy)
+      def update_policy(region, bucket_name, policy)
         if policy
-          S3.client.put_bucket_policy({
+          S3.client(region).put_bucket_policy({
             bucket: bucket_name,
             policy: policy
           })
         else
-          S3.client.delete_bucket_policy({
+          S3.client(region).delete_bucket_policy({
             bucket: bucket_name
           })
         end
@@ -159,18 +161,19 @@ module Cumulus
 
       # Internal: Update the CORS rules for a bucket.
       #
+      # region - the region of the bucket
       # bucket_name - the name of the bucket
       # cors        - the cors rules for the bucket
-      def update_cors(bucket_name, cors)
+      def update_cors(region, bucket_name, cors)
         if cors
-          S3.client.put_bucket_cors({
+          S3.client(region).put_bucket_cors({
             bucket: bucket_name,
             cors_configuration: {
               cors_rules: cors
             }
           })
         else
-          S3.client.delete_bucket_cors({
+          S3.client(region).delete_bucket_cors({
             bucket: bucket_name
           })
         end
@@ -178,25 +181,27 @@ module Cumulus
 
       # Internal: Update the bucket website configuration for the bucket.
       #
+      # region - the region of the bucket
       # bucket_name - the name of the bucket
       # website     - the website configuration for the bucket
-      def update_website(bucket_name, website)
+      def update_website(region, bucket_name, website)
         if website
-          S3.client.put_bucket_website({
+          S3.client(region).put_bucket_website({
             bucket: bucket_name,
             website_configuration: website.to_aws
           })
         else
-          S3.client.delete_bucket_website({ bucket: bucket_name })
+          S3.client(region).delete_bucket_website({ bucket: bucket_name })
         end
       end
 
       # Internal: Update the bucket logging configuration for the bucket.
       #
+      # region - the region of the bucket
       # bucket_name - the name of the bucket
       # logging     - the logging configuration for the bucket
-      def update_logging(bucket_name, logging)
-        S3.client.put_bucket_logging({
+      def update_logging(region, bucket_name, logging)
+        S3.client(region).put_bucket_logging({
           bucket: bucket_name,
           bucket_logging_status: {
             logging_enabled: (logging.to_aws rescue nil)
@@ -206,10 +211,11 @@ module Cumulus
 
       # Internal: Update the bucket versioning for the bucket.
       #
+      # region - the region of the bucket
       # bucket_name - the name of the bucket
       # enabled     - whether versioning should be enabled or not
-      def update_versioning(bucket_name, enabled)
-        S3.client.put_bucket_versioning({
+      def update_versioning(region, bucket_name, enabled)
+        S3.client(region).put_bucket_versioning({
           bucket: bucket_name,
           versioning_configuration: {
             status: if enabled then "Enabled" else "Suspended" end
@@ -219,10 +225,11 @@ module Cumulus
 
       # Internal: Update the permission grants for the bucket.
       #
+      # region - the region of the bucket
       # bucket_name - the name of the bucket
       # grants      - the grants for the bucket
-      def update_grants(bucket_name, grants)
-        S3.client.put_bucket_acl({
+      def update_grants(region, bucket_name, grants)
+        S3.client(region).put_bucket_acl({
           bucket: bucket_name,
           access_control_policy: {
             grants: grants.values.map(&:to_aws).flatten,
@@ -233,15 +240,16 @@ module Cumulus
 
       # Internal: Update the lifecycle rules for the bucket.
       #
+      # region - the region of the bucket
       # bucket_name - the name of the bucket
       # lifecycle   - the lifecycle rules for the bucket
-      def update_lifecycle(bucket_name, lifecycle)
+      def update_lifecycle(region, bucket_name, lifecycle)
         if lifecycle.empty?
-          S3.client.delete_bucket_lifecycle({
+          S3.client(region).delete_bucket_lifecycle({
             bucket: bucket_name
           })
         else
-          S3.client.put_bucket_lifecycle({
+          S3.client(region).put_bucket_lifecycle({
             bucket: bucket_name,
             lifecycle_configuration: {
               rules: lifecycle.values.map(&:to_aws)
@@ -254,8 +262,8 @@ module Cumulus
       #
       # bucket_name   - the name of the bucket
       # notifications - the notification rules for the bucket
-      def update_notifications(bucket_name, notifications)
-        S3.client.put_bucket_notification_configuration({
+      def update_notifications(region, bucket_name, notifications)
+        S3.client(region).put_bucket_notification_configuration({
           bucket: bucket_name,
           notification_configuration: {
             topic_configurations: notifications.values.select { |n| n.type == "sns" }.map(&:to_aws),
@@ -267,16 +275,17 @@ module Cumulus
 
       # Internal: Update the replication rules for the bucket.
       #
+      # region - the region of the bucket
       # bucket_name - the name of the bucket
       # replication - the replication rules for the bucket
-      def update_replication(bucket_name, replication)
+      def update_replication(region, bucket_name, replication)
         if replication
-          S3.client.put_bucket_replication({
+          S3.client(region).put_bucket_replication({
             bucket: bucket_name,
             replication_configuration: replication.to_aws
           })
         else
-          S3.client.delete_bucket_replication({
+          S3.client(region).delete_bucket_replication({
             bucket: bucket_name
           })
         end
