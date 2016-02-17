@@ -5,6 +5,7 @@ require "autoscaling/models/PolicyDiff"
 require "autoscaling/models/ScheduledActionDiff"
 require "autoscaling/models/ScheduledConfig"
 require "common/models/UTCTimeSource"
+require "ec2/EC2"
 
 require "parse-cron"
 
@@ -145,9 +146,33 @@ module Cumulus
         if @load_balancers != aws.load_balancer_names
           diffs << AutoScalingDiff.new(AutoScalingChange::LOAD_BALANCER, aws, self)
         end
-        if @subnets != aws.vpc_zone_identifier.split(",")
-          diffs << AutoScalingDiff.new(AutoScalingChange::SUBNETS, aws, self)
+
+        # Get the actual subnet objects from aws using either the id or vpc/subnet combination
+        local_subnets = @subnets.map do |local_subnet|
+          if local_subnet =~ /^subnet-[a-zA-Z0-9]+$/
+            EC2::id_subnets[local_subnet]
+          else
+            # Assume its in vpc/subnet form
+            vpc, subnet = local_subnet.split("/")
+            aws_vpc = EC2::id_vpcs[vpc] || EC2::named_vpcs[vpc]
+            if !aws_vpc
+              raise "Could not find vpc for #{local_subnet}"
+            end
+            aws_subnet = EC2::vpc_subnets[aws_vpc.vpc_id].find { |s| s.subnet_id == subnet || s.name == subnet }
+            if !aws_subnet
+              raise "Could not find subnet for #{local_subnet}"
+            end
+            aws_subnet
+          end
+        end.sort_by(&:subnet_id)
+        aws_subnets = aws.vpc_zone_identifier.split(",").map do |subnet_id|
+          EC2::id_subnets[subnet_id]
+        end.sort_by(&:subnet_id)
+
+        if local_subnets != aws_subnets
+          diffs << AutoScalingDiff.new(AutoScalingChange::SUBNETS, aws_subnets, local_subnets)
         end
+
         if @tags != Hash[aws.tags.map { |tag| [tag.key, tag.value] }]
           diffs << AutoScalingDiff.new(AutoScalingChange::TAGS, aws, self)
         end
