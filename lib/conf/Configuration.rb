@@ -48,11 +48,12 @@ module Cumulus
     # by printing out a message describing the missing key and exiting.
     #
     # key     - the full key to get ex. `s3.buckets.directory`
+    # allow_missing - if true we will return nil for missing values instead of exiting
     # handler - a block that will do additional processing on the key. If nil,
     #           the value is returned as is.
     #
     # Returns the configuration value if successful
-    def conf(key, &handler)
+    def conf(key, allow_missing = false, &handler)
       value = nil
       key.split(".").each do |part|
         if value
@@ -67,9 +68,13 @@ module Cumulus
       else
         value
       end
-    rescue KeyError
+    rescue KeyError => e
       puts "Your configuration file is missing $.#{key}."
-      exit
+      if allow_missing
+        nil
+      else
+        exit
+      end
     end
 
   end
@@ -245,7 +250,14 @@ module Cumulus
       def initialize
         @groups_directory = absolute_path "security-groups/groups"
         @outbound_default_all_allowed = conf "security.outbound-default-all-allowed"
-        @subnet_files = conf("security.subnet-files") { |paths| paths.map{ |p| absolute_path(p) } }
+        @subnet_files = conf("security.subnet-files", true) { |paths| paths.map{ |p| absolute_path(p) } }
+
+        if !@subnet_files
+          default_file = absolute_path("security-groups/subnets.json")
+          @subnet_files = [default_file]
+          puts "Using default subnets file at #{default_file}"
+        end
+
       end
 
     end
