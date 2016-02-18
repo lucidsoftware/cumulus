@@ -69,8 +69,10 @@ module Cumulus
         path = File.join(dir, file)
         if File.exist?(path)
           File.read(path)
-        else
+        elsif File.exist?("#{path}.json")
           File.read("#{path}.json")
+        else
+          throw "File does not exist: #{path}"
         end
       end
     end

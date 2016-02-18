@@ -11,7 +11,7 @@ module Cumulus
       include Common::BaseLoader
 
       @@groups_dir = Configuration.instance.security.groups_directory
-      @@subnets_file = Configuration.instance.security.subnets_file
+      @@subnet_files = Configuration.instance.security.subnet_files
 
       # Public: Load all the security group configurations as SecurityGroupConfig objects
       #
@@ -72,7 +72,14 @@ module Cumulus
       #
       # Returns a hash that maps group name to an array of ips
       def Loader.load_subnet_groups
-        Common::BaseLoader.resource(@@subnets_file, "", &Proc.new { |name, json| json })
+        @@subnet_files.reduce({}) do |sofar, f|
+          subnet_group = Common::BaseLoader.resource(f, "") { |_, json| json }
+          if subnet_group
+            subnet_group.merge(sofar)
+          else
+            sofar
+          end
+        end
       end
     end
   end
