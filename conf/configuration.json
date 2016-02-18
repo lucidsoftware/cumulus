@@ -19,7 +19,10 @@
 		"print-progress": true
 	},
 	"security": {
-		"outbound-default-all-allowed": true
+		"outbound-default-all-allowed": true,
+		"subnet-files": [
+			"security-groups/subnets.json"
+		]
 	},
 	"ec2": {
 		"instances": {
