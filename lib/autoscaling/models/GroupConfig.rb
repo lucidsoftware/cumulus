@@ -112,7 +112,7 @@ module Cumulus
           default_cooldown: @cooldown,
           health_check_type: @check_type,
           health_check_grace_period: @check_grace,
-          vpc_zone_identifier: if !@subnets.empty? then @subnets.join(",") end,
+          vpc_zone_identifier: if !@subnets.empty? then subnets_to_aws.map(&:subnet_id).join(",") end,
           termination_policies: @termination,
           launch_configuration_name: @launch
         }
@@ -148,23 +148,7 @@ module Cumulus
         end
 
         # Get the actual subnet objects from aws using either the id or vpc/subnet combination
-        local_subnets = @subnets.map do |local_subnet|
-          if local_subnet =~ /^subnet-[a-zA-Z0-9]+$/
-            EC2::id_subnets[local_subnet]
-          else
-            # Assume its in vpc/subnet form
-            vpc, subnet = local_subnet.split("/")
-            aws_vpc = EC2::id_vpcs[vpc] || EC2::named_vpcs[vpc]
-            if !aws_vpc
-              raise "Could not find vpc for #{local_subnet}"
-            end
-            aws_subnet = EC2::vpc_subnets[aws_vpc.vpc_id].find { |s| s.subnet_id == subnet || s.name == subnet }
-            if !aws_subnet
-              raise "Could not find subnet for #{local_subnet}"
-            end
-            aws_subnet
-          end
-        end.sort_by(&:subnet_id)
+        local_subnets = subnets_to_aws.sort_by(&:subnet_id)
         aws_subnets = aws.vpc_zone_identifier.split(",").map do |subnet_id|
           EC2::id_subnets[subnet_id]
         end.sort_by(&:subnet_id)
@@ -295,6 +279,27 @@ module Cumulus
       end
 
       private
+
+      # Internal: Convert the local subnet names/ids into aws Subnets
+      def subnets_to_aws
+        @subnets.map do |local_subnet|
+          if local_subnet =~ /^subnet-[a-zA-Z0-9]+$/
+            EC2::id_subnets[local_subnet]
+          else
+            # Assume its in vpc/subnet form
+            vpc, subnet = local_subnet.split("/")
+            aws_vpc = EC2::id_vpcs[vpc] || EC2::named_vpcs[vpc]
+            if !aws_vpc
+              raise "Could not find vpc for #{local_subnet}"
+            end
+            aws_subnet = EC2::vpc_subnets[aws_vpc.vpc_id].find { |s| s.subnet_id == subnet || s.name == subnet }
+            if !aws_subnet
+              raise "Could not find subnet for #{local_subnet}"
+            end
+            aws_subnet
+          end
+        end
+      end
 
       # Internal: Determine changes in scaling policies.
       #
