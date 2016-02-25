@@ -87,7 +87,7 @@ module Cumulus
 
       def create(local)
         result = @ec2.create_security_group({
-          group_name: local.name,
+          group_name: local.name.split("/").last,
           description: local.description,
           vpc_id: local.vpc_id,
         })
@@ -101,7 +101,7 @@ module Cumulus
         else
           [RuleConfig.allow_all]
         end
-        update_outbound(security_group_id, local.outbound, outbound_remove)
+        update_outbound(local.vpc_id, security_group_id, local.outbound, outbound_remove)
       end
 
       def update(local, diffs)
