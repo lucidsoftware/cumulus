@@ -146,7 +146,7 @@ module Cumulus
       #
       # Returns a Hash of subnet id to Aws::EC2::Types::NetworkAcl associated with the subnet
       def subnet_network_acls
-        @subnet_network_acls ||=
+        @subnet_network_acls =
         Hash[network_acls.flat_map do |acl|
           acl.subnet_ids.map { |subnet_id| [subnet_id, acl] }
         end]
