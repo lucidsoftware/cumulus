@@ -34,13 +34,13 @@ module Cumulus
           end
         end.flatten
 
-        non_vpc_groups = if EC2::supports_ec2_classic
-          Common::BaseLoader.resources(@@groups_dir) do |file_name, json|
-            SecurityGroupConfig.new(file_name, nil, json)
-          end
-        else
+        non_vpc_groups = Common::BaseLoader.resources(@@groups_dir) do |file_name, json|
+          SecurityGroupConfig.new(file_name, nil, json)
+        end
+
+        if !EC2::supports_ec2_classic and !non_vpc_groups.empty?
           puts "Ignoring Non-VPC Security Groups because your account does not support them"
-          []
+          non_vpc_groups = []
         end
 
         vpc_groups + non_vpc_groups

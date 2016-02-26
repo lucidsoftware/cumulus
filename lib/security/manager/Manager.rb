@@ -96,12 +96,18 @@ module Cumulus
         update_tags(security_group_id, local.tags, {})
         update_inbound(local.vpc_id, security_group_id, local.inbound, [])
 
-        outbound_remove = if Configuration.instance.security.outbound_default_all_allowed and local.outbound.empty?
+        allow_all_rule = RuleConfig.allow_all
+        allow_all_outbound = Configuration.instance.security.outbound_default_all_allowed or local.outbound.find { |g| g.hash == allow_all_rule.hash }
+
+        outbound_remove = if allow_all_outbound
           []
         else
-          [RuleConfig.allow_all]
+          [allow_all_rule]
         end
-        update_outbound(local.vpc_id, security_group_id, local.outbound, outbound_remove)
+
+        outbound_add = local.outbound.reject { |g| g.hash == allow_all_rule.hash }
+
+        update_outbound(local.vpc_id, security_group_id, outbound_add, outbound_remove)
       end
 
       def update(local, diffs)
