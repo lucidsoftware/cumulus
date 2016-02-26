@@ -48,6 +48,7 @@ module Cumulus
       end
 
       def diff_resource(local, aws)
+        puts Colors.blue("Processing #{local.name}...")
         instance_attributes = EC2::id_instance_attributes(aws.instance_id)
         user_data_file = InstanceLoader.user_data_base64.key(instance_attributes.user_data)
         cumulus_version = InstanceConfig.new(local.name).populate!(aws, user_data_file, instance_attributes.tags)
