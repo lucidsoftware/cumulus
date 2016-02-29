@@ -1,0 +1,13 @@
+{
+  "inbound": [
+    {
+      "security-groups": [
+        "a-security-group"
+      ],
+      "protocol": "tcp",
+      "ports": [
+        443
+      ]
+    }
+  ]
+}

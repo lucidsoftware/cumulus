@@ -11,6 +11,7 @@ module Cumulus
       include Common::BaseLoader
 
       @@groups_dir = Configuration.instance.security.groups_directory
+      @@rules_dir = Configuration.instance.security.rules_directory
       @@subnet_files = Configuration.instance.security.subnet_files
 
       # Public: Load all the security group configurations as SecurityGroupConfig objects
@@ -44,6 +45,13 @@ module Cumulus
         end
 
         vpc_groups + non_vpc_groups
+      end
+
+      # Public: Load a single static rule
+      #
+      # Returns the static rule as json
+      def Loader.rule(rule_name)
+        Common::BaseLoader.resource(rule_name, @@rules_dir) { |_, json| json }
       end
 
       # Public: Get the local definition of a subnet group.

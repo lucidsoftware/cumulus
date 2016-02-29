@@ -4,6 +4,9 @@
     "tag-key": "tag-value"
   },
   "rules": {
+    "includes": [
+      "default-rules"
+    ],
     "inbound": [
       {
         "security-groups": [

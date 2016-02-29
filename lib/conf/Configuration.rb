@@ -243,12 +243,14 @@ module Cumulus
       include Config
 
       attr_reader :groups_directory
+      attr_reader :rules_directory
       attr_reader :outbound_default_all_allowed
       attr_reader :subnet_files
 
       # Public: Constructor.
       def initialize
         @groups_directory = absolute_path "security-groups/groups"
+        @rules_directory = absolute_path "security-groups/rules"
         @outbound_default_all_allowed = conf "security.outbound-default-all-allowed"
         @subnet_files = conf("security.subnet-files", true) { |paths| paths.map{ |p| absolute_path(p) } }
 

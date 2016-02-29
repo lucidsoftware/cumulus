@@ -1,4 +1,5 @@
 require "conf/Configuration"
+require "security/loader/Loader"
 require "security/models/RuleConfig"
 require "security/models/RuleDiff"
 require "security/models/RuleMigration"
@@ -12,6 +13,7 @@ module Cumulus
     class SecurityGroupConfig
 
       attr_reader :description
+      attr_reader :includes
       attr_reader :inbound
       attr_reader :name
       attr_reader :outbound
@@ -29,14 +31,23 @@ module Cumulus
         if !json.nil?
           @description = if !json["description"].nil? then json["description"] else "" end
           @tags = if !json["tags"].nil? then json["tags"] else {} end
-          @inbound = json["rules"]["inbound"].map(&RuleConfig.method(:expand_ports)).flatten
+
+
+          includes = (json["rules"]["includes"] || []).map { |rule| Loader.rule(rule) }
+          inbound_includes = includes.reduce([]) { |sofar, inc| sofar + (inc["inbound"] || []) }.flatten.compact
+          outbound_includes = includes.reduce([]) { |sofar, inc| sofar + (inc["outbound"] || []) }.flatten.compact
+
+          combined_inbound = (json["rules"]["inbound"] || []) + inbound_includes
+          @inbound = combined_inbound.map(&RuleConfig.method(:expand_ports)).flatten
+
+          combined_outbound = (json["rules"]["outbound"] || []) + outbound_includes
           @outbound = if !json["rules"]["outbound"].nil?
-            json["rules"]["outbound"].map(&RuleConfig.method(:expand_ports)).flatten
+            combined_outbound.map(&RuleConfig.method(:expand_ports)).flatten
           else
             if Configuration.instance.security.outbound_default_all_allowed
               [RuleConfig.allow_all]
             else
-              []
+              outbound_includes
             end
           end
         end
