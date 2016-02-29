@@ -123,6 +123,8 @@ module Cumulus
 
       AddressChange = Struct.new(:aws_name, :aws, :local_name, :local)
       def self.address_associations(aws, local)
+        any_addresses = local.select { |ip, key| key.downcase == "any" }
+
         # Map the aws and local public ips to network interface
         aws_addresses = Hash[aws.map { |addr| [addr.public_ip, EC2::id_network_interfaces[addr.network_interface_id]] }]
 
@@ -130,20 +132,31 @@ module Cumulus
           interface = EC2::named_network_interfaces[key]
 
           if interface.nil?
-            puts Colors.red("Config error: no network interface exists for #{key}")
-            exit 1
+            if key.downcase == "any"
+              interface = "any"
+            else
+              puts Colors.red("Config error: no network interface exists for #{key}")
+              exit 1
+            end
           end
 
           [ip, interface]
         end].reject { |k, v| v.nil? }
 
         added = local_addresses.reject { |k, v| aws_addresses.has_key? k }
-        added_names = Hash[added.map { |ip, interface| [ip, AddressChange.new(nil, nil, interface.name || interface.network_interface_id,  interface)] }]
+        added_names = Hash[added.map do |ip, interface|
+          name = if interface == "any"
+            "any"
+          else
+            interface.name || interface.network_interface_id
+          end
+          [ip, AddressChange.new(nil, nil, name, interface)]
+        end]
 
         removed = aws_addresses.reject { |k, v| local_addresses.has_key? k }
         removed_names = Hash[removed.map { |ip, interface| [ip, AddressChange.new(interface.name || interface.network_interface_id, interface, nil, nil)] }]
 
-        modified = local_addresses.select { |k, v| aws_addresses.has_key? k and aws_addresses[k].network_interface_id != v.network_interface_id }
+        modified = local_addresses.reject { |_, v| v == "any" }.select { |k, v| aws_addresses.has_key? k and aws_addresses[k].network_interface_id != v.network_interface_id }
         modified_changes = Hash[modified.map do |ip, local_interface|
             aws_interface = aws_addresses[ip]
             aws_name = aws_interface.name || aws_interface.network_interface_id

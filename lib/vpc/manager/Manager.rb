@@ -635,13 +635,17 @@ module Cumulus
       def update_address_associations(aws_vpc, address_changes)
         # Added associations
         address_changes.added.each do |ip, addr_change|
-          puts "Associating #{ip} to #{addr_change.local_name}"
-          aws_address = EC2::public_addresses[ip]
-          @client.associate_address({
-            allow_reassociation: false, # This makes the operation fail if it was already associated
-            allocation_id: aws_address.allocation_id,
-            network_interface_id: addr_change.local.network_interface_id
-          })
+          if addr_change.local == "any"
+            puts "#{ip} must be associated manually to any interface"
+          else
+            puts "Associating #{ip} to #{addr_change.local_name}"
+            aws_address = EC2::public_addresses[ip]
+            @client.associate_address({
+              allow_reassociation: false, # This makes the operation fail if it was already associated
+              allocation_id: aws_address.allocation_id,
+              network_interface_id: addr_change.local.network_interface_id
+            })
+          end
         end
 
         # Removed associations
