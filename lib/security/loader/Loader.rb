@@ -61,7 +61,7 @@ module Cumulus
       # Returns an array of ip addresses that is empty if there is no subnet group with that name
       def Loader.subnet_group(name)
         if self.subnet_groups[name].nil?
-          []
+          raise "Could not find subnet #{name}"
         else
           self.subnet_groups[name]
         end
