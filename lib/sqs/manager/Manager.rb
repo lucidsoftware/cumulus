@@ -72,12 +72,12 @@ module Cumulus
         url = @client.create_queue({
           queue_name: local.name,
           attributes: {
-            "DelaySeconds" => local.delay,
-            "MaximumMessageSize" => local.max_message_size,
-            "MessageRetentionPeriod" => local.message_retention,
+            "DelaySeconds" => "#{local.delay}",
+            "MaximumMessageSize" => "#{local.max_message_size}",
+            "MessageRetentionPeriod" => "#{local.message_retention}",
             "Policy" => if local.policy then JSON.generate(Loader.policy(local.policy)) end,
-            "ReceiveMessageWaitTimeSeconds" => local.receive_wait_time,
-            "VisibilityTimeout" => local.visibility_timeout,
+            "ReceiveMessageWaitTimeSeconds" => "#{local.receive_wait_time}",
+            "VisibilityTimeout" => "#{local.visibility_timeout}",
             "RedrivePolicy" => if local.dead_letter then JSON.generate(local.dead_letter.to_aws) end
           }.reject { |k, v| v.nil? }
         }).queue_url
