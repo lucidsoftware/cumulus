@@ -77,7 +77,7 @@ module Cumulus
             location_constraint: local.region
           } end
         })
-        update_policy(local.name, local.policy)
+        update_policy(local.region, local.name, local.policy)
         update_cors(local.name, local.cors)
         update_grants(local.name, local.grants)
         update_versioning(local.name, local.versioning)
