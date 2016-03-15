@@ -143,7 +143,7 @@ module Cumulus
         if @launch != aws.launch_configuration_name and Configuration.instance.autoscaling.override_launch_config_on_sync
           diffs << AutoScalingDiff.new(AutoScalingChange::LAUNCH, aws, self)
         end
-        if @load_balancers != aws.load_balancer_names
+        if @load_balancers.sort != aws.load_balancer_names.sort
           diffs << AutoScalingDiff.new(AutoScalingChange::LOAD_BALANCER, aws, self)
         end
 

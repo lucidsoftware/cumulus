@@ -148,7 +148,7 @@ module Cumulus
                AutoScalingChange::LAUNCH
             update_group = true
           when AutoScalingChange::TAGS
-            update_tags(group, diff.tags_to_remove, diff.tags_to_remove)
+            update_tags(group, diff.tags_to_remove, diff.tags_to_add)
           when AutoScalingChange::LOAD_BALANCER
             update_load_balancers(group, diff.load_balancers_to_remove, diff.load_balancers_to_add)
           when AutoScalingChange::METRICS
