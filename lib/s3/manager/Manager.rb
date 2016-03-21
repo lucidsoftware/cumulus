@@ -77,6 +77,7 @@ module Cumulus
             location_constraint: local.region
           } end
         })
+        S3.refresh!
         update_policy(local.region, local.name, local.policy)
         update_cors(local.region, local.name, local.cors)
         update_grants(local.region, local.name, local.grants)
@@ -86,7 +87,7 @@ module Cumulus
         update_lifecycle(local.region, local.name, local.lifecycle)
         update_notifications(local.region, local.name, local.notifications)
         update_replication(local.region, local.name, local.replication)
-        update_tags(local.region, local.name, local.tags)
+        update_tags(local.region, local.name, local.tags) if !local.tags.empty?
       end
 
       def update(local, diffs)

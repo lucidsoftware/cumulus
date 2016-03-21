@@ -63,6 +63,12 @@ module Cumulus
         @buckets ||= init_buckets
       end
 
+      # Public: Refereshes the bucket list and full_buckets map
+      def refresh!
+        @buckets = init_buckets
+        @full_buckets = Hash.new
+      end
+
       private
 
       # Internal: Monkey patch Bucket so it can get its location
