@@ -23,20 +23,20 @@ module Cumulus
         when HTTP
           [
             "http port:",
-            Colors.aws_changes("\tAWS - #{@aws.http_port}"),
-            Colors.local_changes("\tLocal - #{@local.http_port}"),
+            Colors.aws_changes("\tAWS - #{@aws}"),
+            Colors.local_changes("\tLocal - #{@local}"),
           ].join("\n")
         when HTTPS
           [
             "https port:",
-            Colors.aws_changes("\tAWS - #{@aws.https_port}"),
-            Colors.local_changes("\tLocal - #{@local.https_port}"),
+            Colors.aws_changes("\tAWS - #{@aws}"),
+            Colors.local_changes("\tLocal - #{@local}"),
           ].join("\n")
         when POLICY
           [
             "protocol policy:",
-            Colors.aws_changes("\tAWS - #{@aws.origin_protocol_policy}"),
-            Colors.local_changes("\tLocal - #{@local.protocol_policy}"),
+            Colors.aws_changes("\tAWS - #{@aws}"),
+            Colors.local_changes("\tLocal - #{@local}"),
           ].join("\n")
         end
       end

@@ -7,16 +7,19 @@ module Cumulus
       def diff(aws)
         diffs = []
 
-        if aws.nil? or self.http_port != aws.http_port
-          diffs << CustomOriginDiff.new(CustomOriginChange::HTTP, aws, self)
+        aws_http_port = aws && aws.http_port
+        if self.http_port != aws_http_port
+          diffs << CustomOriginDiff.new(CustomOriginChange::HTTP, aws_http_port, self.http_port)
         end
 
-        if aws.nil? or self.https_port != aws.https_port
-          diffs << CustomOriginDiff.new(CustomOriginChange::HTTPS, aws, self)
+        aws_https_port = aws && aws.https_port
+        if self.https_port != aws_https_port
+          diffs << CustomOriginDiff.new(CustomOriginChange::HTTPS, aws_https_port, self.https_port)
         end
 
-        if aws.nil? or self.protocol_policy != aws.origin_protocol_policy
-          diffs << CustomOriginDiff.new(CustomOriginChange::POLICY, aws, self)
+        aws_protocol = aws && aws.origin_protocol_policy
+        if self.protocol_policy != aws_protocol
+          diffs << CustomOriginDiff.new(CustomOriginChange::POLICY, aws_protocol, self.protocol_policy)
         end
 
         diffs
