@@ -48,7 +48,7 @@ module Cumulus
           @subnets = json["subnets"]
           @tags = json["tags"]
           @termination = json["termination"]
-          @scheduled = Hash[json["scheduled"].map { |json| [json["name"], ScheduledConfig.new(json)] }]
+          @scheduled = Hash[(json["scheduled"] || []).map { |json| [json["name"], ScheduledConfig.new(json)] }]
 
           # load scaling policies
           static_policies = json["policies"]["static"].map { |file| Loader.static_policy(file) }
