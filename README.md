@@ -31,3 +31,6 @@ to resolve dependencies
 
 ### Documentation
 See [documentation site](http://lucidsoftware.github.io/cumulus) for details
+
+### Lucid Software
+Cumulus was created by [Lucid Software](https://golucid.co), creators of [Lucidchart](https://www.lucidchart.com) and [Lucidpress](https://www.lucidpress.com).
