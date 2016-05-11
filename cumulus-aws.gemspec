@@ -4,7 +4,7 @@ require "bundler"
 
 Gem::Specification.new do |s|
   s.name                      = "cumulus-aws"
-  s.version                   = "0.1.0"
+  s.version                   = "0.11.0"
   s.platform                  = Gem::Platform::RUBY
   s.authors                   = ["Keilan Jackson", "Mark Siebert"]
   s.email                     = "cumulus@lucidchart.com"
