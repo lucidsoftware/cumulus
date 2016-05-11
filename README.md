@@ -1,4 +1,6 @@
 # cumulus
+
+[![Join the chat at https://gitter.im/lucidsoftware/cumulus](https://badges.gitter.im/lucidsoftware/cumulus.svg)](https://gitter.im/lucidsoftware/cumulus?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 CloudFormation alternative
 
 ### Usage
