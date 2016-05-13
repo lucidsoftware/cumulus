@@ -1,50 +1,12 @@
+---
+---
+<!DOCTYPE html>
 <html>
-  <head>
-    <link href="{{ site.baseurl }}/assets/third-party/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
-    <link href="{{ site.baseurl }}/assets/css/site.css" rel="stylesheet" />
-    <title>Cumulus - {{ page.title }}</title>
-  </head>
-  <body class="container">
-    <nav class="navbar navbar-default navbar-fixed-top">
-      <div class="container">
-        <div class="navbar-inner">
-          <a class="brand" href="{{ site.baseurl }}/">
-            <img src="{{ site.baseurl }}/assets/img/cumulus-branding.png" />
-          </a>
-          <a class="brand" href="https://github.com/lucidsoftware/cumulus">
-            <img src="{{ site.baseurl }}/assets/img/GitHub-Mark-120px-plus.png" />
-          </a>
-          <ul class="nav navbar-nav navbar-right">
-            <li><a href="{{ site.baseurl }}/">Home</a></li>
-            <li class="dropdown">
-              <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Modules <span class="caret"></span></a>
-              <ul class="dropdown-menu">
-                <li><a href="{{ site.baseurl }}/modules/iam.html">IAM</a></li>
-                <li><a href="{{ site.baseurl }}/modules/route53.html">Route53</a></li>
-                <li><a href="{{ site.baseurl }}/modules/autoscaling.html">Autoscaling Groups</a></li>
-                <li><a href="{{ site.baseurl }}/modules/security-groups.html">Security Groups</a><li>
-                <li><a href="{{ site.baseurl }}/modules/elb.html">ELB</a><li>
-                <li><a href="{{ site.baseurl }}/modules/ec2.html">EC2</a><li>
-                <li><a href="{{ site.baseurl }}/modules/vpc.html">VPC</a><li>
-                <li><a href="{{ site.baseurl }}/modules/kinesis.html">Kinesis</a><li>
-                <li><a href="{{ site.baseurl }}/modules/cloudfront.html">CloudFront</a><li>
-                <li><a href="{{ site.baseurl }}/modules/s3.html">S3</a><li>
-                <li><a href="{{ site.baseurl }}/modules/sqs.html">SQS</a><li>
-              </ul>
-            </li>
-          </ul>
-        </div>
-      </div>
-    </nav>
-
+  {% include head.html %}
+  <body>
+    {% include header.html %}
     {{ content }}
-
-    <hr />
-    <footer class="text-container">
-      Cumulus was created by <a href="https://www.golucid.co">Lucid Software</a>, creators of <a href="https://www.lucidchart.com">Lucidchart</a> and <a href="https://www.lucidpress.com">Lucidpress</a>
-    </footer>
-
-    <script src="{{ site.baseurl }}/assets/third-party/jquery/jquery-2.1.4.min.js"></script>
-    <script src="{{ site.baseurl }}/assets/third-party/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+    {% include footer.html %}
+    <a id="scroll-to-top" class="scroll-to-top btn btn-primary">➜</a>
   </body>
 </html>
