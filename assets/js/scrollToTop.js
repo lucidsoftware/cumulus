@@ -9,8 +9,12 @@ window.onscroll = function() {
 
 window.onload = function() {
   document.getElementById('scroll-to-top').addEventListener('click', function(e) {
-     e.preventDefault()
-     animate(document.body, 'scrollTop', '', window.scrollY, 0, 1000, true);
+    var scroller = document.documentElement
+    if (!document.documentElement.scrollTop) {
+      scroller = document.body
+    }
+    e.preventDefault()
+    animate(scroller, 'scrollTop', '', window.scrollY, 0, 1000, true);
   })
 }
 
