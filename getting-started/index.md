@@ -1,11 +1,8 @@
 ---
-layout: main
+layout: getting-started
 title: Getting Started
+header-title: Getting Started with Cumulus
 ---
-
-<h1 class="text-center">Getting Started with Cumulus</h1>
-----------------------------
-
 ### Installing Cumulus
 
 Cumulus can be installed through the `cumulus-aws` gem:
@@ -41,7 +38,7 @@ When syncing, Cumulus chooses to be non-destructive, that is, it will not remove
 
 Additionally, Cumulus supports the following options:
 
-* `-c`, `--config` - specify the directory to use when getting Cumulus's `configuration.json` file. If this is not specified, it defaults to your current working directory
+* `-c`, `--config` - specify the directory to use when getting Cumulus's [`configuration.json`](https://github.com/lucidsoftware/cumulus/blob/master/conf/configuration.json) file. If this is not specified, it defaults to your current working directory
 * `-p`, `--profile` - specify the name of the AWS profile to use for API requests
 * `-v`, `--verbose` - allow verbose output
 * `-r`, `--assume-role` - specify the name of the IAM role to assume when making API requests
@@ -49,4 +46,4 @@ Additionally, Cumulus supports the following options:
 
 ### Cumulus Configuration
 
-Cumulus is configured by creating JSON files that describe your AWS architecture. Cumulus requires a JSON file called `configuration.json` that describes some global configuration options, but from there, each module defines its own JSON files. Descriptions of those files can be found in the documentation for each module, and examples can be found in [the Cumulus repo](https://github.com/lucidsoftware/cumulus/tree/master/conf).
+Cumulus is configured by creating JSON files that describe your AWS architecture. Cumulus requires a JSON file called [`configuration.json`](https://github.com/lucidsoftware/cumulus/blob/master/conf/configuration.json) that describes some global configuration options, but from there, each module defines its own JSON files. Descriptions of those files can be found in the documentation for each module, and examples can be found in [the Cumulus repo](https://github.com/lucidsoftware/cumulus/tree/master/conf).

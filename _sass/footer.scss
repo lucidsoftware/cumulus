@@ -1,0 +1,18 @@
+footer.site-footer {
+  height: $site-footer-height;
+
+  background-color: $blue-whale;
+  color: white;
+  line-height: $site-footer-height;
+  text-align: center;
+
+  @include drop-shadow-1-up;
+
+  a {
+    color: $copper;
+
+    &:hover {
+      color: $pancho;
+    }
+  }
+}

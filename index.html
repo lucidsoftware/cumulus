@@ -1,86 +1,104 @@
 ---
 layout: main
-title: Home
+title: Cumulus
 ---
 <div class="home">
-  <header class="text-center">
-    <img class="site-logo" src="{{ site.baseurl }}/assets/img/cumulus-logo.png" />
-    <h3>Manage your AWS cloud through configuration.</h3>
-  </header>
-  <a class="getting-started btn btn-primary" href="{{ site.baseurl }}/getting-started/">Get Started!</a>
-  <hr>
-  <div class="row">
-    <div class="col-xs-4 product text-center">
-      <a href="{{ site.baseurl }}/modules/iam.html">
-        <img class="product-image" src="{{ site.baseurl }}/assets/img/iam.png" />
-        <h4 class="product-name">IAM</h4>
-      </a>
+  <section class="title-section">
+    <header class="container">
+      <div class="site-logo">
+        <div class="image-container">
+          <img src="{{ site.baseurl }}/assets/img/cloud.svg" />
+        </div>
+        <h1>Cumulus</h1>
+      </div>
+      <h3>Manage your AWS cloud through configuration.</h3>
+    </header>
+    <a class="getting-started btn btn-primary" href="{{ site.baseurl }}/getting-started/">Get Started!</a>
+  </section>
+  <div class="modules container">
+    <h1 id="modules">Modules</h1>
+    <hr>
+    <div class="row">
+      <div class="col-4 product">
+        <a href="{{ site.baseurl }}/modules/iam.html">
+          <img class="product-image" src="{{ site.baseurl }}/assets/img/iam.png" />
+          <h4 class="product-name">IAM</h4>
+        </a>
+      </div>
+      <div class="col-4 product">
+        <a href="{{ site.baseurl }}/modules/route53.html">
+          <img class="product-image" src="{{ site.baseurl }}/assets/img/route53.png" />
+          <h4 class="product-name">Route53</h4>
+        </a>
+      </div>
+      <div class="col-4 product">
+        <a href="{{ site.baseurl }}/modules/autoscaling.html">
+          <img class="product-image" src="{{ site.baseurl }}/assets/img/ec2.png" />
+          <h4 class="product-name">Autoscaling Groups</h4>
+        </a>
+      </div>
     </div>
-    <div class="col-xs-4 product text-center">
-      <a href="{{ site.baseurl }}/modules/route53.html">
-        <img class="product-image" src="{{ site.baseurl }}/assets/img/route53.png" />
-        <h4 class="product-name">Route53</h4>
-      </a>
+    <div class="row">
+      <div class="col-4 product">
+        <a href="{{ site.baseurl }}/modules/security-groups.html">
+          <img class="product-image" src="{{ site.baseurl }}/assets/img/ec2.png" />
+          <h4 class="product-name">Security Groups</h4>
+        </a>
+      </div>
+      <div class="col-4 product">
+        <a href="{{ site.baseurl }}/modules/elb.html">
+          <img class="product-image" src="{{ site.baseurl }}/assets/img/ec2.png" />
+          <h4 class="product-name">ELB</h4>
+        </a>
+      </div>
+      <div class="col-4 product">
+        <a href="{{ site.baseurl }}/modules/ec2.html">
+          <img class="product-image" src="{{ site.baseurl }}/assets/img/ec2.png" />
+          <h4 class="product-name">EC2 Instances</h4>
+        </a>
+      </div>
     </div>
-    <div class="col-xs-4 product text-center">
-      <a href="{{ site.baseurl }}/modules/autoscaling.html">
-        <img class="product-image" src="{{ site.baseurl }}/assets/img/ec2.png" />
-        <h4 class="product-name">Autoscaling Groups</h4>
-      </a>
+    <div class="row">
+      <div class="col-4 product">
+        <a href="{{ site.baseurl }}/modules/vpc.html">
+          <img class="product-image" src="{{ site.baseurl }}/assets/img/vpc.png" />
+          <h4 class="product-name">VPC</h4>
+        </a>
+      </div>
+      <div class="col-4 product">
+        <a href="{{ site.baseurl }}/modules/kinesis.html">
+          <img class="product-image" src="{{ site.baseurl }}/assets/img/kinesis.png" />
+          <h4 class="product-name">Kinesis</h4>
+        </a>
+      </div>
+      <div class="col-4 product">
+        <a href="{{ site.baseurl }}/modules/cloudfront.html">
+          <img class="product-image" src="{{ site.baseurl }}/assets/img/cloudfront.png" />
+          <h4 class="product-name">CloudFront</h4>
+        </a>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-4 product">
+        <a href="{{ site.baseurl }}/modules/s3.html">
+          <img class="product-image" src="{{ site.baseurl }}/assets/img/s3.png" />
+          <h4 class="product-name">S3</h4>
+        </a>
+      </div>
+      <div class="col-4 product">
+        <a href="{{ site.baseurl }}/modules/sqs.html">
+          <img class="product-image" src="{{ site.baseurl }}/assets/img/sqs.png" />
+          <h4 class="product-name">SQS</h4>
+        </a>
+      </div>
     </div>
   </div>
-  <div class="row">
-    <div class="col-xs-4 product text-center">
-      <a href="{{ site.baseurl }}/modules/security-groups.html">
-        <img class="product-image" src="{{ site.baseurl }}/assets/img/ec2.png" />
-        <h4 class="product-name">Security Groups</h4>
-      </a>
-    </div>
-    <div class="col-xs-4 product text-center">
-      <a href="{{ site.baseurl }}/modules/elb.html">
-        <img class="product-image" src="{{ site.baseurl }}/assets/img/ec2.png" />
-        <h4 class="product-name">ELB</h4>
-      </a>
-    </div>
-    <div class="col-xs-4 product text-center">
-      <a href="{{ site.baseurl }}/modules/ec2.html">
-        <img class="product-image" src="{{ site.baseurl }}/assets/img/ec2.png" />
-        <h4 class="product-name">EC2 Instances</h4>
-      </a>
-    </div>
-  </div>
-  <div class="row">
-    <div class="col-xs-4 product text-center">
-      <a href="{{ site.baseurl }}/modules/vpc.html">
-        <img class="product-image" src="{{ site.baseurl }}/assets/img/vpc.png" />
-        <h4 class="product-name">VPC</h4>
-      </a>
-    </div>
-    <div class="col-xs-4 product text-center">
-      <a href="{{ site.baseurl }}/modules/kinesis.html">
-        <img class="product-image" src="{{ site.baseurl }}/assets/img/kinesis.png" />
-        <h4 class="product-name">Kinesis</h4>
-      </a>
-    </div>
-    <div class="col-xs-4 product text-center">
-      <a href="{{ site.baseurl }}/modules/cloudfront.html">
-        <img class="product-image" src="{{ site.baseurl }}/assets/img/cloudfront.png" />
-        <h4 class="product-name">CloudFront</h4>
-      </a>
-    </div>
-  </div>
-  <div class="row">
-    <div class="col-xs-4 product text-center">
-      <a href="{{ site.baseurl }}/modules/s3.html">
-        <img class="product-image" src="{{ site.baseurl }}/assets/img/s3.png" />
-        <h4 class="product-name">S3</h4>
-      </a>
-    </div>
-    <div class="col-xs-4 product text-center">
-      <a href="{{ site.baseurl }}/modules/sqs.html">
-        <img class="product-image" src="{{ site.baseurl }}/assets/img/sqs.png" />
-        <h4 class="product-name">SQS</h4>
-      </a>
+  <div class="call-to-action">
+    <div class="container">
+      <img class="cloud cloud-left" src="{{ site.baseurl }}/assets/img/cloud.svg" />
+      <img class="cloud cloud-left-2" src="{{ site.baseurl }}/assets/img/cloud.svg" />
+      <img class="cloud cloud-right" src="{{ site.baseurl }}/assets/img/cloud.svg" />
+      <a class="btn btn-primary" href="{{ site.baseurl }}/getting-started/">Get Started Now!</a>
     </div>
   </div>
 </div>

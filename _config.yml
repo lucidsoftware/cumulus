@@ -1,9 +1,13 @@
+title: "Cumulus"
+description: "Cumulus allows you to manage your AWS infrastructure by creating JSON configuration files that describe your AWS resources."
+baseurl: /cumulus
+
+markdown: kramdown
+sass:
+  sass_dir: _sass
+  style: compressed
+
 exclude: [
   assets/less,
   Gemfile*
 ]
-
-kramdown:
-  input: GFM
-
-baseurl: /cumulus

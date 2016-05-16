@@ -1,0 +1,65 @@
+header.site-header {
+  height: $site-header-height;
+
+  background-color: $blue-whale;
+  color: white;
+
+  @include drop-shadow-1;
+
+  .image-link img {
+    height: $site-header-height;
+    padding: 15px;
+  }
+
+  .github img {
+    float: right;
+  }
+
+  .brand img {
+    padding: 6px;
+  }
+
+  a.header-link {
+    color: white;
+    line-height: $site-header-height;
+  }
+
+  .dropdown {
+    display: inline-block;
+
+    height: $site-header-height;
+    padding: 20px;
+    margin-left: 3px;
+
+    cursor: pointer;
+
+    &:hover {
+      .dropdown-content {
+        display: inline;
+      }
+    }
+  }
+
+  .dropdown-content {
+    display: none;
+    position: absolute;
+    z-index: 100;
+
+    padding: 0px 20px;
+
+    background-color: white;
+    list-style: none;
+    @include drop-shadow-2;
+
+    &:hover {
+      display: inline;
+    }
+
+    a {
+      padding: 10px 0px;
+      display:block;
+
+      width: 100%;
+    }
+  }
+}

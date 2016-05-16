@@ -2,3 +2,4 @@ _site
 conf/
 generated/
 Gemfile.lock
+.sass-cache
