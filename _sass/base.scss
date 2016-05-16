@@ -59,12 +59,12 @@ a {
   font-size: 48px;
   opacity: 0;
   transform: rotate(-90deg);
-  transition: opacity 1s linear;
+  transition: opacity 0.5s linear;
 
   @include drop-shadow-2;
   &:hover {
     color: $shakespeare;
-    transition: color 1s, box-shadow 1s;
+    transition: color 0.5s, box-shadow 0.5s;
     @include drop-shadow-3;
   }
 

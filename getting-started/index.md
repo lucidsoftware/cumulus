@@ -1,11 +1,8 @@
 ---
-layout: main
+layout: getting-started
 title: Getting Started
+header-title: Getting Started with Cumulus
 ---
-
-<h1 class="text-center">Getting Started with Cumulus</h1>
-----------------------------
-
 ### Installing Cumulus
 
 Cumulus can be installed through the `cumulus-aws` gem:

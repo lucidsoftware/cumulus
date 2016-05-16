@@ -43,6 +43,7 @@ header.site-header {
   .dropdown-content {
     display: none;
     position: absolute;
+    z-index: 100;
 
     padding: 0px 20px;
 

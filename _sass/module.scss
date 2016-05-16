@@ -1,0 +1,39 @@
+.module {
+  .title-section {
+    background-color: $shadow-green;
+    height: 450px;
+    padding: 50px 0px;
+    text-align: center;
+
+    .product-image {
+      width: 200px;
+      padding: 20px;
+      border-radius: 100%;
+      border: solid 3px $astral;
+      background-color: white;
+    }
+
+    h1 {
+      margin: 15px;
+
+      font-family: 'Ubuntu';
+      font-size: 54px;
+      text-shadow: 4px 4px rgba(0, 0, 0, .2);
+    }
+
+    .product-description {
+      color: $copper;
+      font-family: 'Ubuntu';
+      font-size: 24px;
+      text-shadow: 1px 1px rgba(0, 0, 0, .2);
+    }
+  }
+
+  .module-body {
+    padding: 40px 0px;
+
+    h2 {
+      margin: 24px 0;
+    }
+  }
+}

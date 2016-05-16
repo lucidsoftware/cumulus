@@ -1,0 +1,26 @@
+.highlight {
+  background-color: lighten($shakespeare, 45%);
+  margin: 0;
+  padding: 10px 30px;
+
+  @include drop-shadow-1;
+
+  .language-json {
+    .p {
+      color: $copper;
+      text-shadow: 1px 1px rgba(0, 0, 0, .3);
+    }
+
+    .nt {
+      color: darken($shadow-green, 20%);
+    }
+  }
+}
+
+.highlighter-rouge {
+  padding: 2px;
+  border-radius: 3px;
+
+  background-color: lighten($pancho, 10%);
+  color: $astral;
+}
