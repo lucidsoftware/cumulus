@@ -19,6 +19,8 @@ a {
   color: $astral;
   text-decoration: none;
 
+  transition: color .5s;
+
   &:hover {
     color: $copper;
   }
@@ -31,9 +33,10 @@ a {
 
   @include drop-shadow-1;
 
+  transition: box-shadow 1s;
+
   &:hover {
     @include drop-shadow-2;
-    transition: box-shadow 1s;
   }
 }
 

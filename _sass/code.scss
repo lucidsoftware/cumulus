@@ -24,3 +24,14 @@
   background-color: lighten($pancho, 10%);
   color: $astral;
 }
+
+a .highlighter-rouge {
+  background-color: transparent;
+  color: $astral;
+
+  transition: color .5s;
+
+  &:hover {
+    color: $pancho;
+  }
+}
