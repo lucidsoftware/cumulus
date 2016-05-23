@@ -1,7 +1,8 @@
-[![Stories in Ready](https://badge.waffle.io/lucidsoftware/cumulus.png?label=ready&title=Ready)](https://waffle.io/lucidsoftware/cumulus)
 # cumulus
 
 [![Join the chat at https://gitter.im/lucidsoftware/cumulus](https://badges.gitter.im/lucidsoftware/cumulus.svg)](https://gitter.im/lucidsoftware/cumulus?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
+[![Stories in Ready](https://badge.waffle.io/lucidsoftware/cumulus.png?label=ready&title=Ready)](https://waffle.io/lucidsoftware/cumulus)
 
 CloudFormation alternative
 
