@@ -1,7 +1,7 @@
 ---
 layout: module
 title: Kinesis
-image: assets/img/kinesis.png
+image: assets/img/kinesis.svg
 description: Create and manage Kinesis Streams
 ---
 Overview

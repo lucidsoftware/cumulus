@@ -1,7 +1,7 @@
 ---
 layout: module
 title: Elastic Load Balancing
-image: assets/img/ec2.png
+image: assets/img/elb.svg
 description: Create and manage Elastic Load Balancers
 ---
 Overview

@@ -1,7 +1,7 @@
 ---
 layout: module
 title: Security Groups
-image: assets/img/ec2.png
+image: assets/img/ec2.svg
 description: Create and manage security groups by name and with configuration.
 ---
 Overview
