@@ -1,6 +1,7 @@
 require "conf/Configuration"
-require "cloudfront/models/OriginDiff"
 require "cloudfront/models/CustomOriginConfig"
+require "cloudfront/models/OriginDiff"
+require "cloudfront/models/OriginSslProtocols"
 
 require "json"
 
@@ -14,7 +15,6 @@ module Cumulus
       attr_reader :origin_path
       attr_reader :s3_access_origin_identity
       attr_reader :custom_origin_config
-
 
       # Public: Constructor
       #
@@ -31,7 +31,10 @@ module Cumulus
             CustomOriginConfig.new(
               json["custom-origin-config"]["http-port"],
               json["custom-origin-config"]["https-port"],
-              json["custom-origin-config"]["protocol-policy"]
+              json["custom-origin-config"]["protocol-policy"],
+              json["custom-origin-config"]["origin-ssl-protocols"] && OriginSslProtocols.new(
+                json["custom-origin-config"]["origin-ssl-protocols"]
+              )
             )
           end
           @name = @id
@@ -47,7 +50,10 @@ module Cumulus
           CustomOriginConfig.new(
             aws.custom_origin_config.http_port,
             aws.custom_origin_config.https_port,
-            aws.custom_origin_config.origin_protocol_policy
+            aws.custom_origin_config.origin_protocol_policy,
+            aws.custom_origin_config.origin_ssl_protocols && OriginSslProtocols.new(
+              aws.custom_origin_config.origin_ssl_protocols.items
+            )
           )
         end
         @name = @id
@@ -80,7 +86,13 @@ module Cumulus
             {
               http_port: @custom_origin_config.http_port,
               https_port: @custom_origin_config.https_port,
-              origin_protocol_policy: @custom_origin_config.protocol_policy
+              origin_protocol_policy: @custom_origin_config.protocol_policy,
+              origin_ssl_protocols: if @custom_origin_config.origin_ssl_protocols
+                {
+                  quantity: @custom_origin_config.origin_ssl_protocols.quantity,
+                  items: @custom_origin_config.origin_ssl_protocols.items,
+                }
+              end
             }
           end
         }
