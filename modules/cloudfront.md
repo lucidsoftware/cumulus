@@ -26,6 +26,7 @@ Each distribution is defined in its own file, and the folder distributions are l
     * `http-port` - the http port for the custom origin
     * `https-port` the https port for the custom origin
     * `protocol-policy` - the policy to use when serving content from the origin valid values include `"http-only"` and `"match-viewer"`
+    * `origin-ssl-protocols` - required if `protocol-policy` is `"https-only"`. Should be a string array of the SSL protocols to use.
 * `default-cache-behavior` - a JSON object that defines how items from an origin may be cached in CloudFront when a request matches no other cache behavior. see [Cache Behaviors](#cache-behaviors) for details on how it is configured.
 * `cache-behaviors` - an optional array of JSON objects defining the cache behaviors this distribution has. The order these behaviors are defined is the order in which they are checked to see if a requests matches. The properties of the JSON object are discussed in [Cache Behaviors](#cache-behaviors)
 * `comment` - the comment describing your distribution
@@ -44,7 +45,12 @@ Here is an example of a distribution with a custom origin:
       "custom-origin-config": {
         "http-port": 80,
         "https-port": 443,
-        "protocol-policy": "match-viewer"
+        "protocol-policy": "https-only",
+        "origin-ssl-protocols": [
+          "TLSv1",
+          "TLSv1.1",
+          "TLSv1.2"
+        ]
       }
     }
   ],
