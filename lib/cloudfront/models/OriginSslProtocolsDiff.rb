@@ -1,4 +1,5 @@
 require "common/models/Diff"
+require "common/models/ListChange"
 require "util/Colors"
 
 module Cumulus
@@ -15,13 +16,11 @@ module Cumulus
     class OriginSslProtocolsDiff < Common::Diff
       include OriginSslProtocolsChange
 
-      attr_accessor :added_items
-      attr_accessor :removed_items
+      attr_accessor :items
 
       def self.items(added, removed, local)
         diff = OriginSslProtocolsDiff.new(ITEMS, nil, local)
-        diff.added_items = added
-        diff.removed_items = removed
+        diff.items = Common::ListChange.new(added, removed)
         diff
       end
 
@@ -30,8 +29,8 @@ module Cumulus
         when ITEMS
           [
             "items:",
-            @removed_items.map { |removed| Colors.removed("\t#{removed}") },
-            @added_items.map { |added| Colors.added("\t#{added}") },
+            @items.removed.map { |removed| Colors.removed("\t#{removed}") },
+            @items.added.map { |added| Colors.added("\t#{added}") },
           ].flatten.join("\n")
         end
       end
