@@ -4,6 +4,7 @@ require "cloudfront/CloudFront"
 require "cloudfront/loader/Loader"
 require "cloudfront/models/DistributionDiff"
 require "util/Colors"
+require "util/StatusCodes"
 
 require "aws-sdk"
 
@@ -98,7 +99,14 @@ module Cumulus
             distribution_config: aws_config.to_h.merge(updated_config)
           }
 
-          @cloudfront.update_distribution(update_params)
+          begin
+            @cloudfront.update_distribution(update_params)
+          rescue Aws::CloudFront::Errors::InvalidArgument => e
+            if e.message =~ /OriginSslProtocols is required/
+              puts Colors.red("Distribution #{local.name} must specify $.custom-origin-config.origin-ssl-protocols when \"protocol-policy\" is \"https-only\". Distribution not updated")
+              StatusCodes.set_status(StatusCodes::EXCEPTION)
+            end
+          end
         end
 
       end
@@ -131,6 +139,11 @@ module Cumulus
         File.open("#{Configuration.instance.cloudfront.distributions_directory}/#{local.name}.json", "w") { |f| f.write(local.pretty_json) }
         puts "Distribution #{local.name} created with id #{local.id}"
 
+      rescue Aws::CloudFront::Errors::InvalidArgument => e
+        if e.message =~ /OriginSslProtocols is required/
+          puts Colors.red("Distribution #{local.name} must specify $.custom-origin-config.origin-ssl-protocols when \"protocol-policy\" is \"https-only\". Distribution not created")
+          StatusCodes.set_status(StatusCodes::EXCEPTION)
+        end
       rescue => e
         puts "Failed to create distribution #{local.name}\n#{e}"
       end
