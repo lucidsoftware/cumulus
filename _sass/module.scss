@@ -7,13 +7,13 @@
 
     .product-image {
       width: 200px;
-      padding: 20px;
+      padding: 0px;
       border-radius: 100%;
       border: solid 3px $astral;
       background-color: white;
     }
 
-    h1 {
+    .product-name {
       margin: 15px;
 
       font-family: 'Ubuntu';
@@ -27,6 +27,20 @@
       font-size: 24px;
       text-shadow: 1px 1px rgba(0, 0, 0, .2);
     }
+
+    @media #{$medium-stop} {
+      padding: 30px 0px;
+
+      .product-image { width: 175px; }
+      .product-name { font-size: 48px; }
+      .product-description { font-size: 22px; }
+    }
+
+    @media #{$small-stop} {
+      .product-image { width: 150px; }
+      .product-name { font-size: 42px; }
+      .product-description { font-size: 20px; }
+    }
   }
 
   .module-body {
@@ -34,6 +48,10 @@
 
     h2 {
       margin: 24px 0;
+    }
+
+    @media #{$large-stop} {
+      padding: 40px 20px;
     }
   }
 }

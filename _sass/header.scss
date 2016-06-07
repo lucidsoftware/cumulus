@@ -45,6 +45,10 @@ header.site-header {
         display: inline;
       }
     }
+
+    @media #{$small-stop} {
+      padding: 20px 10px;
+    }
   }
 
   .dropdown-content {

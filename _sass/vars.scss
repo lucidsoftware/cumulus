@@ -12,3 +12,10 @@ $screen-lg: 1200px;
 // grid vars
 $grid-horizontal-spacing: 3%;
 $grid-vertical-spacing: $grid-horizontal-spacing;
+
+// media queries
+$large-stop: "(max-width: #{$screen-lg + 50})";
+$medium-stop: "(max-width: 768px)";
+$small-stop: "(max-width: 500px)";
+$footer-stop: "(max-width: 650px)";
+$scroll-button-stop: "(max-width: 500px)";

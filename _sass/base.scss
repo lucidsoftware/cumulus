@@ -38,6 +38,12 @@ a {
   &:hover {
     @include drop-shadow-2;
   }
+
+  @media #{$medium-stop} {
+    padding: 8px 14px;
+
+    font-size: 20px;
+  }
 }
 
 .btn-primary {
@@ -74,5 +80,12 @@ a {
   &.visible {
     visibility: visible;
     opacity: 1;
+  }
+
+  @media #{$scroll-button-stop} {
+    bottom: 25px;
+    right: 25px;
+
+    font-size: 32px;
   }
 }

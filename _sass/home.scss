@@ -43,6 +43,50 @@
       font-family: 'Ubuntu';
       text-shadow: 1px 1px rgba(0, 0, 0, .2);
     }
+
+    @media #{$medium-stop} {
+      .site-logo {
+        height: 220px;
+
+        .image-container {
+          top: 23%;
+
+          img {
+            width: 120px;
+          }
+        }
+
+        h1 {
+          font-size: 100px;
+        }
+      }
+
+      h3 {
+        font-size: 22px;
+      }
+    }
+
+    @media #{$small-stop} {
+      .site-logo {
+        height: 190px;
+
+        .image-container {
+          left: 6%;
+
+          img {
+            width: 100px;
+          }
+        }
+
+        h1 {
+          font-size: 80px;
+        }
+      }
+
+      h3 {
+        font-size: 20px;
+      }
+    }
   }
 
   hr {
@@ -81,7 +125,7 @@
       }
 
       .product-image {
-        padding: 20px;
+        padding: 0px;
         width: 200px;
 
         border-radius: 100%;
@@ -90,6 +134,44 @@
 
       .product-name {
         font-size: 32px;
+      }
+    }
+
+    @media #{$medium-stop} {
+      h1#modules {
+        font-size: 48px;
+      }
+
+      hr {
+        margin: 30px auto;
+      }
+
+      .row {
+        padding: 0;
+      }
+
+      .product {
+        width: 100%;
+
+        .product-name {
+          margin-top: 5px;
+        }
+      }
+    }
+
+    @media #{$small-stop} {
+      h1#modules {
+        font-size: 32px;
+      }
+
+      .product {
+        .product-image {
+          width: 150px;
+        }
+
+        .product-name {
+          font-size: 24px;
+        }
       }
     }
   }
@@ -140,6 +222,34 @@
 
       font-size: 48px;
       text-align: center;
+    }
+
+    @media #{$medium-stop} {
+      height: 400px;
+
+      .cloud-left { width: 200px; }
+      .cloud-left-2 { width: 100px; }
+      .cloud-right { width: 250px; }
+
+      .btn {
+        left: 15%;
+
+        width: 70%;
+
+        font-size: 40px;
+      }
+    }
+
+    @media #{$small-stop} {
+      height: 400px;
+
+      .cloud-left { width: 150px; }
+      .cloud-left-2 { width: 75px; }
+      .cloud-right { width: 200px; }
+    }
+
+    .btn {
+      font-size: 32px;
     }
   }
 }
