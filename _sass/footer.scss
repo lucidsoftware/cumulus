@@ -15,4 +15,10 @@ footer.site-footer {
       color: $pancho;
     }
   }
+
+  @media #{$footer-stop} {
+    $vertical-footer-padding: 10px;
+    line-height: ($site-footer-height - $vertical-footer-padding) / 2;
+    padding-top: $vertical-footer-padding / 2;
+  }
 }

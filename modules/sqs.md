@@ -1,7 +1,7 @@
 ---
 layout: module
 title: SQS
-image: assets/img/sqs.png
+image: assets/img/sqs.svg
 description: Create and manage SQS Queues
 ---
 Overview

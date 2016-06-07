@@ -19,9 +19,19 @@
       font-size: 54px;
       text-shadow: 4px 4px rgba(0, 0, 0, .2);
     }
+
+    @media #{$small-stop} {
+      h1 {
+        font-size: 42px;
+      }
+    }
   }
 
   .getting-started-text {
     padding: 40px 0px;
+
+    @media #{$large-stop} {
+      padding: 40px 20px;
+    }
   }
 }

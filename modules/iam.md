@@ -1,7 +1,7 @@
 ---
 layout: module
 title: IAM
-image: assets/img/iam.png
+image: assets/img/iam.svg
 description: Create and manage IAM groups, roles, users, and policies with configuration.
 ---
 Overview

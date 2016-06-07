@@ -1,7 +1,7 @@
 ---
 layout: module
 title: CloudFront
-image: assets/img/cloudfront.png
+image: assets/img/cloudfront.svg
 description: Create and manage CloudFront web distributions and run invalidations
 ---
 Overview

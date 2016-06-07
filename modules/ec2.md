@@ -1,7 +1,7 @@
 ---
 layout: module
 title: EC2 Instances
-image: assets/img/ec2.png
+image: assets/img/ec2.svg
 description: Create and manage EC2 instances
 ---
 Overview

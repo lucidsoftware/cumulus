@@ -1,7 +1,7 @@
 ---
 layout: module
 title: Elastic Load Balancing
-image: assets/img/ec2.png
+image: assets/img/elb.svg
 description: Create and manage Elastic Load Balancers
 ---
 Overview
@@ -103,7 +103,7 @@ Here is an example of a load balancer with all options configured:
 
 ### Listeners
 
-In Cumulus listeners can be configured on a load balancer using templates or inline. The configurations are identical, except that templates can have variables in the form of `{{variable-name}}` that will be overriden by the `"vars"` property in the load balancer config. Listener templates are stored in a [configurable](#configuration) listeners directory. A listener has the following properties:
+In Cumulus listeners can be configured on a load balancer using templates or inline. The configurations are identical, except that templates can have variables in the form of `{variable-name}` that will be overriden by the `"vars"` property in the load balancer config. Listener templates are stored in a [configurable](#configuration) listeners directory. A listener has the following properties:
 
 * `load-balancer-protocol` - the protocol the load balancer will use for routing.  Valid values include `"HTTP"`, `"HTTPS"`, `"TCP"` or `"SSL"`
 * `load-balancer-port` - the port the load balancer listens on. Only one listener per load balancer can have the same `load-balancer-port`

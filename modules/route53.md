@@ -1,7 +1,7 @@
 ---
 layout: module
 title: Route53
-image: assets/img/route53.png
+image: assets/img/route53.svg
 description: Create and manage Route53 hosted zones and records.
 ---
 Overview

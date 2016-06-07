@@ -15,6 +15,13 @@ header.site-header {
     float: right;
   }
 
+  .waffle img {
+    float: right;
+
+    height: 68px;
+    padding-left: 8px;
+  }
+
   .brand img {
     padding: 6px;
   }
@@ -37,6 +44,10 @@ header.site-header {
       .dropdown-content {
         display: inline;
       }
+    }
+
+    @media #{$small-stop} {
+      padding: 20px 10px;
     }
   }
 

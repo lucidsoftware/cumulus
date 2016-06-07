@@ -1,7 +1,9 @@
 .highlight {
-  background-color: lighten($shakespeare, 45%);
   margin: 0;
   padding: 10px 30px;
+
+  overflow-x: auto;
+  background-color: lighten($shakespeare, 45%);
 
   @include drop-shadow-1;
 
@@ -23,6 +25,7 @@
 
   background-color: lighten($pancho, 10%);
   color: $astral;
+  word-wrap: break-word;
 }
 
 a .highlighter-rouge {

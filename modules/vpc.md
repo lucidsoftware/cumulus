@@ -1,7 +1,7 @@
 ---
 layout: module
 title: Virtual Private Cloud
-image: assets/img/vpc.png
+image: assets/img/vpc.svg
 description: Create and manage VPCs
 ---
 Overview
