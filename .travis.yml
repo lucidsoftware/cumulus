@@ -1,0 +1,12 @@
+language: ruby
+rvm:
+- 2.2
+- 1.9.3
+deploy:
+  provider: rubygems
+  api_key:
+    secure: ZkuZwEeZCFxNOo2jyC/QkqqRajP8S7Ss1XuFAWnTGwWFD+SWptEHCT2G+IasQPXRXoAy056/z6WMG6d3WfGx53Hf08FrVBZUBGtrw32qDscYFa17/7H3UgNxK2rQ2JXS6jeyblkuNY9uskfScze0qsPr65UDVTsLt5iv836/vsbMHEWebzllSWrfFzrbpNx+uGzY9LQA/6RmDJDfosZ5GhRTppr8I+D0vlOIwpDP+64D0mlvHql/DnfqADsK+vKy4k8LjTAk7SDWtlI7D3vTBC60lNREUJf0LH1CAOefHqXgO51s/X1KFoBoT4H1v+bYi/k1sd6BcTpXDrGUFZSHu6hCLwJBevOVT3xntbL/1jGPquA5pqXOR/WKpjKgjza3xSzt7DTeEBIqn7X53TxsTGHDT7KiuAuttUZ7LBsb2wIRxgsNJGIpjpG/wOArzc/U95t6j2DGl93IhV2Me7bR41D3Maton6aVDj7uL8CPyV7Rl9gLPTZt4+4sdPJJNfxwyEGybdM+j/ktdikn0t9FRlqhwhqKU0ggiaidexSDrCF/yf9YHMTfiLEo8zIta7CxvIcNb8H6HgOug/71yyqjh7bgLToHLhtA/sdyQkaoIjRSBeYwLeT4YFmvdUtAZy6fxAo9eCoDsHqqHnFR1I/+5AZXMxakBc28XlZ7lAEAbnU=
+  gem: cumulus-aws
+  on:
+    tags: true
+    repo: lucidsoftware/cumulus

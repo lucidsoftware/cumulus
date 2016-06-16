@@ -16,12 +16,14 @@ GEM
       aws-sdk-core (= 2.2.8)
     jmespath (1.1.3)
     parse-cron (0.1.4)
+    rake (11.2.2)
 
 PLATFORMS
   ruby
 
 DEPENDENCIES
   cumulus-aws!
+  rake
 
 BUNDLED WITH
-   1.12.4
+   1.12.5
