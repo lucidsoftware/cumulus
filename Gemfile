@@ -1,4 +1,4 @@
 source 'https://rubygems.org'
-gemspec :name => 'cumulus-aws'
+gemspec :name => 'lucid-cumulus'
 
 gem 'rake'
