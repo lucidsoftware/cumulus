@@ -5,10 +5,10 @@ header-title: Getting Started with Cumulus
 ---
 ### Installing Cumulus
 
-Cumulus can be installed through the `cumulus-aws` gem:
+Cumulus can be installed through the `lucid-cumulus` gem:
 
 {% highlight bash %}
-gem install cumulus-aws
+gem install lucid-cumulus
 {% endhighlight %}
 
 Once installed, you'll be able to use the `cumulus` command. To get autocomplete for Cumulus, copy the [autocomplete file in the root of the Cumulus repo](https://github.com/lucidsoftware/cumulus/blob/master/autocomplete) to `/etc/bash_completion.d/cumulus`.
