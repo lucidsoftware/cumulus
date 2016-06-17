@@ -3,7 +3,7 @@
 require "bundler"
 
 Gem::Specification.new do |s|
-  s.name                      = "cumulus-aws"
+  s.name                      = "lucid-cumulus"
   s.version                   = "0.11.0"
   s.platform                  = Gem::Platform::RUBY
   s.authors                   = ["Keilan Jackson", "Mark Siebert"]
@@ -11,7 +11,7 @@ Gem::Specification.new do |s|
   s.homepage                  = "http://lucidsoftware.github.io/cumulus/"
   s.summary                   = "AWS Configuration Manager"
   s.description               = "Cumulus allows you to manage your AWS infrastructure by creating JSON configuration files that describe your AWS resources."
-  s.files                     = `git ls-files | grep -v ^conf/`.split($/)
+  s.files                     = `git ls-files | grep -v ^conf/ | grep -v ^cumulus-aws`.split($/)
   s.executables               = s.files.grep(%r{^bin/}) { |f| File.basename(f) }
   s.license                   = "Apache-2.0"
 

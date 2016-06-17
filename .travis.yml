@@ -1,0 +1,11 @@
+language: ruby
+rvm:
+- 1.9.3
+deploy:
+  provider: rubygems
+  api_key:
+    secure: dJwOeUyoRkdM9WpP8zzKJZxDfSFXV0f4dSy5ZCuLNCJjtZ6CsVrIfnBlGB/nn2Vm6Y4DuqSVECZCY0n5mJputYJR4WWQvFEkFIXmBO1ECaIH5aORMoiizkL76vcKzkFdV9XhwIKxtUnvtnHVt3aElAYIZdg85c9q0pCYL2X11We3caEymTP6Tk3XOBKw+QtEvAmjmYcj5blMwxiNCxnn6stsy8f4mrnrYWdyvg0N9xsmypEG+iU/GGaqoWXrW3w40YMADPRqvtyn3cVqCeqsh0fKRWIJANFUR6IjlkPW42CdvcA4xxSbPfM9HjqYyt5ztpJvCBs3HR1vxXsHg2qR9NauV3FPIfwBYme9dd4PVtBn1CUhnsjEC947rbXs4ufMMalF8+xUH2V3c5iuZlkJsRetWS4mguvJY4uQW8szAZcVQCPdCJzCppNGSAQtwVnPWKRtZaGv6ZPIA8MMu+gBNZCMnWemdmMliSrnS18rwn9OwzMZXksUsRJ6O0a9rtxuzjAN+dlnABS5xoEj2/CZ3WI1D7AAi8kBGzPKvbuBVgTkyW7I9qLuS4lSsoU8A6TN4LKeBJw45dt/kBvrO7PLGjb8LMfNs8AxKuMZ4R8uX2BaDOsKWM+5cj7vsPJqqX/pvI+pc/EGXcMMAkANz+1NjCF2HLnUrb22N0ElQi8pPs4=
+  gem: lucid-cumulus
+  on:
+    tags: true
+    repo: lucidsoftware/cumulus
