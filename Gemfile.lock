@@ -19,6 +19,19 @@ GEM
     json (1.8.3)
     parse-cron (0.1.4)
     rake (11.2.2)
+    rspec (3.4.0)
+      rspec-core (~> 3.4.0)
+      rspec-expectations (~> 3.4.0)
+      rspec-mocks (~> 3.4.0)
+    rspec-core (3.4.4)
+      rspec-support (~> 3.4.0)
+    rspec-expectations (3.4.0)
+      diff-lcs (>= 1.2.0, < 2.0)
+      rspec-support (~> 3.4.0)
+    rspec-mocks (3.4.1)
+      diff-lcs (>= 1.2.0, < 2.0)
+      rspec-support (~> 3.4.0)
+    rspec-support (3.4.1)
 
 PLATFORMS
   ruby
@@ -26,6 +39,7 @@ PLATFORMS
 DEPENDENCIES
   lucid-cumulus!
   rake
+  rspec
 
 BUNDLED WITH
    1.12.5

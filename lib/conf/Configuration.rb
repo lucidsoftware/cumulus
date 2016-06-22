@@ -91,15 +91,16 @@ module Cumulus
     # Internal: Constructor. Sets up the `instance` variable, which is the access
     # point for the Singleton.
     #
+    # json - a Hash containing the json configuration
     # conf_dir  - The String path to the directory the configuration can be found in
     # profile       - The String profile name that will be used to make AWS API calls
     # assume_role - The ARN of the role to assume when making AWS API calls
     # autoscaling_force_size
     #               -  Determines whether autoscaling should use configured values for
     #                  min/max/desired group size
-    def initialize(conf_dir, profile, assume_role, autoscaling_force_size)
-      Config.conf_dir = conf_dir;
-      Config.json = JSON.parse(File.read(absolute_path("configuration.json")))
+    def initialize(json, conf_dir, profile, assume_role, autoscaling_force_size)
+      Config.conf_dir = conf_dir
+      Config.json = json
       @colors_enabled = conf "colors-enabled"
       @iam = IamConfig.new
       @autoscaling = AutoScalingConfig.new(autoscaling_force_size)
@@ -126,6 +127,7 @@ module Cumulus
         :region => region,
         :profile => profile,
         :credentials => credentials,
+        :stub_responses => (conf "stub_aws_responses", allow_missing = true)
       }.reject { |_, v| v.nil? }
     end
 
@@ -140,7 +142,24 @@ module Cumulus
       #               -  Determines whether autoscaling should use configured values for
       #                  min/max/desired group size
       def init(conf_dir, profile, assume_role, autoscaling_force_size)
-        instance = new(conf_dir, profile, assume_role, autoscaling_force_size)
+        json = JSON.parse(File.read(absolute_path("configuration.json")))
+        instance = new(json, conf_dir, profile, assume_role, autoscaling_force_size)
+        @@instance = instance
+      end
+
+      # Private: Initialize the Configuration Singleton. Must be called before any
+      # access to `Configuration.instance` is used. Used by the tests to pass in json
+      # rather than a file
+      #
+      # json - the Hash containing the json configuration
+      # conf_dir  - The String path to the directory the configuration can be found in
+      # profile       - The String profile name that will be used to make AWS API calls
+      # assume_role - The ARN of the role to assume when making AWS API calls
+      # autoscaling_force_size
+      #               -  Determines whether autoscaling should use configured values for
+      #                  min/max/desired group size
+      def init_from_hash(json, conf_dir, profile, assume_role, autoscaling_force_size)
+        instance = new(json, conf_dir, profile, assume_role, autoscaling_force_size)
         @@instance = instance
       end
 
@@ -152,6 +171,7 @@ module Cumulus
       end
 
       private :new
+      private :init_from_hash
     end
 
     # Public: Inner class that contains IAM configuration options

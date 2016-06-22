@@ -15,7 +15,6 @@ module Cumulus
       def initialize
         super()
         @create_asset = true
-        @client = Aws::SQS::Client.new(Configuration.instance.client)
       end
 
       def resource_name
@@ -50,7 +49,7 @@ module Cumulus
       end
 
       def update(local, diffs)
-        @client.set_queue_attributes({
+        SQS::client.set_queue_attributes({
           queue_url: SQS::queue_urls[local.name],
           attributes: {
             "DelaySeconds" => if diffs.any? { |d| d.type == QueueChange::DELAY } then local.delay end,
@@ -69,7 +68,7 @@ module Cumulus
       end
 
       def create(local)
-        url = @client.create_queue({
+        url = SQS::client.create_queue({
           queue_name: local.name,
           attributes: {
             "DelaySeconds" => "#{local.delay}",
