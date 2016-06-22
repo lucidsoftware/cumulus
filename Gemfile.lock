@@ -1,7 +1,11 @@
 PATH
   remote: .
   specs:
+<<<<<<< 992a211fda1d4923834bdb661afd3003e786705d
     lucid-cumulus (0.11.2)
+=======
+    lucid-cumulus (0.11.0)
+>>>>>>> update aws gem version so stubbing will actually work... friggin aws...
       aws-sdk (= 2.2.30)
       parse-cron (~> 0.1.4)
 
@@ -14,6 +18,7 @@ GEM
       jmespath (~> 1.0)
     aws-sdk-resources (2.2.30)
       aws-sdk-core (= 2.2.30)
+    diff-lcs (1.2.5)
     jmespath (1.2)
       json (>= 1.8.1)
     json (1.8.3)
