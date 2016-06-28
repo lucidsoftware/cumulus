@@ -20,3 +20,16 @@ $copper: #de8c66;
 @mixin drop-shadow-3 {
   box-shadow: 0 6px 9px rgba(0,0,0,0.16), 0 6px 9px rgba(0,0,0,0.23);
 }
+
+@mixin focus-glow($color, $time) {
+  & {
+    border: 1px solid rgba(0, 0, 0, 0);
+  }
+
+  &:focus {
+    box-shadow: 0 0 5px $color;
+    outline: none;
+    border: 1px solid $color;
+    transition: all $time ease-in-out;
+  }
+}

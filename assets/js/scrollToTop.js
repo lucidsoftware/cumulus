@@ -7,7 +7,7 @@ window.onscroll = function() {
   }
 }
 
-window.onload = function() {
+function scrollingOnload() {
   document.getElementById('scroll-to-top').addEventListener('click', function(e) {
     var scroller = document.documentElement
     if (!document.documentElement.scrollTop) {
@@ -16,6 +16,16 @@ window.onload = function() {
     e.preventDefault()
     animate(scroller, 'scrollTop', '', window.scrollY, 0, 1000, true);
   })
+}
+
+if (window.onload) {
+  var current = window.onload;
+  window.onload = function() {
+    current();
+    scrollingOnload();
+  }
+} else {
+  window.onload = scrollingOnload;
 }
 
 

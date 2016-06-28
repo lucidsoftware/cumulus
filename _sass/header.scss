@@ -23,7 +23,36 @@ header.site-header {
   }
 
   .brand img {
+    float: left;
     padding: 6px;
+  }
+
+  #docsearch-input {
+    $input-height: 45px;
+
+    border: none;
+    border-radius: 2px;
+    height: $input-height;
+    margin-top: ($site-header-height - $input-height) / 2;
+    margin-left: 10px;
+    padding: 10px;
+    width: 250px;
+
+    background-color: rgba(255, 255, 255, .2);
+    color: white;
+    font-size: 18px;
+
+    transition: width .5s ease-in-out;
+
+    @include focus-glow(rgba($shakespeare, .4), .5s);
+
+    &:focus {
+      width: 300px;
+    }
+
+    @media #{$search-stop} {
+      display: none;
+    }
   }
 
   a.header-link {
