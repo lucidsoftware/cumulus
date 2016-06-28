@@ -17,5 +17,6 @@ $grid-vertical-spacing: $grid-horizontal-spacing;
 $large-stop: "(max-width: #{$screen-lg + 50})";
 $medium-stop: "(max-width: 768px)";
 $small-stop: "(max-width: 500px)";
+$search-stop: "(max-width: 660px)";
 $footer-stop: "(max-width: 650px)";
 $scroll-button-stop: "(max-width: 500px)";

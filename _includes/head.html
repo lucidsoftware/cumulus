@@ -19,4 +19,19 @@
   <!-- iOS Safari -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+  <!-- at the end of the HEAD -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/docsearch.js/2/docsearch.min.css" />
+  <!-- at the end of the BODY -->
+  <script src="https://cdn.jsdelivr.net/docsearch.js/2/docsearch.min.js"></script>
+  <script>
+    window.onload = function() {
+      docsearch({
+        apiKey: 'b962abe210296b23d57a818cb02866c1',
+        indexName: 'cumulus',
+        inputSelector: '#docsearch-input',
+        debug: false // Set debug to true if you want to inspect the dropdown
+      });
+    }
+  </script>
 </head>
