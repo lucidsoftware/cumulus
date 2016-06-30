@@ -28,11 +28,11 @@ Here is an example of a queue configuration:
 
 {% highlight json %}
 {
-  "delay": "0",
-  "max-message-size": "262144",
-  "message-retention": "345600",
-  "receive-wait-time": "0",
-  "visibility-timeout": "30",
+  "delay": 0,
+  "max-message-size": 262144,
+  "message-retention": 345600,
+  "receive-wait-time": 0,
+  "visibility-timeout": 30,
   "dead-letter": {
     "target": "example-queue-2",
     "max-receives": 3
