@@ -15,7 +15,7 @@ module Cumulus
       # Returns an array of resources
       def self.resources(dir, json = true, &individual_loader)
         Dir.entries(dir)
-        .reject { |f| f == "." or f == ".." or File.directory?(File.join(dir, f)) }
+        .reject { |f| f == "." or f == ".." or File.directory?(File.join(dir, f)) or f.end_with?(".swp") or f.end_with?("~") }
         .map { |f| resource(f, dir, json, &individual_loader) }.reject(&:nil?)
       end
 
