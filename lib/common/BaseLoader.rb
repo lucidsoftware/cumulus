@@ -27,7 +27,7 @@ module Cumulus
       # json    - indicates if the resources are in json format
       # loader  - the function that will handle the read json
       def self.resource(file, dir, json = true, &loader)
-        name = file.end_with?(".json") ? file[0...-5] : file
+        name = file.end_with?(".json") ? file.chomp(".json") : file
 
         begin
           contents = load_file(file, dir)
