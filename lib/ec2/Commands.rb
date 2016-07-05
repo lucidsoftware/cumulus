@@ -3,14 +3,6 @@ module Cumulus
     require "common/Commands"
     class Commands < Cumulus::Common::Commands
 
-      def self.banner_message
-        "ec2: Manage EC2 instances and related configuration."
-      end
-
-      def self.usage_message
-        "Usage: cumulus ec2 [help|ebs|instances] [diff|list|migrate|sync] [asset]"
-      end
-
       def self.command_details
         [
           "\tebs - Manage EBS volumes in groups",
@@ -36,6 +28,10 @@ module Cumulus
         else
           nil
         end
+      end
+
+      def self.manager_name
+        "ec2"
       end
 
       def self.valid_options
