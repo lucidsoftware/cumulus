@@ -3,8 +3,8 @@ module Cumulus
     require "common/Commands"
     class Commands < Cumulus::Common::Commands
 
-      def self.usage_message
-        "Usage: cumulus security-groups [diff|help|list|migrate|sync] [asset]"
+      def self.manager_name
+        "security-groups"
       end
 
       def self.manager

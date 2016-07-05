@@ -42,22 +42,6 @@ module Cumulus
          [["ebs", "instances"], ["diff", "list", "migrate", "sync"], ["asset"]]
       end
 
-      def self.parse
-        if ARGV.size < 2 or
-          (ARGV.size == 2 and ARGV[1] != "help") or
-          (ARGV.size >= 3 and ((ARGV[1] != "ebs" and ARGV[1] != "instances") or (ARGV[2] != "diff" and ARGV[2] != "list" and ARGV[2] != "migrate" and ARGV[2] != "sync")))
-          puts usage_message
-          exit
-        end
-
-        if ARGV[1] == "help"
-          puts help_message
-          exit
-        end
-
-        execute
-      end
-
       def self.execute
         if ARGV[2] == "diff" and ARGV.size == 4
           manager.diff_one(ARGV[3])
