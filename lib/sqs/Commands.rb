@@ -25,10 +25,6 @@ module Cumulus
         Cumulus::SQS::Manager.new
       end
 
-      def self.manager_name
-        manager.class.to_s.split("::")[1].downcase
-      end
-
       def self.valid_options
         [["diff", "list", "migrate", "sync", "urls"], ["asset"]]
       end
