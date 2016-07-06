@@ -100,35 +100,35 @@ puts "Using assume role '#{options[:assume_role]}'" if options[:verbose]
 
 if ARGV[0] == "iam"
   require "iam/Commands"
-  Cumulus::IAM::Commands.parse
+  Cumulus::IAM::Commands.parse(ARGV[1..-1])
 elsif ARGV[0] == "autoscaling"
   require "autoscaling/Commands"
-  Cumulus::AutoScaling::Commands.parse
+  Cumulus::AutoScaling::Commands.parse(ARGV[1..-1])
 elsif ARGV[0] == "cloudfront"
   require "cloudfront/Commands"
-  Cumulus::CloudFront::Commands.parse
+  Cumulus::CloudFront::Commands.parse(ARGV[1..-1])
 elsif ARGV[0] == "ec2"
   require "ec2/Commands"
-  Cumulus::EC2::Commands.parse
+  Cumulus::EC2::Commands.parse(ARGV[1..-1])
 elsif ARGV[0] == "elb"
   require "elb/Commands"
-  Cumulus::ELB::Commands.parse
+  Cumulus::ELB::Commands.parse(ARGV[1..-1])
 elsif ARGV[0] == "kinesis"
   require "kinesis/Commands"
-  Cumulus::Kinesis::Commands.parse
+  Cumulus::Kinesis::Commands.parse(ARGV[1..-1])
 elsif ARGV[0] == "route53"
   require "route53/Commands"
-  Cumulus::Route53::Commands.parse
+  Cumulus::Route53::Commands.parse(ARGV[1..-1])
 elsif ARGV[0] == "security-groups"
   require "security/Commands"
-  Cumulus::SecurityGroups::Commands.parse
+  Cumulus::SecurityGroups::Commands.parse(ARGV[1..-1])
 elsif ARGV[0] == "s3"
   require "s3/Commands"
-  Cumulus::S3::Commands.parse
+  Cumulus::S3::Commands.parse(ARGV[1..-1])
 elsif ARGV[0] == "sqs"
   require "sqs/Commands"
-  Cumulus::SQS::Commands.parse
+  Cumulus::SQS::Commands.parse(ARGV[1..-1])
 elsif ARGV[0] == "vpc"
   require "vpc/Commands"
-  Cumulus::VPC::Commands.parse
+  Cumulus::VPC::Commands.parse(ARGV[1..-1])
 end

@@ -26,23 +26,23 @@ module Cumulus
       end
 
       def self.valid_options
-        [["diff", "invalidate", "list", "migrate", "sync"], ["asset"]]
+        [["diff", "invalidate", "list", "migrate", "sync"]]
       end
 
-      def self.execute
-        if ARGV[1] == "invalidate"
-          if ARGV.size != 3
+      def self.execute(arguments)
+        if arguments[0] == "invalidate"
+          if arguments.size != 2
             puts "Specify one invalidation to run"
             exit
           else
-            if ARGV[2] == "list"
+            if arguments[1] == "list"
               manager.list_invalidations
             else
-              manager.invalidate(ARGV[2])
+              manager.invalidate(arguments[1])
             end
           end
         else
-          super
+          super(arguments)
         end
       end
 

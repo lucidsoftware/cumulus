@@ -19,22 +19,22 @@ module Cumulus
       end
 
       def self.valid_options
-        [["diff", "list", "migrate", "sync", "rename"], ["asset"]]
+        [["diff", "list", "migrate", "sync", "rename"]]
       end
 
-      def self.execute
-        if ARGV[1] == "diff" and ARGV.size != 2
-          manager.diff_one(ARGV[2])
-        elsif ARGV[1] == "sync" and ARGV.size != 2
-          manager.sync_one(ARGV[2])
-        elsif ARGV[1] == "rename"
-          if ARGV.size == 5
-            manager.rename(ARGV[2], ARGV[3], ARGV[4])
+      def self.execute(arguments)
+        if arguments[0] == "diff" and arguments.size == 2
+          manager.diff_one(arguments[1])
+        elsif arguments[0] == "sync" and arguments.size == 2
+          manager.sync_one(arguments[1])
+        elsif arguments[0] == "rename"
+          if arguments.size == 5
+            manager.rename(arguments[1], arguments[2], arguments[3])
           else
             puts "Usage: cumulus vpc rename [network-acl|policy|route-table|subnet|vpc] <old-asset-name> <new-asset-name>"
           end
         else
-          manager.method(ARGV[1]).call
+          manager.method(arguments[0]).call
         end
       end
 

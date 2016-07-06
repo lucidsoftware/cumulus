@@ -26,7 +26,7 @@ module Cumulus
       end
 
       def self.valid_options
-        [["diff", "list", "migrate", "sync", "urls"], ["asset"]]
+        [["diff", "list", "migrate", "sync", "urls"]]
       end
 
     end

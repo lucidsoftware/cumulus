@@ -24,7 +24,7 @@ module Cumulus
       end
 
       def self.valid_options
-        [["groups", "roles", "users"], ["diff", "list", "migrate", "sync"], ["asset"]]
+        [["groups", "roles", "users"], ["diff", "list", "migrate", "sync"]]
       end
 
       def self.manager
@@ -32,15 +32,15 @@ module Cumulus
         Cumulus::IAM::Manager.new
       end
 
-      def self.execute
-        resource = super
+      def self.execute(arguments)
+        resource = super(arguments)
 
-        if ARGV[2] == "diff" and ARGV.size == 4
-          resource.diff_one(ARGV[3])
-        elsif ARGV[2] == "sync" and ARGV.size == 4
-          resource.sync_one(ARGV[3])
+        if arguments[1] == "diff" and arguments.size == 3
+          resource.diff_one(arguments[2])
+        elsif arguments[1] == "sync" and arguments.size == 3
+          resource.sync_one(arguments[2])
         else
-          resource.method(ARGV[2]).call
+          resource.method(arguments[1]).call
         end
       end
 

@@ -19,17 +19,17 @@ module Cumulus
         Cumulus::ELB::Manager.new
       end
 
-      def self.execute
-        if ARGV[1] == "migrate"
-          if ARGV[2] == "default-policies"
+      def self.execute(arguments)
+        if arguments[0] == "migrate"
+          if arguments[1] == "default-policies"
             manager.migrate_default_policies
-          elsif ARGV[2] == "elbs"
+          elsif arguments[1] == "elbs"
             manager.migrate_elbs
           else
             puts "Usage: cumulus elb migrate [default-policies|elbs]"
           end
         else
-          super
+          super(arguments)
         end
       end
 
