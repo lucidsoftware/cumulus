@@ -1,0 +1,110 @@
+---
+title: AWS Configuration Management with Cumulus
+description: Introduction to using Cumulus for AWS configuration management. Presentation slides for OpenWest 2016.
+---
+
+<!doctype html>
+<html lang="en">
+<head>
+  <title>{{page.title}}</title>
+  <meta name="description" content="{{ page.description }}">
+    <meta name="author" content="Keilan Jackson and Mark Siebert">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
+
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/reveal.js/3.3.0/css/reveal.min.css">
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/reveal.js/3.3.0/css/theme/league.css">
+    <link rel="stylesheet" href="{{site.baseurl}}/presentations/openwest-2016/css/main.css">
+
+    <!-- Code syntax highlighting -->
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/reveal.js/3.3.0/lib/css/zenburn.min.css">
+
+    <!-- Printing and PDF exports -->
+    <script>
+      var link = document.createElement( 'link' );
+      link.rel = 'stylesheet';
+      link.type = 'text/css';
+      link.href = window.location.search.match( /print-pdf/gi ) ? '//cdnjs.cloudflare.com/ajax/libs/reveal.js/3.3.0/css/print/pdf.min.css' : '//cdnjs.cloudflare.com/ajax/libs/reveal.js/3.3.0/css/print/paper.min.css';
+      document.getElementsByTagName( 'head' )[0].appendChild( link );
+    </script>
+
+    <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/reveal.js/3.3.0/lib/js/html5shiv.min.js"></script>
+    <![endif]-->
+</head>
+<body>
+  <div class="reveal">
+    <div class="slides">
+      <section data-state="no-controls" data-markdown>
+        # AWS Configuration Management with Cumulus
+      </section>
+
+      <section data-markdown>
+        # Us
+      </section>
+
+      <section>
+        <section data-markdown>
+          # Motivation
+
+          Note: Keilan
+        </section>
+        <section data-markdown>
+          ### Infrastructure as Code
+        </section>
+        <section data-markdown>
+          ### Compared to Cloudfront
+        </section>
+        <section data-markdown>
+          ### Compared to Terraform
+        </section>
+      </section>
+
+      <section>
+        <section data-markdown>
+          # Cumulus Overview
+
+          Note: Mark
+        </section>
+        <section data-markdown>
+          ### Usage
+
+          Note: refactoring and diff
+        </section>
+        <section data-markdown>
+          ### Migration
+
+          Note: migration command, modular implementation
+        </section>
+      </section>
+
+      <section data-markdown>
+        # Demo
+        Note: Keilan -> create empty IAM, launch EBS, 2 EC2; Mark -> security groups, S3 bucket, update IAM role
+      </section>
+
+      <section data-markdown>
+        ## Any Questions?
+      </section>
+    </div>
+  </div>
+
+  <script src="//cdnjs.cloudflare.com/ajax/libs/reveal.js/3.3.0/lib/js/head.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/reveal.js/3.3.0/js/reveal.min.js"></script>
+  <script>
+    Reveal.initialize({
+      controls: true,
+      progress: true,
+      history: true,
+      center: true,
+      transition: 'slide',
+      dependencies: [
+        { src: 'https://cdnjs.cloudflare.com/ajax/libs/reveal.js/3.3.0/lib/js/classList.min.js', condition: function() { return !document.body.classList; } },
+        { src: 'https://cdnjs.cloudflare.com/ajax/libs/reveal.js/3.3.0/plugin/markdown/marked.min.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+        { src: 'https://cdnjs.cloudflare.com/ajax/libs/reveal.js/3.3.0/plugin/markdown/markdown.min.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+        { src: 'https://cdnjs.cloudflare.com/ajax/libs/reveal.js/3.3.0/plugin/highlight/highlight.min.js', callback: function() { hljs.initHighlightingOnLoad(); } },
+      ]
+    });
+  </script>
+</body>
+</html>
