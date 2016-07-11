@@ -1,2 +1,23 @@
 ---
 ---
+.reveal {
+  .title-slide {
+    position: relative;
+
+    .presenter-images img {
+      border-radius: 100%;
+      height: 150px;
+      width: 150px;
+      margin: 20px;
+    }
+
+    .lucid-logo {
+      border: none;
+      margin-top: 75px;
+      width: 400px;
+
+      background: none;
+      box-shadow: none;
+    }
+  }
+}
