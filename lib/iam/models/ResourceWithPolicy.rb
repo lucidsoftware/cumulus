@@ -167,7 +167,15 @@ module Cumulus
       def diff(aws_resource)
         diffs = []
 
-        aws_policies = Hash[aws_resource.policies.map { |p| [p.name, p] }]
+        aws_policies = Hash[aws_resource.policies.map do |policy|
+          sorted_policy = JSON.parse(URI.unescape(policy.policy_document))
+          sorted_policy["Statement"].each do |statement|
+            # Sort the statments before diffing to prevent false conflicts
+            statement["Action"].sort!
+            statement["Resource"].sort!
+          end
+          [policy.name, sorted_policy]
+        end]
         p = policy
         p.name = generated_policy_name
 
@@ -181,9 +189,8 @@ module Cumulus
           if name != generated_policy_name
             diffs << IamDiff.unmanaged_policy(name)
           else
-            aws_statements = JSON.parse(URI.unescape(aws_policy.policy_document))["Statement"]
+            aws_statements = aws_policy["Statement"]
             local_statements = p.as_hash["Statement"]
-
             if aws_statements != local_statements
               diff = IamDiff.new(IamChange::POLICY, aws_statements, p)
               diff.policy_name = generated_policy_name
