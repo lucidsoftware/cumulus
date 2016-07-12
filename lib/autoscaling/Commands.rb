@@ -4,10 +4,10 @@ module Cumulus
     class Commands < Cumulus::Common::Commands
 
       def self.banner_message
-        [
+        format_message [
           "autoscaling: Manage AutoScaling groups.",
           "\tCompiles AutoScaling groups, scaling policies, and alarms that are defined in configuration files and syncs the resulting AutoScaling groups with AWS.",
-        ].join("\n")
+        ]
       end
 
       def self.manager

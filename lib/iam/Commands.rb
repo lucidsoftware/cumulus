@@ -4,23 +4,23 @@ module Cumulus
     class Commands < Cumulus::Common::Commands
 
       def self.command_details
-        [
-          "\tgroups - Manage IAM groups and users associated with those groups",
-          "\t\tdiff\t- get a list of groups that have different definitions locally than in AWS (supplying the name of the group will diff only that group)",
-          "\t\tlist\t- list the groups defined in configuration",
-          "\t\tmigrate\t- create group configuration files that match the definitions in AWS",
-          "\t\tsync\t- sync the local group definition with AWS (supplying the name of the group will sync only that group). Also adds and removes users from groups",
-          "\troles - Manage IAM roles",
-          "\t\tdiff\t- get a list of roles that have different definitions locally than in AWS (supplying the name of the role will diff only that role)",
-          "\t\tlist\t- list the roles defined in configuration",
-          "\t\tmigrate\t - create role configuration files that match the definitions in AWS",
-          "\t\tsync\t- sync the local role definition with AWS (supplying the name of the role will sync only that role)",
-          "\tusers - Manage IAM users",
-          "\t\tdiff\t- get a list of users that have different definitions locally than in AWS (supplying the name of the user will diff only that user)",
-          "\t\tlist\t- list the users defined in configuration",
-          "\t\tmigrate\t - create user configuration files that match the definitions in AWS",
-          "\t\tsync\t- sync the local user definition with AWS (supplying the name of the user will sync only that user)",
-        ].join("\n")
+        format_message([
+          "groups - Manage IAM groups and users associated with those groups",
+          ["diff", "get a list of groups that have different definitions locally than in AWS (supplying the name of the group will diff only that group)"],
+          ["list", "list the groups defined in configuration"],
+          ["migrate", "create group configuration files that match the definitions in AWS"],
+          ["sync", "sync the local group definition with AWS (supplying the name of the group will sync only that group). Also adds and removes users from groups"],
+          "roles - Manage IAM roles",
+          ["diff", "get a list of roles that have different definitions locally than in AWS (supplying the name of the role will diff only that role)"],
+          ["list", "list the roles defined in configuration"],
+          ["migrate", "create role configuration files that match the definitions in AWS"],
+          ["sync", "sync the local role definition with AWS (supplying the name of the role will sync only that role)"],
+          "users - Manage IAM users",
+          ["diff", "get a list of users that have different definitions locally than in AWS (supplying the name of the user will diff only that user)"],
+          ["list", "list the users defined in configuration"],
+          ["migrate", "create user configuration files that match the definitions in AWS"],
+          ["sync", "sync the local user definition with AWS (supplying the name of the user will sync only that user)"],
+        ], indent: 1)
       end
 
       def self.valid_options

@@ -13,10 +13,10 @@ module Cumulus
       end
 
       def self.banner_message
-        [
+        format_message [
           "security-groups: Manage EC2 Security Groups",
           "\tDiff and sync EC2 security group configuration with AWS.",
-        ].join("\n")
+        ]
       end
 
     end

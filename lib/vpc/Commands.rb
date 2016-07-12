@@ -4,13 +4,13 @@ module Cumulus
     class Commands < Cumulus::Common::Commands
 
       def self.command_details
-        [
-          "\tdiff\t- print out differences between local configuration and AWS (supplying the name of the VPC will diff only that VPC)",
-          "\tlist\t- list the locally defined VPCs",
-          "\tsync\t- sync local VPC definitions with AWS (supplying the name of the VPC will sync only that VPC)",
-          "\tmigrate\t- migrate AWS configuration to Cumulus",
-          "\trename\t- renames a cumulus asset and all references to it",
-        ].join("\n")
+        format_message [
+          ["diff", "print out differences between local configuration and AWS (supplying the name of the VPC will diff only that VPC)"],
+          ["list", "list the locally defined VPCs"],
+          ["sync", "sync local VPC definitions with AWS (supplying the name of the VPC will sync only that VPC)"],
+          ["migrate", "migrate AWS configuration to Cumulus"],
+          ["rename", "renames a cumulus asset and all references to it"],
+        ]
       end
 
       def self.manager

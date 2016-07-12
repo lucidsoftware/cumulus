@@ -4,14 +4,16 @@ module Cumulus
     class Commands < Cumulus::Common::Commands
 
       def self.command_details
-        [
-          "\tdiff\t- print out differences between local configuration and AWS (supplying the name of the elb will diff only that elb)",
-          "\tlist\t- list the locally defined ELBs",
-          "\tsync\t- sync local ELB definitions with AWS (supplying the name of the elb will sync only that elb)",
-          "\tmigrate\t- migrate AWS configuration to Cumulus",
-          "\t\tdefault-policies- migrate default ELB policies from AWS to Cumulus",
-          "\t\telbs\t\t- migrate the current ELB configuration from AWS to Cumulus",
-        ].join("\n")
+        format_message [
+          ["diff", "print out differences between local configuration and AWS (supplying the name of the elb will diff only that elb)"],
+          ["list", "list the locally defined ELBs"],
+          ["sync", "sync local ELB definitions with AWS (supplying the name of the elb will sync only that elb)"],
+          ["migrate", "migrate AWS configuration to Cumulus"],
+          format_message([
+            ["default-policies", "migrate default ELB policies from AWS to Cumulus"],
+            ["elbs", "migrate the current ELB configuration from AWS to Cumulus"],
+          ], indent: 1),
+        ]
       end
 
       def self.manager

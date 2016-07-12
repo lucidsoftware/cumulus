@@ -4,10 +4,10 @@ module Cumulus
     class Commands < Cumulus::Common::Commands
 
       def self.banner_message
-        [
+        format_message [
           "route53: Manage Route53",
           "\tDiff and sync Route53 configuration with AWS.",
-        ].join("\n")
+        ]
       end
 
       def self.manager

@@ -9,10 +9,10 @@ module Cumulus
       end
 
       def self.banner_message
-        [
+        format_message [
           "s3: Manage S3 Buckets",
           "\tDiff and sync S3 bucket configuration with AWS.",
-        ].join("\n")
+        ]
       end
 
     end
