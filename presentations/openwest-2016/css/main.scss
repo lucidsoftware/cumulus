@@ -3,6 +3,13 @@
 @import 'presentation/theme/colors';
 
 .reveal {
+  .lucid-logo {
+    border: none;
+
+    background: none;
+    box-shadow: none;
+  }
+
   .title-slide {
     position: relative;
 
@@ -14,12 +21,48 @@
     }
 
     .lucid-logo {
-      border: none;
       margin-top: 75px;
       width: 400px;
+    }
+  }
 
-      background: none;
-      box-shadow: none;
+  .presenter {
+    display: inline-block;
+
+    height: 100%;
+    margin-left: 4%;
+    width: 45%;
+
+    img {
+      border-radius: 100%;
+      width: 50%;
+    }
+
+    li {
+      font-size: 24px;
+    }
+
+    &:first-child {
+      margin-left: 0;
+      margin-right: 4%;
+    }
+  }
+
+  .lucid {
+    .lucid-logo {
+      width: 75%;
+    }
+
+    .products {
+      .product {
+        display: inline-block;
+        width: 40%;
+        margin: 50px 4.5%;
+      }
+
+      .lucid-logo {
+        width: 100%;
+      }
     }
   }
 
