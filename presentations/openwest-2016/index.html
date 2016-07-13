@@ -73,20 +73,77 @@ description: Introduction to using Cumulus for AWS configuration management. Pre
           Note: Mark
         </section>
         <section data-markdown>
-          ### Usage
+          <script type="text/template">
+            ### Installation
 
-          Note: refactoring and diff
+            <pre><code class="bash" data-trim data-noescape>
+              gem install lucid-cumulus
+            </code></pre>
+
+            * distributed as a Ruby Gem.
+            * copy the <a href="https://github.com/lucidsoftware/cumulus/blob/master/autocomplete">autocomplete file</a> in the Cumulus repo to `/etc/bash_completion.d/cumulus`
+            * configure your AWS credentials (<a href="http://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html#cli-config-files">documentation</a>)
+          </script>
         </section>
         <section data-markdown>
-          ### Migration
+          <script type="text/template">
+            ### Usage
 
-          Note: migration command, modular implementation
+            <pre><code class="bash" data-trim data-noescape>
+              cumulus [module-name] [diff|list|sync] [asset]
+            </code></pre>
+
+            Note: refactoring and diff
+          </script>
+        </section>
+        <section data-markdown>
+          <script type="text/template">
+            ### Directory Structure
+
+            <pre><code class="bash" data-trim data-noescape>
+              conf
+                configuration.json
+                module
+                  [module assets]
+
+                ...
+            </code></pre>
+
+            * configuration.json contains configuration for how modules work
+            * modules contain configuration for assets
+            * examples in the <a href="https://github.com/lucidsoftware/cumulus/blob/master/conf">Github repo</a>
+          </script>
+        </section>
+        <section data-markdown>
+          <script type="text/template">
+            ### Migration
+
+            <pre><code class="bash" data-trim data-noescape>
+              cumulus [module-name] migrate
+            </code></pre>
+
+            * creates cumulus config from your current AWS architecture
+            * can't deduplicate
+
+            Note: migration command, modular implementation
+          </script>
+        </section>
+        <section data-markdown>
+          ### Advantages
+
+          * modular adoption
+          * `migrate` command makes starting with Cumulus easy
+          * refactoring is easy because of the `diff` command
         </section>
       </section>
 
       <section data-markdown>
         # Demo
         Note: Keilan -> create empty IAM, launch EBS, 2 EC2; Mark -> security groups, S3 bucket, update IAM role
+      </section>
+
+      <section data-markdown>
+        # Getting Involved
       </section>
 
       <section data-markdown>

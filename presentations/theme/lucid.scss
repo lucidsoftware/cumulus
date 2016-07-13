@@ -1,5 +1,6 @@
 ---
 ---
+@import 'presentation/theme/colors';
 @import 'presentation/theme/mixins';
 @import 'presentation/theme/settings';
 
@@ -7,17 +8,11 @@
 $headingFont: 'Roboto';
 $headingTextTransform: none;
 $headingFontWeight: 700;
-$selectionBackgroundColor: #fbcb99;
+$selectionBackgroundColor: $lucidchart-orange-selection;
 
 @import 'presentation/theme/theme';
 
 @import url(https://fonts.googleapis.com/css?family=Roboto);
-
-$blue-steel: #3D4752;
-$blue-steel-dark: #212C35;
-$blue-steel-text: #77818C;
-$lucidchart-orange: #f78d1e;
-$lucidchart-orange-light: lighten($lucidchart-orange, 10%);
 
 /*********************************************
  * GLOBAL STYLES
@@ -34,7 +29,7 @@ body {
 
 .reveal {
   font-family: 'Roboto', sans-serif;
-  font-size: 36px;
+  font-size: 30px;
   font-weight: normal;
   color: $blue-steel-text; }
 
@@ -167,7 +162,7 @@ body {
 
 .reveal pre code {
   display: block;
-  padding: 5px;
+  padding: 15px;
   overflow: auto;
   max-height: 400px;
   word-wrap: normal; }
@@ -219,12 +214,12 @@ body {
 .reveal a {
   color: $lucidchart-orange;
   text-decoration: none;
-  -webkit-transition: color .15s ease;
-  -moz-transition: color .15s ease;
-  transition: color .15s ease; }
+  -webkit-transition: color .5s ease;
+  -moz-transition: color .5s ease;
+  transition: color .5s ease; }
 
 .reveal a:hover {
-  color: #71e9f4;
+  color: $lucid-blue;
   text-shadow: none;
   border: none; }
 
