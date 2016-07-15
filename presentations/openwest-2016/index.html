@@ -1,0 +1,222 @@
+---
+title: AWS Configuration Management with Cumulus
+description: Introduction to using Cumulus for AWS configuration management. Presentation slides for OpenWest 2016.
+---
+
+<!doctype html>
+<html lang="en">
+<head>
+  <title>{{page.title}}</title>
+  <meta name="description" content="{{ page.description }}">
+    <meta name="author" content="Keilan Jackson and Mark Siebert">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
+
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/reveal.js/3.3.0/css/reveal.min.css">
+    <link rel="stylesheet" href="{{site.baseurl}}/presentations/theme/lucid.css">
+    <link rel="stylesheet" href="{{site.baseurl}}/presentations/openwest-2016/css/main.css">
+
+    <!-- Code syntax highlighting -->
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/reveal.js/3.3.0/lib/css/zenburn.min.css">
+
+    <!-- Printing and PDF exports -->
+    <script>
+      var link = document.createElement( 'link' );
+      link.rel = 'stylesheet';
+      link.type = 'text/css';
+      link.href = window.location.search.match( /print-pdf/gi ) ? '//cdnjs.cloudflare.com/ajax/libs/reveal.js/3.3.0/css/print/pdf.min.css' : '//cdnjs.cloudflare.com/ajax/libs/reveal.js/3.3.0/css/print/paper.min.css';
+      document.getElementsByTagName( 'head' )[0].appendChild( link );
+    </script>
+
+    <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/reveal.js/3.3.0/lib/js/html5shiv.min.js"></script>
+    <![endif]-->
+</head>
+<body>
+  <div class="reveal">
+    <div class="slides">
+      <section class="title-slide" data-state="no-controls">
+        <h2>AWS Configuration Management with Cumulus</h2>
+        <p>Keilan Jackson & Mark Siebert</p>
+        <div class="presenter-images">
+          <img src="{{site.baseurl}}/presentations/openwest-2016/img/keilan-jackson.jpg" />
+          <img src="{{site.baseurl}}/presentations/openwest-2016/img/mark-siebert.jpg" />
+        </div>
+        <img class="lucid-logo" src="{{site.baseurl}}/presentations/openwest-2016/img/lucid-logo-light.svg" />
+      </section>
+
+      <section>
+        <section>
+          <div class="presenter">
+            <img src="{{site.baseurl}}/presentations/openwest-2016/img/keilan-jackson.jpg" />
+            <h3 class="name">Keilan Jackson</h3>
+            <p>DevOps Engineer at Lucid Software</p>
+          </div>
+          <div class="presenter">
+            <img src="{{site.baseurl}}/presentations/openwest-2016/img/mark-siebert.jpg" />
+            <h3 class="name">Mark Siebert</h3>
+            <p>Senior Software Engineer at Lucid Software</p>
+          </div>
+        </section>
+        <section class="lucid">
+          <img class="lucid-logo" src="{{site.baseurl}}/presentations/openwest-2016/img/lucid-logo-light.svg" />
+          <div class="products">
+            <div class="product">
+              <img class="lucid-logo" src="{{site.baseurl}}/presentations/openwest-2016/img/chart-logo-light.svg" />
+            </div>
+            <div class="product">
+              <img class="lucid-logo" src="{{site.baseurl}}/presentations/openwest-2016/img/press-logo-light.svg" />
+            </div>
+          </div>
+        </section>
+      </section>
+
+      <section>
+        <section data-markdown>
+          # Motivation
+
+          * audit changes to AWS config
+          * simple infrastructure as code
+          * non-destructive actions
+
+        </section>
+        <section data-markdown>
+          ### Infrastructure as Code
+
+          * changes in version control
+          * easily update and share config
+        </section>
+        <section data-markdown>
+          ### Compared to CloudFormation
+
+          * CloudFormation is very <a href="https://s3.amazonaws.com/cloudformation-templates-us-east-1/WordPress_Single_Instance.template">verbose</a>
+          * with CloudFormation it is possible to destroy resources easily
+          * CloudFormation is not modular
+
+        </section>
+      </section>
+
+      <section>
+        <section data-markdown>
+          # Cumulus Overview
+
+          Note: Mark
+        </section>
+        <section data-markdown>
+          <script type="text/template">
+            ### Installation
+
+            <pre><code class="bash" data-trim data-noescape>
+              gem install lucid-cumulus
+            </code></pre>
+
+            * distributed as a Ruby Gem.
+            * copy the <a href="https://github.com/lucidsoftware/cumulus/blob/master/autocomplete">autocomplete file</a> in the Cumulus repo to `/etc/bash_completion.d/cumulus`
+            * configure your AWS credentials (<a href="http://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html#cli-config-files">documentation</a>)
+          </script>
+        </section>
+        <section data-markdown>
+          <script type="text/template">
+            ### Usage
+
+            <pre><code class="bash" data-trim data-noescape>
+              cumulus [module-name] [diff|list|sync] [asset]
+            </code></pre>
+
+            Note: refactoring and diff
+          </script>
+        </section>
+        <section data-markdown>
+          <script type="text/template">
+            ### Directory Structure
+
+            <pre><code class="bash" data-trim data-noescape>
+              conf
+                configuration.json
+                module
+                  [module assets]
+
+                ...
+            </code></pre>
+
+            * configuration.json contains configuration for how modules work
+            * modules contain configuration for assets
+            * examples in the <a href="https://github.com/lucidsoftware/cumulus/blob/master/conf">Github repo</a>
+          </script>
+        </section>
+        <section data-markdown>
+          <script type="text/template">
+            ### Migration
+
+            <pre><code class="bash" data-trim data-noescape>
+              cumulus [module-name] migrate
+            </code></pre>
+
+            * creates cumulus config from your current AWS architecture
+            * can't deduplicate
+
+            Note: migration command, modular implementation
+          </script>
+        </section>
+        <section data-markdown>
+          ### Lucid's Workflow
+          ![workflow](https://d2slcw3kip6qmk.cloudfront.net/marketing/techblog/cumulus/workflow.png)
+        </section>
+        <section data-markdown>
+          ### Advantages
+
+          * modular adoption
+          * `migrate` command makes starting with Cumulus easy
+          * refactoring is easy because of the `diff` command
+        </section>
+      </section>
+
+      <section data-markdown>
+        # Demo
+        * create an empty IAM role
+        * create EBS volumes
+        * launch EC2 instances with IAM role, and attach volumes
+        * configure security groups for the instances
+        * create an S3 bucket for them to talk to
+        * update IAM to allow talking to S3
+
+
+        Note: Keilan -> create empty IAM, launch EBS, 2 EC2; Mark -> security groups, S3 bucket, update IAM role
+      </section>
+
+      <section data-markdown>
+        <script type="text/template">
+          # Getting Involved
+
+          * Use the <a href="http://lucidsoftware.github.io/cumulus/">documentation website</a>
+          * Report issues in <a href="https://github.com/lucidsoftware/cumulus/issues/new">Github</a> or on the <a href="https://waffle.io/lucidsoftware/cumulus">Waffle</a>
+          * Add tests
+          * Build new modules!
+        </script>
+      </section>
+
+      <section data-markdown>
+        ## Any Questions?
+      </section>
+    </div>
+  </div>
+
+  <script src="//cdnjs.cloudflare.com/ajax/libs/reveal.js/3.3.0/lib/js/head.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/reveal.js/3.3.0/js/reveal.min.js"></script>
+  <script>
+    Reveal.initialize({
+      controls: true,
+      progress: true,
+      history: true,
+      center: true,
+      transition: 'slide',
+      dependencies: [
+        { src: 'https://cdnjs.cloudflare.com/ajax/libs/reveal.js/3.3.0/lib/js/classList.min.js', condition: function() { return !document.body.classList; } },
+        { src: 'https://cdnjs.cloudflare.com/ajax/libs/reveal.js/3.3.0/plugin/markdown/marked.min.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+        { src: 'https://cdnjs.cloudflare.com/ajax/libs/reveal.js/3.3.0/plugin/markdown/markdown.min.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+        { src: 'https://cdnjs.cloudflare.com/ajax/libs/reveal.js/3.3.0/plugin/highlight/highlight.min.js', callback: function() { hljs.initHighlightingOnLoad(); } },
+      ]
+    });
+  </script>
+</body>
+</html>
