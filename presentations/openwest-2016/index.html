@@ -75,16 +75,24 @@ description: Introduction to using Cumulus for AWS configuration management. Pre
         <section data-markdown>
           # Motivation
 
-          Note: Keilan
+          * audit changes to AWS config
+          * simple infrastructure as code
+          * non-destructive actions
+
         </section>
         <section data-markdown>
           ### Infrastructure as Code
+
+          * changes in version control
+          * easily update and share config
         </section>
         <section data-markdown>
-          ### Compared to Cloudfront
-        </section>
-        <section data-markdown>
-          ### Compared to Terraform
+          ### Compared to CloudFormation
+
+          * CloudFormation is very <a href="https://s3.amazonaws.com/cloudformation-templates-us-east-1/WordPress_Single_Instance.template">verbose</a>
+          * with CloudFormation it is possible to destroy resources easily
+          * CloudFormation is not modular
+
         </section>
       </section>
 
@@ -149,6 +157,10 @@ description: Introduction to using Cumulus for AWS configuration management. Pre
 
             Note: migration command, modular implementation
           </script>
+        </section>
+        <section data-markdown>
+          ### Lucid's Workflow
+          ![workflow](https://d2slcw3kip6qmk.cloudfront.net/marketing/techblog/cumulus/workflow.png)
         </section>
         <section data-markdown>
           ### Advantages
