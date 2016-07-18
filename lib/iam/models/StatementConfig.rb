@@ -12,8 +12,8 @@ module Cumulus
       # json - the Hash containing the JSON configuration for this StatementConfig
       def initialize(json)
         @effect = json["Effect"]
-        @action = json["Action"]
-        @resource = json["Resource"]
+        @action = json["Action"].sort
+        @resource = json["Resource"].sort
         @condition = json["Condition"]
       end
 
