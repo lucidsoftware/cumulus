@@ -34,45 +34,65 @@ module Cumulus
           it "should detect changes in delay" do
             SingleChangeTest.execute do
               @path = "delay"
-              @getter = @queue_delay_getter
-              @value = SQS::DEFAULT_QUEUE_DELAY - 1
+              @new_value = SQS::DEFAULT_QUEUE_DELAY - 1
               @previous_value = SQS::DEFAULT_QUEUE_DELAY
+              @message = [
+                "Delay",
+                "AWS - #{@previous_value} seconds",
+                "Local - #{@new_value} seconds"
+              ]
             end
           end
 
           it "should detect changes in max-message-size" do
             SingleChangeTest.execute do
               @path = "max-message-size"
-              @getter = @queue_message_size_getter
               @new_value = SQS::DEFAULT_QUEUE_MESSAGE_SIZE - 1
               @previous_value = SQS::DEFAULT_QUEUE_MESSAGE_SIZE
+              @message = [
+                "Max Message Size",
+                "AWS - #{@previous_value} bytes",
+                "Local - #{@new_value} bytes"
+              ]
             end
           end
 
           it "should detect changes in message-retention" do
             SingleChangeTest.execute do
               @path = "message-retention"
-              @getter = @queue_message_retention_getter
               @new_value = SQS::DEFAULT_QUEUE_MESSAGE_RETENTION - 1
               @previous_value = SQS::DEFAULT_QUEUE_MESSAGE_RETENTION
+              @message = [
+                "Message Retention Period",
+                "AWS - #{@previous_value} seconds",
+                "Local - #{@new_value} seconds"
+              ]
             end
           end
 
           it "should detect changes in receive-wait-time" do
             SingleChangeTest.execute do
               @path = "receive-wait-time"
-              @getter = @queue_wait_time_getter
               @new_value = SQS::DEFAULT_QUEUE_WAIT_TIME - 1
               @previous_value = SQS::DEFAULT_QUEUE_WAIT_TIME
+              @message = [
+                "Receive Wait Time",
+                "AWS - #{@previous_value} seconds",
+                "Local - #{@new_value} seconds"
+              ]
             end
           end
 
           it "should detect changes in visibility-timeout" do
             SingleChangeTest.execute do
               @path = "visibility-timeout"
-              @getter = @queue_visibility_getter
               @new_value = SQS::DEFAULT_QUEUE_VISIBILITY - 1
               @previous_value = SQS::DEFAULT_QUEUE_VISIBILITY
+              @message = [
+                "Message Visibility",
+                "AWS - #{@previous_value} seconds",
+                "Local - #{@new_value} seconds"
+              ]
             end
           end
 
@@ -81,32 +101,48 @@ module Cumulus
             new_contents = "{\"a\":\"b\"}"
             SingleChangeTest.execute do
               @path = "policy"
-              @getter = @queue_policy_getter
               @policy = {
                 name: new_value,
                 value: new_contents,
               }
               @new_value = new_value
               @previous_value = JSON.parse(SQS::DEFAULT_QUEUE_POLICY)
-              @test_value = JSON.parse(new_contents)
+              test_value = JSON.pretty_generate(JSON.parse(new_contents)).split("\n").map(&:strip)
+              @message = [
+                "Policy:",
+                "Removing:",
+                JSON.pretty_generate(@previous_value).split("\n"),
+                "Adding:",
+                test_value
+              ].flatten
             end
           end
 
           it "should detect changes in dead-letter target" do
             SingleChangeTest.execute do
               @path = "dead-letter.target"
-              @getter = @queue_dead_letter_getter.and_then @dead_letter_target_getter
               @new_value = SQS::DEFAULT_DEAD_LETTER_TARGET + "a"
               @previous_value = SQS::DEFAULT_DEAD_LETTER_TARGET
+              @message = [
+                "Dead Letter Queue",
+                "Target:",
+                "AWS - #{@previous_value}",
+                "Local - #{@new_value}"
+              ]
             end
           end
 
           it "should detect changes in dead-letter max-receives" do
             SingleChangeTest.execute do
               @path = "dead-letter.max-receives"
-              @getter = @queue_dead_letter_getter.and_then @dead_letter_max_receives_getter
               @new_value = SQS::DEFAULT_DEAD_LETTER_RECEIVES + 1
               @previous_value = SQS::DEFAULT_DEAD_LETTER_RECEIVES
+              @message = [
+                "Dead Letter Queue",
+                "Max Receive Count:",
+                "AWS - #{@previous_value}",
+                "Local - #{@new_value}"
+              ]
             end
           end
         end
