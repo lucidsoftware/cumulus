@@ -187,7 +187,7 @@ module Cumulus
           if !group_diffs.empty?
             [group_name, EbsGroupDiff.modified(aws_config, group_config, group_diffs)]
           end
-        end].reject { |k, v| v.nil? }
+        end.reject { |v| v.nil? }]
 
         ebs_changes = Common::ListChange.new(added_groups, removed_groups, changed_groups)
         if !ebs_changes.empty?
