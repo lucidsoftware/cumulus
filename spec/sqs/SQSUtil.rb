@@ -10,6 +10,10 @@ require "common/manager/Manager"
 require "util/ManagerUtil"
 Cumulus::Common::Manager.send :include, Cumulus::Test::ManagerUtil
 
+require "util/StatusCodes"
+require "mocks/MockedStatusCodes"
+Cumulus::StatusCodes.send :include, Cumulus::Test::MockedStatusCodes
+
 require "aws-sdk"
 require "json"
 require "sqs/manager/Manager"
@@ -30,6 +34,10 @@ module Cumulus
           def reset_queue_attributes
             @queue_attributes = nil
           end
+
+          def client=(client)
+            @@client = client
+          end
         end
       end
     end
@@ -44,6 +52,7 @@ module Cumulus
           def queue_arns
             arns = original_queue_arns
             arns[SQS::DEFAULT_DEAD_LETTER_TARGET] = SQS::DEFAULT_DEAD_LETTER_TARGET
+            arns[SQS::DEFAULT_DEAD_LETTER_TARGET + "a"] = SQS::DEFAULT_DEAD_LETTER_TARGET + "a"
             arns
           end
         end
@@ -146,6 +155,36 @@ module Cumulus
       #       to the value the AWS Client should return
       # test  - a block that tests the diffs returned by the Manager class
       def self.do_diff(config, &test)
+        self.prepare_test(config)
+
+        # get the diffs and call the tester to determine the result of the test
+        manager = Cumulus::SQS::Manager.new
+        diffs = manager.diff_strings
+        test.call(diffs)
+      end
+
+      # Public: Sync stubbed local configuration and stubbed AWS configuration.
+      #
+      # config - a Hash that contains two values, :local and :aws, which contain
+      #   the values to stub out.
+      #     :local contains :queues which is an Array of queues to stub the
+      #       directory with, and :policies, which is an Array of policy files
+      #       to stub out.
+      #     :aws is a hash of method names from the AWS Client to stub mapped
+      #       to the value the AWS Client should return
+      # test - a block that tests the AWS Client after the syncing has been done
+      def self.do_sync(config, &test)
+        self.prepare_test(config)
+
+        # get the diffs and call the tester to determine the result of the test
+        manager = Cumulus::SQS::Manager.new
+        manager.sync
+        test.call(Cumulus::SQS::client)
+      end
+
+      private
+
+      def self.prepare_test(config)
         self.reset
         # we'll always just stub out the default policy
         Cumulus::Common::BaseLoader.stub_file(
@@ -178,12 +217,15 @@ module Cumulus
             Cumulus::SQS::client.stub_responses(call)
           end
         end
-
-        # get the diffs and call the tester to determine the result of the test
-        manager = Cumulus::SQS::Manager.new
-        diffs = manager.diff_strings
-        test.call(diffs)
       end
+
+      def self.client_spy
+        if !Cumulus::SQS::client.respond_to? :have_received
+          Cumulus::SQS::client = ClientSpy.new(Cumulus::SQS::client)
+        end
+        Cumulus::SQS::client.clear_spy
+      end
+
     end
   end
 end
