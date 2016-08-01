@@ -15,7 +15,6 @@ module Cumulus
       def initialize
         super()
         @create_asset = true
-        @client = Aws::SQS::Client.new(Configuration.instance.client)
       end
 
       def resource_name
@@ -50,16 +49,16 @@ module Cumulus
       end
 
       def update(local, diffs)
-        @client.set_queue_attributes({
+        SQS::client.set_queue_attributes({
           queue_url: SQS::queue_urls[local.name],
           attributes: {
-            "DelaySeconds" => if diffs.any? { |d| d.type == QueueChange::DELAY } then local.delay end,
-            "MaximumMessageSize" => if diffs.any? { |d| d.type == QueueChange::MESSAGE_SIZE } then local.max_message_size end,
-            "MessageRetentionPeriod" => if diffs.any? { |d| d.type == QueueChange::MESSAGE_RETENTION } then local.message_retention end,
+            "DelaySeconds" => if diffs.any? { |d| d.type == QueueChange::DELAY } then local.delay.to_s end,
+            "MaximumMessageSize" => if diffs.any? { |d| d.type == QueueChange::MESSAGE_SIZE } then local.max_message_size.to_s end,
+            "MessageRetentionPeriod" => if diffs.any? { |d| d.type == QueueChange::MESSAGE_RETENTION } then local.message_retention.to_s end,
             "Policy" => if diffs.any? { |d| d.type == QueueChange::POLICY }
               if local.policy then JSON.generate(Loader.policy(local.policy)) else "" end
             end,
-            "ReceiveMessageWaitTimeSeconds" => if diffs.any? { |d| d.type == QueueChange::RECEIVE_WAIT } then local.receive_wait_time end,
+            "ReceiveMessageWaitTimeSeconds" => if diffs.any? { |d| d.type == QueueChange::RECEIVE_WAIT } then local.receive_wait_time.to_s end,
             "VisibilityTimeout" => if diffs.any? { |d| d.type == QueueChange::VISIBILITY } then local.visibility_timeout end,
             "RedrivePolicy" => if diffs.any? { |d| d.type == QueueChange::DEAD }
               if local.dead_letter then JSON.generate(local.dead_letter.to_aws) else "" end
@@ -69,7 +68,7 @@ module Cumulus
       end
 
       def create(local)
-        url = @client.create_queue({
+        url = SQS::client.create_queue({
           queue_name: local.name,
           attributes: {
             "DelaySeconds" => "#{local.delay}",

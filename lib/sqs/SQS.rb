@@ -8,6 +8,12 @@ module Cumulus
     class << self
       @@client = Aws::SQS::Client.new(Configuration.instance.client)
 
+      # Public
+      # Returns the AWS client used in the module
+      def client
+        @@client
+      end
+
       # Public: Static method that will get the ARN of a Queue
       #
       # name - the name of the queue to get
