@@ -172,6 +172,23 @@ module Cumulus
         }.reject { |k, v| v.nil? })
       end
 
+      # Public: deep sort an array of hashes or hash of arrays or array of arrays or hash of hashes or... you get the idea
+      #
+      #
+      # obj - The array or hash to deep sort
+      #
+      # Returns a deep sorted array of hashes or hash of arrays
+      def deep_sort_hash_array(obj)
+        case obj
+        when Array
+          obj.map!{|v| deep_sort_hash_array(v)}.sort_by!{|v| (v.to_s rescue nil) }
+        when Hash
+          obj = Hash[Hash[obj.map{|k,v| [deep_sort_hash_array(k),deep_sort_hash_array(v)]}].sort_by{|k,v| [(k.to_s rescue nil), (v.to_s rescue nil)]}]
+        else
+          obj
+        end
+      end
+
       # Public: Produce an array of differences between this local configuration and the
       # configuration in AWS
       #
@@ -184,7 +201,9 @@ module Cumulus
         if @tags != Hash[aws.tagging.safe_tags.map { |t| [t.key, t.value] }]
           diffs << BucketDiff.new(BucketChange::TAGS, aws, self)
         end
-        if @policy != aws.policy.policy_string and !(@policy.nil? and aws.policy.policy_string == "")
+        a=deep_sort_hash_array(JSON.parse(@policy))
+        b=deep_sort_hash_array(JSON.parse(aws.policy.policy_string))
+        if a != b and !(@policy.nil? and aws.policy.policy_string == "")
           diffs << BucketDiff.new(BucketChange::POLICY, aws, self)
         end
         if @cors != aws.cors.rules and !(@cors.nil? and aws.cors.rules == [])
