@@ -201,10 +201,12 @@ module Cumulus
         if @tags != Hash[aws.tagging.safe_tags.map { |t| [t.key, t.value] }]
           diffs << BucketDiff.new(BucketChange::TAGS, aws, self)
         end
-        a=deep_sort_hash_array(JSON.parse(@policy))
-        b=deep_sort_hash_array(JSON.parse(aws.policy.policy_string))
-        if a != b and !(@policy.nil? and aws.policy.policy_string == "")
-          diffs << BucketDiff.new(BucketChange::POLICY, aws, self)
+        if !(@policy.nil? and aws.policy.policy_string == "")
+          a=deep_sort_hash_array(JSON.parse(@policy))
+          b=deep_sort_hash_array(JSON.parse(aws.policy.policy_string))
+          if a != b
+            diffs << BucketDiff.new(BucketChange::POLICY, aws, self)
+          end
         end
         if @cors != aws.cors.rules and !(@cors.nil? and aws.cors.rules == [])
           diffs << BucketDiff.new(BucketChange::CORS, aws, self)
