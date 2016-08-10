@@ -69,10 +69,10 @@ module Cumulus
         value
       end
     rescue KeyError => e
-      puts "Your configuration file is missing $.#{key}."
       if allow_missing
         nil
       else
+        puts "Your configuration file is missing $.#{key}."
         exit
       end
     end
@@ -91,16 +91,16 @@ module Cumulus
     # Internal: Constructor. Sets up the `instance` variable, which is the access
     # point for the Singleton.
     #
-    # json - a Hash containing the json configuration
+    # json - a Hash containing the json configuration. If nil, this value will be read in from the default location
     # conf_dir  - The String path to the directory the configuration can be found in
     # profile       - The String profile name that will be used to make AWS API calls
     # assume_role - The ARN of the role to assume when making AWS API calls
     # autoscaling_force_size
     #               -  Determines whether autoscaling should use configured values for
     #                  min/max/desired group size
-    def initialize(json, conf_dir, profile, assume_role, autoscaling_force_size)
+    def initialize(conf_dir, profile, assume_role, autoscaling_force_size, json = nil)
       Config.conf_dir = conf_dir
-      Config.json = json
+      Config.json = json.nil? ? JSON.parse(File.read(absolute_path("configuration.json"))) : json
       @colors_enabled = conf "colors-enabled"
       @iam = IamConfig.new
       @autoscaling = AutoScalingConfig.new(autoscaling_force_size)
@@ -127,7 +127,7 @@ module Cumulus
         :region => region,
         :profile => profile,
         :credentials => credentials,
-        :stub_responses => (conf "stub_aws_responses", allow_missing = true)
+        :stub_responses => conf("stub_aws_responses", true)
       }.reject { |_, v| v.nil? }
     end
 
@@ -142,9 +142,7 @@ module Cumulus
       #               -  Determines whether autoscaling should use configured values for
       #                  min/max/desired group size
       def init(conf_dir, profile, assume_role, autoscaling_force_size)
-        json = JSON.parse(File.read(absolute_path("configuration.json")))
-        instance = new(json, conf_dir, profile, assume_role, autoscaling_force_size)
-        @@instance = instance
+        @@instance = new(conf_dir, profile, assume_role, autoscaling_force_size)
       end
 
       # Private: Initialize the Configuration Singleton. Must be called before any
@@ -159,8 +157,7 @@ module Cumulus
       #               -  Determines whether autoscaling should use configured values for
       #                  min/max/desired group size
       def init_from_hash(json, conf_dir, profile, assume_role, autoscaling_force_size)
-        instance = new(json, conf_dir, profile, assume_role, autoscaling_force_size)
-        @@instance = instance
+        @@instance = new(conf_dir, profile, assume_role, autoscaling_force_size, json)
       end
 
       # Public: The Singleton instance of Configuration.
