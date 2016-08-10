@@ -14,6 +14,7 @@ GEM
       jmespath (~> 1.0)
     aws-sdk-resources (2.2.30)
       aws-sdk-core (= 2.2.30)
+    deepsort (0.2.1)
     diff-lcs (1.2.5)
     jmespath (1.2)
       json (>= 1.8.1)
@@ -38,6 +39,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  deepsort
   lucid-cumulus!
   rake
   rspec
