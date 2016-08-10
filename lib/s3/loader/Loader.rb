@@ -1,7 +1,7 @@
 require "common/BaseLoader"
 require "conf/Configuration"
 require "s3/models/BucketConfig"
-require "util/DeepSort"
+require "deepsort"
 
 require "aws-sdk"
 

@@ -1,6 +1,6 @@
 require "aws-sdk"
 require "json"
-require "util/DeepSort"
+require "deepsort"
 
 module AwsExtensions
   module S3
