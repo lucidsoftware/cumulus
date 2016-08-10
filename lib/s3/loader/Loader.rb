@@ -1,6 +1,7 @@
 require "common/BaseLoader"
 require "conf/Configuration"
 require "s3/models/BucketConfig"
+require "util/DeepSort"
 
 require "aws-sdk"
 
@@ -58,7 +59,7 @@ module Cumulus
           name,
           @@policies_dir,
           vars,
-          &proc { |n, json| json.to_json }
+          &proc { |n, json| json.deep_sort.to_json }
         )
       end
     end
