@@ -17,4 +17,5 @@ Gem::Specification.new do |s|
 
   s.add_runtime_dependency "aws-sdk", "2.2.30"
   s.add_runtime_dependency "parse-cron", "~> 0.1.4"
+  s.add_runtime_dependency "deepsort", "~> 0.1"
 end
