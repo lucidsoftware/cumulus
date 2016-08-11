@@ -46,12 +46,14 @@ module Cumulus
       #
       # file    - the name of the file to load
       # dir     - the directory the file is located in
-      # vars    - the variables to apply to the template
+      # vars    - the variables to apply to the template (can be nil)
       # loader  - the function that will handle the read json
       def self.template(file, dir, vars, &loader)
         template = load_file(file, dir)
-        vars.each do |key, value|
-          template.gsub!("{{#{key}}}", "#{value}")
+        if vars
+          vars.each do |key, value|
+            template.gsub!("{{#{key}}}", "#{value}")
+          end
         end
         json = JSON.parse(template)
 
