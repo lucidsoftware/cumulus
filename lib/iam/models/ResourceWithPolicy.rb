@@ -170,7 +170,12 @@ module Cumulus
 
         aws_policies = Hash[aws_resource.policies.map do |policy|
           # Sort the statments before diffing to prevent false conflicts
-          [policy.name, JSON.parse(URI.unescape(policy.policy_document)).deep_sort]
+          sorted_policy = JSON.parse(URI.unescape(policy.policy_document)).deep_sort
+          action = sorted_policy["Statement"]["Action"]
+          sorted_policy["Statment"]["Action"] = [action] if action.is_a? String
+          resource = sorted_policy["Statement"]["Resource"]
+          sorted_policy["Statement"]["Resource"] = [resource] if resource.is_a? String
+          [policy.name, sorted_policy]
         end]
         p = policy
         p.name = generated_policy_name
