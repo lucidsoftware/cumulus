@@ -12,8 +12,9 @@ module Cumulus
       # json - the Hash containing the JSON configuration for this StatementConfig
       def initialize(json)
         @effect = json["Effect"]
-        @action = json["Action"].sort
-        @resource = json["Resource"].sort
+        # Action and Resource elements are sometimes strings instead of arrays of strings.
+        @action = json["Action"].sort if json["Action"].respond_to? :sort
+        @resource = json["Resource"].sort if json["Resource"].respond_to? :sort
         @condition = json["Condition"]
       end
 

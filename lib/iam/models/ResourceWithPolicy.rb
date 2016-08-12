@@ -4,6 +4,7 @@ require "iam/models/IamDiff"
 require "iam/models/PolicyConfig"
 require "iam/models/StatementConfig"
 require "util/Colors"
+require "deepsort"
 
 require "json"
 
@@ -168,13 +169,8 @@ module Cumulus
         diffs = []
 
         aws_policies = Hash[aws_resource.policies.map do |policy|
-          sorted_policy = JSON.parse(URI.unescape(policy.policy_document))
-          sorted_policy["Statement"].each do |statement|
-            # Sort the statments before diffing to prevent false conflicts
-            statement["Action"].sort!
-            statement["Resource"].sort!
-          end
-          [policy.name, sorted_policy]
+          # Sort the statments before diffing to prevent false conflicts
+          [policy.name, JSON.parse(URI.unescape(policy.policy_document)).deep_sort]
         end]
         p = policy
         p.name = generated_policy_name
