@@ -58,6 +58,7 @@ module Cumulus
 
             if port.is_a? String
               if port.downcase == "all"
+                # to include 'all' ports, aws expects both the from-port and the to-port to be nil
                 rule_hash["from-port"] = nil
                 rule_hash["to-port"] = nil
               else
