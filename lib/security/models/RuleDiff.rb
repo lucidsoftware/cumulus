@@ -60,7 +60,7 @@ module Cumulus
         elsif config.from != config.to
           temp << "Ports: #{config.from}-#{config.to}"
         elsif config.from.nil?
-          temp << "Ports: All"
+          temp << "Ports: all"
         else
           temp << "Port: #{config.from}"
         end

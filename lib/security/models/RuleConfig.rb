@@ -57,9 +57,14 @@ module Cumulus
             rule_hash = json.clone
 
             if port.is_a? String
-              parts = port.split("-").map(&:strip)
-              rule_hash["from-port"] = parts[0].to_i
-              rule_hash["to-port"] = parts[1].to_i
+              if port.downcase == "all"
+                rule_hash["from-port"] = nil
+                rule_hash["to-port"] = nil
+              else
+                parts = port.split("-").map(&:strip)
+                rule_hash["from-port"] = parts[0].to_i
+                rule_hash["to-port"] = parts[1].to_i
+              end
             else
               rule_hash["from-port"] = port
               rule_hash["to-port"] = port
