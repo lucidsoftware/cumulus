@@ -13,8 +13,22 @@ module Cumulus
       def initialize(json)
         @effect = json["Effect"]
         # Action and Resource elements are sometimes strings instead of arrays of strings.
-        @action = json["Action"].sort if json["Action"].respond_to? :sort
-        @resource = json["Resource"].sort if json["Resource"].respond_to? :sort
+        @action = if json["Action"].is_a? Array
+          json["Action"].sort
+        elsif json["Action"].is_a? String
+          # convert single element strings into arrays
+          json["Action"] = [json["Action"]]
+        else
+          raise Exception.new("invalid policy statement resource")
+        end
+        @resource = if json["Resource"].is_a? Array
+          json["Resource"].sort
+        elsif json["Resource"].is_a? String
+          # convert single element strings into arrays
+          json["Resource"] = [json["Resource"]]
+        else
+          raise Exception.new("invalid policy statement resource")
+        end
         @condition = json["Condition"]
       end
 
@@ -23,12 +37,12 @@ module Cumulus
       #
       # Returns the Hash representing this StatementConfig.
       def as_hash
-        {
+        Hash[{
           "Effect" => @effect,
           "Action" => @action,
           "Resource" => @resource,
           "Condition" => @condition
-        }.reject { |k, v| v.nil? }
+        }.sort].reject { |k, v| v.nil? }
       end
 
     end
