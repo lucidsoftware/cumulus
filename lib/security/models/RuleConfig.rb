@@ -93,9 +93,21 @@ module Cumulus
         end
 
         @security_groups = if !json["security-groups"].nil? then json["security-groups"] else [] end
-        @subnets = if !json["subnets"].nil?
-          json["subnets"].flat_map do |subnet|
-            if subnet.match(/\d{1,3}.\d{1,3}.\d{1,3}.\d{1,3}\/\d+/).nil?
+        @subnets = unless json["subnets"].nil?
+          # interpret single strings as a string within an array
+          # subnets: "0.0.0.0/0"
+          #   is the same as:
+          # subnets: [
+          #   "0.0.0.0/0"
+          # ]
+          if json["subnets"].is_a?(String)
+            [json["subnets"]]
+          else
+            json["subnets"]
+          end.flat_map do |subnet|
+            if subnet.downcase == "all"
+              "0.0.0.0/0" # all subnets according to aws sdk
+            elsif subnet.match(/\d{1,3}.\d{1,3}.\d{1,3}.\d{1,3}\/\d+/).nil?
               Loader.subnet_group(subnet)
             else
               subnet

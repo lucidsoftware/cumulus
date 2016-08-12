@@ -53,6 +53,7 @@ module Cumulus
         # yes, for real, AWS returns the STRING "-1" if all protocols are allowed
         protocol = if config.protocol == "-1" then "All" else config.protocol end
         allowed = (config.security_groups + config.subnets).join(", ")
+        allowed = "all addresses" if allowed == "0.0.0.0/0"
 
         temp = "Allowed: #{allowed}, Protocol: #{protocol}, "
         if protocol.downcase == "icmp"
