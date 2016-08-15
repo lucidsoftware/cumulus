@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    lucid-cumulus (0.11.3)
+    lucid-cumulus (0.11.4)
       aws-sdk (= 2.2.30)
       deepsort (~> 0.1)
       parse-cron (~> 0.1.4)
