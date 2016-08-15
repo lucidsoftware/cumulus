@@ -4,11 +4,18 @@ require "iam/models/IamDiff"
 require "iam/models/PolicyConfig"
 require "iam/models/StatementConfig"
 require "util/Colors"
+require "deepsort"
+require "aws_extensions/iam/Policy"
 
 require "json"
 
 module Cumulus
   module IAM
+    # Monkey patch the bucket so that it can get the bucket's replication configuration
+    Aws::IAM::UserPolicy.send(:include, AwsExtensions::IAM::Policy)
+    Aws::IAM::RolePolicy.send(:include, AwsExtensions::IAM::Policy)
+    Aws::IAM::GroupPolicy.send(:include, AwsExtensions::IAM::Policy)
+
     # Public: Represents a configuration for a resource that has attached policies.
     # Lazily loads its static and template policies as needed. Is the base class for
     # groups, roles, and users.
@@ -168,13 +175,7 @@ module Cumulus
         diffs = []
 
         aws_policies = Hash[aws_resource.policies.map do |policy|
-          sorted_policy = JSON.parse(URI.unescape(policy.policy_document))
-          sorted_policy["Statement"].each do |statement|
-            # Sort the statments before diffing to prevent false conflicts
-            statement["Action"].sort!
-            statement["Resource"].sort!
-          end
-          [policy.name, sorted_policy]
+          [policy.name, policy.as_hash]
         end]
         p = policy
         p.name = generated_policy_name
