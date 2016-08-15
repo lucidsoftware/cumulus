@@ -1,5 +1,5 @@
 require "conf/Configuration"
-
+require "deepsort"
 require "json"
 
 module Cumulus
@@ -59,7 +59,7 @@ module Cumulus
         {
           "Version" => @version,
           "Statement" => statements
-        }
+        }.deep_sort
       end
 
     end
