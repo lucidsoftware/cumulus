@@ -85,7 +85,7 @@ module Cumulus
     include Config
 
     attr_reader :colors_enabled
-    attr_reader :iam, :autoscaling, :route53, :s3, :security, :cloudfront, :elb, :vpc, :kinesis, :sqs, :ec2
+    attr_reader :iam, :autoscaling, :route53, :s3, :security, :cloudfront, :elb, :vpc, :kinesis, :sqs, :ec2, :rds
     attr_reader :client
 
     # Internal: Constructor. Sets up the `instance` variable, which is the access
@@ -113,6 +113,7 @@ module Cumulus
       @kinesis = KinesisConfig.new
       @sqs = SQSConfig.new
       @ec2 = EC2Config.new
+      @rds = RDSConfig.new
 
       region = conf "region"
       credentials = if assume_role
@@ -375,6 +376,17 @@ module Cumulus
         @volume_mount_base = conf "ec2.instances.volume-mounting.base"
         @volume_mount_start = conf "ec2.instances.volume-mounting.start"
         @volume_mount_end = conf "ec2.instances.volume-mounting.end"
+      end
+    end
+
+    # Public: Inner class that contains EC2 configuration options
+    class RDSConfig
+      include Config
+
+      attr_reader :instances_directory
+
+      def initialize
+        @instances_directory = absolute_path "rds/instances"
       end
     end
 
