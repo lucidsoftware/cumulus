@@ -192,7 +192,8 @@ module Cumulus
           else
             aws_statements = aws_policy["Statement"]
             local_statements = p.as_hash["Statement"]
-            if aws_statements != local_statements
+            # turns out, policies defined locally can be redundant. this causes false diffs
+            if aws_statements.uniq != local_statements.uniq
               diff = IamDiff.new(IamChange::POLICY, aws_statements, p)
               diff.policy_name = generated_policy_name
               diffs << diff
