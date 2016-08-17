@@ -6,7 +6,7 @@ module AwsExtensions
     module Policy
       def as_hash
         # Sort the statments to prevent false conflicts while diffing
-        sorted_policy = JSON.parse(URI.unescape(policy_document)).deep_sort
+        sorted_policy = JSON.parse(URI.unescape(policy_document))
         sorted_policy["Statement"].each do |statement|
           # actions sometimes contains a single string element instead of the expected array
           statement["Action"] = [statement["Action"]] if statement["Action"].is_a? String
@@ -14,7 +14,7 @@ module AwsExtensions
           statement["Resource"] = [statement["Resource"]] if statement["Resource"].is_a? String
         end
         # return the sorted policy hash
-        sorted_policy
+        sorted_policy.deep_sort
       end
     end
   end
