@@ -4,7 +4,7 @@ require "bundler"
 
 Gem::Specification.new do |s|
   s.name                      = "lucid-cumulus"
-  s.version                   = "0.11.5"
+  s.version                   = "0.11.6"
   s.platform                  = Gem::Platform::RUBY
   s.authors                   = ["Keilan Jackson", "Mark Siebert"]
   s.email                     = "cumulus@lucidchart.com"
