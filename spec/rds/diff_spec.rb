@@ -29,7 +29,7 @@ module Cumulus
           end
 
           it "should detect changes made to the port" do
-            SingleChangeTest.execute(
+            SingleChangeTest.execute_diff(
               local: {"port" => DEFAULT_PORT - 1},
             ) do |diffs|
               expect(diffs.size).to eq 1
@@ -42,7 +42,7 @@ module Cumulus
           end
 
           it "should detect changes made to the instance type" do
-            SingleChangeTest.execute(
+            SingleChangeTest.execute_diff(
               local: {"type" => SECONDARY_TYPE},
             ) do |diffs|
               expect(diffs.size).to eq 1
@@ -55,7 +55,7 @@ module Cumulus
           end
 
           it "should detect changes made to the engine" do
-            SingleChangeTest.execute(
+            SingleChangeTest.execute_diff(
               local: {"engine" => SECONDARY_ENGINE},
             ) do |diffs|
               expect(diffs.size).to eq 1
@@ -68,12 +68,12 @@ module Cumulus
           end
 
           it "should detect changes made to the engine version" do
-            SingleChangeTest.execute(
+            SingleChangeTest.execute_diff(
               local: {"engine_version" => SECONDARY_ENGINE_VERSION},
             ) do |diffs|
               expect(diffs.size).to eq 1
               expect(diffs.first.to_s).to eq [
-                "Engine:",
+                "Engine Version:",
                 "\tAWS - #{DEFAULT_ENGINE_VERSION}",
                 "\tLocal - #{SECONDARY_ENGINE_VERSION}",
               ].join("\n")
@@ -81,7 +81,7 @@ module Cumulus
           end
 
           it "should detect changes made to the storage type" do
-            SingleChangeTest.execute(
+            SingleChangeTest.execute_diff(
               local: {"storage_type" => SECONDARY_STORAGE_TYPE},
             ) do |diffs|
               expect(diffs.size).to eq 1
@@ -94,7 +94,7 @@ module Cumulus
           end
 
           it "should detect changes made to the storage size" do
-            SingleChangeTest.execute(
+            SingleChangeTest.execute_diff(
               local: {"storage_size" => DEFAULT_STORAGE_SIZE - 1},
             ) do |diffs|
               expect(diffs.size).to eq 1
@@ -107,7 +107,7 @@ module Cumulus
           end
 
           it "should detect changes made to the username" do
-            SingleChangeTest.execute(
+            SingleChangeTest.execute_diff(
               local: {"master_username" => SECONDARY_USERNAME},
             ) do |diffs|
               expect(diffs.size).to eq 1
@@ -120,7 +120,7 @@ module Cumulus
           end
 
           it "should detect changes made to the db subnet group" do
-            SingleChangeTest.execute(
+            SingleChangeTest.execute_diff(
               local: {"subnet" => SECONDARY_SUBNET_GROUP},
             ) do |diffs|
               expect(diffs.size).to eq 1
@@ -133,7 +133,7 @@ module Cumulus
           end
 
           it "should detect changes made to the database name" do
-            SingleChangeTest.execute(
+            SingleChangeTest.execute_diff(
               local: {"database" => SECONDARY_DATABASE_NAME},
             ) do |diffs|
               expect(diffs.size).to eq 1
@@ -146,7 +146,7 @@ module Cumulus
           end
 
           it "should detect changes made to public access" do
-            SingleChangeTest.execute(
+            SingleChangeTest.execute_diff(
               local: {"public" => !DEFAULT_PUBLIC_FACING},
             ) do |diffs|
               expect(diffs.size).to eq 1
@@ -159,7 +159,7 @@ module Cumulus
           end
 
           it "should detect changes made to the backup period" do
-            SingleChangeTest.execute(
+            SingleChangeTest.execute_diff(
               local: {"backup_period" => DEFAULT_BACKUP_PERIOD - 1},
             ) do |diffs|
               expect(diffs.size).to eq 1
@@ -172,7 +172,7 @@ module Cumulus
           end
 
           it "should detect changes made to the backup window" do
-            SingleChangeTest.execute(
+            SingleChangeTest.execute_diff(
               local: {"backup_window" => SECONDARY_BACKUP_WINDOW},
             ) do |diffs|
               expect(diffs.size).to eq 1
@@ -185,7 +185,7 @@ module Cumulus
           end
 
           it "should detect changes made to automatic upgrades" do
-            SingleChangeTest.execute(
+            SingleChangeTest.execute_diff(
               local: {"auto_upgrade" => !DEFAULT_AUTO_UPGRADE},
             ) do |diffs|
               expect(diffs.size).to eq 1
@@ -198,7 +198,7 @@ module Cumulus
           end
 
           it "should detect changes made to the upgrade window" do
-            SingleChangeTest.execute(
+            SingleChangeTest.execute_diff(
               local: {"upgrade_window" => SECONDARY_UPGRADE_WINDOW},
             ) do |diffs|
               expect(diffs.size).to eq 1

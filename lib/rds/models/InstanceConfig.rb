@@ -84,7 +84,7 @@ module Cumulus
         end
 
         if aws.engine_version != @engine_version
-          diffs << InstanceDiff.new(InstanceChange::ENGINE, aws.engine_version, @engine_version)
+          diffs << InstanceDiff.new(InstanceChange::ENGINE_VERSION, aws.engine_version, @engine_version)
         end
 
         if aws.storage_type != @storage_type

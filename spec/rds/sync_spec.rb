@@ -15,7 +15,7 @@ module Cumulus
             }) do |client|
               create = client.spied_method(:create_db_instance)
               expect(create.num_calls).to eq 1
-              expect(create.arguments[0]).to eq ({
+              expect(create.arguments.first).to eq ({
                 db_name: DEFAULT_DATABASE_NAME,
                 db_instance_identifier: instance_name,
                 allocated_storage: DEFAULT_STORAGE_SIZE,
@@ -52,45 +52,219 @@ module Cumulus
           end
 
           it "should update the port" do
+            SingleChangeTest.execute_sync(
+              local: {"port" => DEFAULT_PORT - 1},
+            ) do |client|
+              expect(client.method_calls.size).to eq 3
+              expect(client.spied_method(:stub_responses).nil?).to eq false
+              expect(client.spied_method(:describe_db_instances).nil?).to eq false
+              update = client.spied_method(:modify_db_instance)
+              expect(update.nil?).to eq false
+              expect(update.num_calls).to eq 1
+              expect(update.arguments.first).to eq ({
+                db_instance_identifier: "cumulus-test-instance",
+                apply_immediately: true,
+                db_port_number: DEFAULT_PORT - 1
+              })
+            end
           end
 
           it "should update the instance type" do
+            SingleChangeTest.execute_sync(
+              local: {"type" => SECONDARY_TYPE},
+            ) do |client|
+              expect(client.method_calls.size).to eq 3
+              expect(client.spied_method(:stub_responses).nil?).to eq false
+              expect(client.spied_method(:describe_db_instances).nil?).to eq false
+              update = client.spied_method(:modify_db_instance)
+              expect(update.nil?).to eq false
+              expect(update.num_calls).to eq 1
+              expect(update.arguments.first).to eq ({
+                db_instance_identifier: "cumulus-test-instance",
+                apply_immediately: true,
+                db_instance_class: "db." + SECONDARY_TYPE
+              })
+            end
           end
 
           it "should update the engine" do
+            SingleChangeTest.execute_sync(
+              local: {"engine" => SECONDARY_ENGINE},
+            ) do |client|
+              expect(client.method_calls.size).to eq 2
+              expect(client.spied_method(:stub_responses).nil?).to eq false
+              expect(client.spied_method(:describe_db_instances).nil?).to eq false
+            end
           end
 
           it "should update the engine version" do
+            SingleChangeTest.execute_sync(
+              local: {"engine_version" => SECONDARY_ENGINE_VERSION},
+            ) do |client|
+              expect(client.method_calls.size).to eq 3
+              expect(client.spied_method(:stub_responses).nil?).to eq false
+              expect(client.spied_method(:describe_db_instances).nil?).to eq false
+              update = client.spied_method(:modify_db_instance)
+              expect(update.nil?).to eq false
+              expect(update.num_calls).to eq 1
+              expect(update.arguments.first).to eq ({
+                db_instance_identifier: "cumulus-test-instance",
+                apply_immediately: true,
+                engine_version: SECONDARY_ENGINE_VERSION
+              })
+            end
           end
 
           it "should update the storage type" do
+            SingleChangeTest.execute_sync(
+              local: {"storage_type" => SECONDARY_STORAGE_TYPE},
+            ) do |client|
+              expect(client.method_calls.size).to eq 2
+              expect(client.spied_method(:stub_responses).nil?).to eq false
+              expect(client.spied_method(:describe_db_instances).nil?).to eq false
+            end
           end
 
           it "should update the storage size" do
+            SingleChangeTest.execute_sync(
+              local: {"storage_size" => DEFAULT_STORAGE_SIZE - 1},
+            ) do |client|
+              expect(client.method_calls.size).to eq 3
+              expect(client.spied_method(:stub_responses).nil?).to eq false
+              expect(client.spied_method(:describe_db_instances).nil?).to eq false
+              update = client.spied_method(:modify_db_instance)
+              expect(update.nil?).to eq false
+              expect(update.num_calls).to eq 1
+              expect(update.arguments.first).to eq ({
+                db_instance_identifier: "cumulus-test-instance",
+                apply_immediately: true,
+                allocated_storage: DEFAULT_STORAGE_SIZE - 1
+              })
+            end
           end
 
           it "should update the username" do
+            SingleChangeTest.execute_sync(
+              local: {"master_username" => SECONDARY_USERNAME},
+            ) do |client|
+              expect(client.method_calls.size).to eq 2
+              expect(client.spied_method(:stub_responses).nil?).to eq false
+              expect(client.spied_method(:describe_db_instances).nil?).to eq false
+            end
           end
 
           it "should update the db subnet group" do
+            SingleChangeTest.execute_sync(
+              local: {"subnet" => SECONDARY_SUBNET_GROUP},
+            ) do |client|
+              expect(client.method_calls.size).to eq 2
+              expect(client.spied_method(:stub_responses).nil?).to eq false
+              expect(client.spied_method(:describe_db_instances).nil?).to eq false
+            end
           end
 
           it "should update the database name" do
+            SingleChangeTest.execute_sync(
+              local: {"database" => SECONDARY_DATABASE_NAME},
+            ) do |client|
+              expect(client.method_calls.size).to eq 2
+              expect(client.spied_method(:stub_responses).nil?).to eq false
+              expect(client.spied_method(:describe_db_instances).nil?).to eq false
+            end
           end
 
           it "should update public access" do
+            SingleChangeTest.execute_sync(
+              local: {"public" => !DEFAULT_PUBLIC_FACING},
+            ) do |client|
+              expect(client.method_calls.size).to eq 3
+              expect(client.spied_method(:stub_responses).nil?).to eq false
+              expect(client.spied_method(:describe_db_instances).nil?).to eq false
+              update = client.spied_method(:modify_db_instance)
+              expect(update.nil?).to eq false
+              expect(update.num_calls).to eq 1
+              expect(update.arguments.first).to eq ({
+                db_instance_identifier: "cumulus-test-instance",
+                apply_immediately: true,
+                publicly_accessible: !DEFAULT_PUBLIC_FACING
+              })
+            end
           end
 
           it "should update the backup period" do
+            SingleChangeTest.execute_sync(
+              local: {"backup_period" => DEFAULT_BACKUP_PERIOD - 1},
+            ) do |client|
+              expect(client.method_calls.size).to eq 3
+              expect(client.spied_method(:stub_responses).nil?).to eq false
+              expect(client.spied_method(:describe_db_instances).nil?).to eq false
+              update = client.spied_method(:modify_db_instance)
+              expect(update.nil?).to eq false
+              expect(update.num_calls).to eq 1
+              expect(update.arguments.first).to eq ({
+                db_instance_identifier: "cumulus-test-instance",
+                apply_immediately: true,
+                preferred_backup_window: DEFAULT_BACKUP_WINDOW,
+                backup_retention_period: DEFAULT_BACKUP_PERIOD - 1
+              })
+            end
           end
 
           it "should update the backup window" do
+            SingleChangeTest.execute_sync(
+              local: {"backup_window" => SECONDARY_BACKUP_WINDOW},
+            ) do |client|
+              expect(client.method_calls.size).to eq 3
+              expect(client.spied_method(:stub_responses).nil?).to eq false
+              expect(client.spied_method(:describe_db_instances).nil?).to eq false
+              update = client.spied_method(:modify_db_instance)
+              expect(update.nil?).to eq false
+              expect(update.num_calls).to eq 1
+              expect(update.arguments.first).to eq ({
+                db_instance_identifier: "cumulus-test-instance",
+                apply_immediately: true,
+                preferred_backup_window: SECONDARY_BACKUP_WINDOW,
+                backup_retention_period: DEFAULT_BACKUP_PERIOD
+              })
+            end
           end
 
           it "should update automatic upgrades" do
+            SingleChangeTest.execute_sync(
+              local: {"auto_upgrade" => !DEFAULT_AUTO_UPGRADE},
+            ) do |client|
+              expect(client.method_calls.size).to eq 3
+              expect(client.spied_method(:stub_responses).nil?).to eq false
+              expect(client.spied_method(:describe_db_instances).nil?).to eq false
+              update = client.spied_method(:modify_db_instance)
+              expect(update.nil?).to eq false
+              expect(update.num_calls).to eq 1
+              expect(update.arguments.first).to eq ({
+                db_instance_identifier: "cumulus-test-instance",
+                apply_immediately: true,
+                preferred_maintenance_window: DEFAULT_UPGRADE_WINDOW,
+                auto_minor_version_upgrade: !DEFAULT_AUTO_UPGRADE
+              })
+            end
           end
 
           it "should update the upgrade window" do
+            SingleChangeTest.execute_sync(
+              local: {"upgrade_window" => SECONDARY_UPGRADE_WINDOW},
+            ) do |client|
+              expect(client.method_calls.size).to eq 3
+              expect(client.spied_method(:stub_responses).nil?).to eq false
+              expect(client.spied_method(:describe_db_instances).nil?).to eq false
+              update = client.spied_method(:modify_db_instance)
+              expect(update.nil?).to eq false
+              expect(update.num_calls).to eq 1
+              expect(update.arguments.first).to eq ({
+                db_instance_identifier: "cumulus-test-instance",
+                apply_immediately: true,
+                preferred_maintenance_window: SECONDARY_UPGRADE_WINDOW,
+                auto_minor_version_upgrade: DEFAULT_AUTO_UPGRADE
+              })
+            end
           end
 
         end

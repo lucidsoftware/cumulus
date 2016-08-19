@@ -115,7 +115,7 @@ module Cumulus
         end.reject {|v| v.nil?}.reduce(&:merge)
 
         # make all the updates in the same call
-        RDS::client.modify_db_instance({db_instance_identifier: local.name, apply_immediately: true}.merge(all_changes))
+        RDS::client.modify_db_instance({db_instance_identifier: local.name, apply_immediately: true}.merge(all_changes)) unless all_changes.nil?
       end
 
       def create(local)
