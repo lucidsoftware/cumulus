@@ -63,7 +63,6 @@ module Cumulus
 
       def update(local, diffs)
         aws_instance = RDS::named_instances[local.name]
-        client = Aws::RDS::Client.new(Configuration.instance.client)
 
         all_changes = diffs.map do |diff|
           case diff.type
@@ -116,7 +115,7 @@ module Cumulus
         end.reject {|v| v.nil?}.reduce(&:merge)
 
         # make all the updates in the same call
-        client.modify_db_instance({db_instance_identifier: local.name, apply_immediately: true}.merge(all_changes))
+        RDS::client.modify_db_instance({db_instance_identifier: local.name, apply_immediately: true}.merge(all_changes))
       end
 
       def create(local)
@@ -141,11 +140,7 @@ module Cumulus
         end
 
         master_password = unless local.master_username.nil?
-          # prompt for the user's password (discreetly)
-          print "enter a password for #{local.master_username}: "
-          password = STDIN.noecho(&:gets).chomp
-          puts "\n"
-          password
+          password_prompt(local.master_username)
         else
           nil
         end
@@ -160,9 +155,7 @@ module Cumulus
           sg_id
         end
 
-        client = Aws::RDS::Client.new(Configuration.instance.client)
-
-        client.create_db_instance({
+        RDS::client.create_db_instance({
           db_name: local.database,
           db_instance_identifier: local.name, # required
           allocated_storage: local.storage_size,
@@ -182,6 +175,16 @@ module Cumulus
           storage_type: local.storage_type,
         }.reject { |k, v| v.nil? })
 
+      end
+
+      private
+
+      def password_prompt(username)
+        # prompt for the user's password (discreetly)
+        print "enter a password for #{username}: "
+        password = STDIN.noecho(&:gets).chomp
+        puts "\n"
+        password
       end
 
     end

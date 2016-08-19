@@ -19,7 +19,7 @@ require "json"
 require "rds/manager/Manager"
 require "rds/RDS"
 require "util/DeepMerge"
-
+require "mocks/ClientSpy"
 
 module Cumulus
   module Test
@@ -31,8 +31,18 @@ module Cumulus
           def reset_instances
             @instances = nil
           end
+
+          def client=(client)
+            @@client = client
+          end
         end
       end
+    end
+
+    # Monkey patch Cumulus::RDS::Manager so that a user doesn't have to enter a password for new users
+    DEFAULT_PASSWORD = "passwordforrdstest"
+    Cumulus::RDS::Manager.send(:define_method, :password_prompt) do |*args|
+      DEFAULT_PASSWORD
     end
 
     module RDS
@@ -126,6 +136,25 @@ module Cumulus
         test.call(diffs)
       end
 
+      # Public: Sync stubbed local configuration and stubbed AWS configuration.
+      #
+      # config - a Hash that contains two values, :local and :aws, which contain
+      #   the values to stub out.
+      #     :local contains :queues which is an Array of queues to stub the
+      #       directory with, and :policies, which is an Array of policy files
+      #       to stub out.
+      #     :aws is a hash of method names from the AWS Client to stub mapped
+      #       to the value the AWS Client should return
+      # test - a block that tests the AWS Client after the syncing has been done
+      def self.do_sync(config, &test)
+        self.prepare_test(config)
+
+        # get the diffs and call the tester to determine the result of the test
+        manager = Cumulus::RDS::Manager.new
+        manager.sync
+        test.call(Cumulus::RDS::client)
+      end
+
       # Public: Returns a mocked rds instance object similar to what the aws client would return
       def self.aws_instance(name, overrides = nil)
         overrides = if overrides.nil?
@@ -168,6 +197,13 @@ module Cumulus
         end
 
         Cumulus::RDS::reset_instances
+      end
+
+      def self.client_spy
+        unless Cumulus::RDS::client.respond_to? :have_received
+          Cumulus::RDS::client = ClientSpy.new(Cumulus::RDS::client)
+        end
+        Cumulus::RDS::client.clear_spy
       end
     end
   end
