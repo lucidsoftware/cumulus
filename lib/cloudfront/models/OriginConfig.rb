@@ -1,4 +1,6 @@
 require "conf/Configuration"
+require "cloudfront/models/CustomHeaderConfig"
+require "cloudfront/models/CustomHeaderDiff"
 require "cloudfront/models/CustomOriginConfig"
 require "cloudfront/models/OriginDiff"
 require "cloudfront/models/OriginSslProtocols"
@@ -15,6 +17,7 @@ module Cumulus
       attr_reader :origin_path
       attr_reader :s3_access_origin_identity
       attr_reader :custom_origin_config
+      attr_reader :custom_origin_headers
 
       # Public: Constructor
       #
@@ -37,6 +40,13 @@ module Cumulus
               )
             )
           end
+          @custom_headers = if json["custom-headers"].nil?
+            []
+          else
+            json["custom-headers"].map do |name, value|
+              CustomHeaderConfig.new(name, value)
+            end
+          end
           @name = @id
         end
       end
@@ -56,6 +66,11 @@ module Cumulus
             )
           )
         end
+        @custom_headers = if aws.custom_headers
+          aws.custom_headers.items.map do |header|
+            CustomHeaderConfig.new(header.header_name, header.header_value)
+          end
+        end
         @name = @id
       end
 
@@ -68,7 +83,10 @@ module Cumulus
           "domain-name" => @domain_name,
           "origin-path" => @origin_path,
           "s3-origin-access-identity" => @s3_access_origin_identity,
-          "custom-origin-config" => if @custom_origin_config.nil? then nil else @custom_origin_config.to_local end
+          "custom-origin-config" => if @custom_origin_config.nil? then nil else @custom_origin_config.to_local end,
+          "custom-headers" => Hash[@custom_headers.map do |header|
+              [header.name, header.value]
+            end]
         }.reject { |k, v| v.nil? }
       end
 
@@ -94,7 +112,11 @@ module Cumulus
                 }
               end
             }
-          end
+          end,
+         custom_headers: {
+           quantity: @custom_headers.size,
+           items: if @custom_headers.empty? then nil else @custom_headers.map(&:to_aws) end
+         }
         }
       end
 
@@ -136,7 +158,42 @@ module Cumulus
           diffs << OriginDiff.custom(custom_diffs, aws, self) if !custom_diffs.empty?
         end
 
+        header_diffs = diff_custom_headers(aws.custom_headers.items)
+        if !header_diffs.empty?
+          diffs << OriginDiff.headers(header_diffs, self)
+        end
+
         diffs.flatten
+      end
+
+      # Internal : Produce an array of difference between local and remove custom origin headers
+      #
+      # aws_headers - the custom origin headers
+      #
+      # Returns an array of CustomHeaderDiffs that were found
+      def diff_custom_headers(aws_headers)
+        diffs = []
+
+        #map headers to their names
+        aws = Hash[aws_headers.map { |o| [o.name, o] }]
+        local = Hash[@custom_headers.map { |o| [o.name, o] }]
+
+        # find headers not configured locally
+        aws.each do |header_name, header|
+          if !local.include?(header_name)
+            diffs << CustomHeaderDiff.unmanaged(header)
+          end
+        end
+
+        local.each do |header_name, header|
+          if !aws.include?(header_name)
+            diffs << CustomHeaderDiff.added(header)
+          else
+            diffs += header.diff(aws[header_name])
+          end
+        end
+
+        diffs
       end
 
     end

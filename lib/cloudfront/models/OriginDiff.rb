@@ -12,6 +12,7 @@ module Cumulus
       PATH = Common::DiffChange::next_change_id
       S3 = Common::DiffChange::next_change_id
       CUSTOM = Common::DiffChange::next_change_id
+      HEADERS = Common::DiffChange::next_change_id
     end
 
     # Public: Represents a single difference between local configuration and AWS
@@ -20,6 +21,7 @@ module Cumulus
       include OriginChange
 
       attr_accessor :custom_changes
+      attr_accessor :changed_headers
 
       # Public: Static method that produces a diff representing changes in custom origin
       #
@@ -30,6 +32,12 @@ module Cumulus
       def self.custom(changes, aws, local)
         diff = OriginDiff.new(CUSTOM, aws, local)
         diff.custom_changes = changes
+        diff
+      end
+
+      def self.headers(changes, local)
+        diff = OriginDiff.new(HEADERS, nil, local)
+        diff.changed_headers = changes
         diff
       end
 
@@ -61,6 +69,20 @@ module Cumulus
               c.to_s.lines.map { |l| "\t#{l.chomp}"}
             end).join("\n"),
           ].join("\n")
+        when HEADERS
+          [
+            "custom headers:",
+            @changed_headers.map do |h|
+              if h.type == ADD or h.type == UNMANAGED
+                h.to_s.lines.map{ |l| "\t#{l}".chomp("\n") }
+              else
+                [
+                  "\t#{o.local_name}",
+                  h.to_s.lines.map { |l| "\t\t#{l}".chomp("\n")}
+                ]
+              end
+            end
+          ].flatten.join("\n")
         end
       end
 
