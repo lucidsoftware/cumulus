@@ -22,7 +22,7 @@ module Cumulus
       def to_aws
         {
           header_name: self.name,
-          header_value: self.name
+          header_value: self.value
         }
       end
     end
