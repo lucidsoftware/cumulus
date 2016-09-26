@@ -105,6 +105,8 @@ module Cumulus
             if e.message =~ /OriginSslProtocols is required/
               puts Colors.red("Distribution #{local.name} must specify $.custom-origin-config.origin-ssl-protocols when \"protocol-policy\" is \"https-only\". Distribution not updated")
               StatusCodes.set_status(StatusCodes::EXCEPTION)
+            else
+              throw e
             end
           end
         end
