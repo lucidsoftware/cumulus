@@ -77,7 +77,7 @@ module Cumulus
                 h.to_s.lines.map{ |l| "\t#{l}".chomp("\n") }
               else
                 [
-                  "\t#{o.local_name}",
+                  "\t#{h.local_name}",
                   h.to_s.lines.map { |l| "\t\t#{l}".chomp("\n")}
                 ]
               end

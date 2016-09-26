@@ -18,13 +18,13 @@ module Cumulus
         when NAME
           [
             "name:",
-            Colors.aws_changes("\tAWS - #{@aws.name}"),
+            Colors.aws_changes("\tAWS - #{@aws.header_name}"),
             Colors.local_changes("\tLocal - #{@local.name}")
           ].join("\n")
         when VALUE
           [
             "value:",
-            Colors.aws_changes("\tAWS - #{@aws.value}"),
+            Colors.aws_changes("\tAWS - #{@aws.header_value}"),
             Colors.local_changes("\tLocal - #{@local.value}")
           ].join("\n")
         end
@@ -35,7 +35,7 @@ module Cumulus
       end
 
       def aws_name
-        @aws.name
+        @aws.header_name
       end
 
       def local_name

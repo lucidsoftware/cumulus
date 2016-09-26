@@ -4,6 +4,7 @@ require "cloudfront/models/CustomHeaderDiff"
 require "cloudfront/models/CustomOriginConfig"
 require "cloudfront/models/OriginDiff"
 require "cloudfront/models/OriginSslProtocols"
+require "util/AwsUtil"
 
 require "json"
 
@@ -66,10 +67,8 @@ module Cumulus
             )
           )
         end
-        @custom_headers = if aws.custom_headers
-          aws.custom_headers.items.map do |header|
-            CustomHeaderConfig.new(header.header_name, header.header_value)
-          end
+        @custom_headers = (aws.custom_headers.items || []).map do |header|
+          CustomHeaderConfig.new(header.header_name, header.header_value)
         end
         @name = @id
       end
@@ -113,10 +112,7 @@ module Cumulus
               end
             }
           end,
-         custom_headers: {
-           quantity: @custom_headers.size,
-           items: if @custom_headers.empty? then nil else @custom_headers.map(&:to_aws) end
-         }
+         custom_headers: AwsUtil.aws_array(@custom_headers.map(&:to_aws))
         }
       end
 
@@ -175,7 +171,7 @@ module Cumulus
         diffs = []
 
         #map headers to their names
-        aws = Hash[aws_headers.map { |o| [o.name, o] }]
+        aws = Hash[aws_headers.map { |o| [o.header_name, o] }]
         local = Hash[@custom_headers.map { |o| [o.name, o] }]
 
         # find headers not configured locally

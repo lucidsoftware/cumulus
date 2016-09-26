@@ -14,6 +14,7 @@ module Cumulus
       QUERY = Common::DiffChange::next_change_id
       COOKIES = Common::DiffChange::next_change_id
       COOKIES_WHITELIST = Common::DiffChange::next_change_id
+      QUERY_STRING_CACHE_KEYS = Common::DiffChange::next_change_id
       HEADERS = Common::DiffChange::next_change_id
       SIGNERS = Common::DiffChange::next_change_id
       VIEWER_PROTOCOL = Common::DiffChange::next_change_id
@@ -32,6 +33,7 @@ module Cumulus
       include CacheBehaviorChange
 
       attr_accessor :cookies
+      attr_accessor :query_string_cache_keys
       attr_accessor :headers
       attr_accessor :signers
       attr_accessor :allowed_methods
@@ -47,6 +49,20 @@ module Cumulus
       def self.cookies_whitelist(added_cookies, removed_cookies, local)
         diff = CacheBehaviorDiff.new(COOKIES_WHITELIST, nil, local)
         diff.cookies = Common::ListChange.new(added_cookies, removed_cookies)
+        diff
+      end
+
+      # Public: Static method that produces a diff representing changes in CacheBehavior query string
+      # cache keys
+      #
+      # added_keys - the keys that were added
+      # removed_keys - the keys that were removed
+      # local - the local configuration for the zone
+      #
+      # Returns the diff
+      def self.query_string_cache_keys(added_keys, removed_keys, local)
+        diff = CacheBehaviorDiff.new(QUERY_STRING_CACHE_KEYS, nil, local)
+        diff.query_string_cache_keys = Common::ListChange.new(added_keys, removed_keys)
         diff
       end
 
@@ -133,6 +149,12 @@ module Cumulus
             "whitelisted forwarded cookies:",
             cookies.removed.map{ |removed| Colors.removed("\t#{removed}")},
             cookies.added.map{ |added| Colors.added("\t#{added}")},
+          ].flatten.join("\n")
+        when QUERY_STRING_CACHE_KEYS
+          [
+            "Query String Cache Keys:",
+            query_string_cache_keys.removed.map{ |removed| Colors.removed("\t#{removed}") },
+            query_string_cache_keys.added.map{ |added| Colors.added("\t#{added}")}
           ].flatten.join("\n")
         when HEADERS
           [

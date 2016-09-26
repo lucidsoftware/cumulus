@@ -1,5 +1,6 @@
 require "conf/Configuration"
 require "cloudfront/models/CacheBehaviorDiff"
+require "util/AwsUtil"
 
 require "json"
 
@@ -37,6 +38,7 @@ module Cumulus
           @path_pattern = json["path-pattern"] if !default
           @target_origin_id = json["target-origin-id"]
           @forward_query_strings = json["forward-query-strings"]
+          @forward_query_string_cache_keys = json["forward-query-strings-cache-keys"] || []
           @forwarded_cookies = json["forwarded-cookies"]
           @forwarded_cookies_whitelist = json["forwarded-cookies-whitelist"] || []
           @forward_headers = json["forward-headers"] || []
@@ -57,6 +59,7 @@ module Cumulus
         @path_pattern = aws.path_pattern if !default
         @target_origin_id = aws.target_origin_id
         @forward_query_strings = aws.forwarded_values.query_string
+        @forward_query_string_cache_keys =  aws.forwarded_valued.query_string_cache_keys.items || []
         @forwarded_cookies = aws.forwarded_values.cookies.forward
         @forwarded_cookies_whitelist = if aws.forwarded_values.cookies.whitelisted_names.nil? then [] else aws.forwarded_values.cookies.whitelisted_names.items end
         @forward_headers = if aws.forwarded_values.headers.nil? then [] else aws.forwarded_values.headers.items end
@@ -79,6 +82,7 @@ module Cumulus
           "path-pattern" => @path_pattern,
           "target-origin-id" => @target_origin_id,
           "forward-query-strings" => @forward_query_strings,
+          "forward-query-string-cache-keys" => @forward_query_string_cache_keys,
           "forwarded-cookies" => @forwarded_cookies,
           "forwarded-cookies-whitelist" => @forwarded_cookies_whitelist,
           "forward-headers" => @forward_headers,
@@ -103,22 +107,17 @@ module Cumulus
           target_origin_id: @target_origin_id,
           forwarded_values: {
             query_string: @forward_query_strings,
+            query_string_cache_keys: AwsUtil.aws_array(@forward_query_string_cache_keys),
             cookies: {
               forward: @forwarded_cookies,
-              whitelisted_names: {
-                quantity: @forwarded_cookies_whitelist.size,
-                items: if @forwarded_cookies_whitelist.empty? then nil else @forwarded_cookies_whitelist end
-              }
+              whitelisted_names: AwsUtil.aws_array(@forwarded_cookies_whitelist),
             },
-            headers: {
-              quantity: @forward_headers.size,
-              items: if @forward_headers.empty? then nil else @forward_headers end
-            }
+            headers: AwsUtil.aws_array(@forward_headers)
           },
           trusted_signers: {
             enabled: !@trusted_signers.empty?,
             quantity: @trusted_signers.size,
-            items: if @trusted_signers.empty? then nil else @trusted_signers end
+            items: AwsUtil.array_or_nil(@trusted_signers)
           },
           viewer_protocol_policy: @viewer_protocol_policy,
           min_ttl: @min_ttl,
@@ -127,11 +126,8 @@ module Cumulus
           smooth_streaming: @smooth_streaming,
           allowed_methods: {
             quantity: @allowed_methods.size,
-            items: if @allowed_methods.empty? then nil else @allowed_methods end,
-            cached_methods: {
-              quantity: @cached_methods.size,
-              items: if @cached_methods.empty? then nil else @cached_methods end
-            }
+            items: AwsUtil.array_or_nil(@allowed_methods),
+            cached_methods: AwsUtil.aws_array(@cached_methods)
           },
           compress: @compress
         }
@@ -175,6 +171,13 @@ module Cumulus
         removed_cookies = (aws_whitelist_cookies - @forwarded_cookies_whitelist)
         if !added_cookies.empty? or !removed_cookies.empty?
           diffs << CacheBehaviorDiff.cookies_whitelist(added_cookies, removed_cookies, self)
+        end
+
+        aws_query_string_cache_keys = aws.forwarded_values.query_string_cache_keys.items || []
+        added_keys = (@forward_query_string_cache_keys - aws_query_string_cache_keys)
+        removed_keys = (aws_query_string_cache_keys - @forward_query_string_cache_keys)
+        if !(added_keys.empty? && removed_keys.empty?)
+          diffs << CacheBehaviorDiff.query_string_cache_keys(added_keys, removed_keys, self)
         end
 
         aws_headers = if aws.forwarded_values.headers.nil? then [] else aws.forwarded_values.headers.items end
