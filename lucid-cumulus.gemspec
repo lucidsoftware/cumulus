@@ -15,7 +15,7 @@ Gem::Specification.new do |s|
   s.executables               = s.files.grep(%r{^bin/}) { |f| File.basename(f) }
   s.license                   = "Apache-2.0"
 
-  s.add_runtime_dependency "aws-sdk", "2.2.30"
+  s.add_runtime_dependency "aws-sdk", "~> 2.6.3"
   s.add_runtime_dependency "parse-cron", "~> 0.1.4"
   s.add_runtime_dependency "deepsort", "~> 0.1"
 end
