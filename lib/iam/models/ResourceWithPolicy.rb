@@ -40,10 +40,10 @@ module Cumulus
         if !json.nil?
           @name = name
           @json = json
-          @attached_policies = json["policies"]["attached"]
-          @statics = json["policies"]["static"]
-          @templates = json["policies"]["templates"]
-          @inlines = json["policies"]["inlines"]
+          @attached_policies = json["policies"]["attached"] || []
+          @statics = json["policies"]["static"] || []
+          @templates = json["policies"]["templates"] || []
+          @inlines = json["policies"]["inlines"] || []
         else
           @name = nil
           @attached_policies = []
