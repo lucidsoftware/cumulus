@@ -224,16 +224,24 @@ module Cumulus
       end
 
       def init_aws_resources
-        aws = @route53.list_hosted_zones.hosted_zones.map do |zone|
-          vpc = if zone.config.private_zone
-            details = @route53.get_hosted_zone(id: zone.id)
-            details.vp_cs.map { |v| Vpc.new(v.vpc_id, v.vpc_region) }
-          else
-            nil
+        more = true
+        marker = nil
+        aws = {}
+        while more do
+          result = @route53.list_hosted_zones(marker: marker)
+          result.hosted_zones.each do |zone|
+            vpc = if zone.config.private_zone
+                    details = @route53.get_hosted_zone(id: zone.id)
+                    details.vp_cs.map { |v| Vpc.new(v.vpc_id, v.vpc_region) }
+                  else
+                    nil
+                  end
+            aws[zone.id] = AwsZone.new(zone.id, zone.name.chomp("."), zone.config, vpc, @route53)
           end
-          AwsZone.new(zone.id, zone.name.chomp("."), zone.config, vpc, @route53)
+          marker = result.next_marker
+          more = result.is_truncated
         end
-        Hash[aws.map { |z| [z.id, z] }]
+        aws
       end
 
     end
