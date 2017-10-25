@@ -31,4 +31,15 @@ module AwsUtil
       arr
     end
   end
+
+  def self.list_paged_results
+    more = true
+    marker = nil
+    all_results = []
+    while more do
+      (result, more, marker) = yield(marker)
+      all_results += result
+    end
+    all_results
+  end
 end
