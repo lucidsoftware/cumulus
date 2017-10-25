@@ -38,7 +38,11 @@ module Cumulus
       #
       # Returns the Array of AWS roles
       def init_aws_roles
-        @iam.list_roles().roles.map do |role|
+        roles = AwsUtil.list_paged_results do |marker|
+          response = @iam.list_roles(marker: marker)
+          [response, response.roles]
+        end
+        roles.map do |role|
           Aws::IAM::Role.new(role.role_name, { :client => @iam })
         end
       end
