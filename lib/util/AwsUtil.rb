@@ -31,4 +31,16 @@ module AwsUtil
       arr
     end
   end
+
+  def self.list_paged_results
+    more = true
+    marker = nil
+    all_results = []
+    while more do
+      (response, result) = yield(marker)
+      more = response.is_truncated
+      marker = response.marker
+      all_results += result
+    end
+    all_results
 end
