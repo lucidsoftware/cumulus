@@ -361,14 +361,14 @@ module Cumulus
       # acl_map - a map of network acl ids to names to substitute fo rin the vpc config
       def migrate_vpcs(dir, rt_map, subnet_map, acl_map)
         puts Colors.blue("Migrating vpcs to #{dir}")
-        Hash[EC2::named_vpcs.map do |name, vpc|
+        EC2::named_vpcs.each do |name, vpc|
           puts "Migrating vpc #{name}"
 
           cumulus_vpc = (VpcConfig.new(name)).populate!(vpc, rt_map, subnet_map, acl_map)
 
           json = JSON.pretty_generate(cumulus_vpc.to_hash)
           File.open("#{dir}/#{name}.json", "w") { |f| f.write(json) }
-        end]
+        end
       end
 
       private
