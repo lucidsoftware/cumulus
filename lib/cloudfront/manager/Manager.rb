@@ -96,7 +96,7 @@ module Cumulus
           update_params = {
             id: local.id,
             if_match: full_aws_response.etag,
-            distribution_config: aws_config.to_h.merge(updated_config)
+            distribution_config: aws_config.to_h.merge(updated_config),
           }
 
           begin

@@ -12,6 +12,8 @@ module Cumulus
       HTTPS = Common::DiffChange::next_change_id
       POLICY = Common::DiffChange::next_change_id
       SSL_PROTOCOLS = Common::DiffChange::next_change_id
+      READ_TIMEOUT = Common::DiffChange::next_change_id
+      KEEPALIVE_TIMEOUT = Common::DiffChange::next_change_id
     end
 
     # Public: Represents a single difference between local configuration and AWS
@@ -60,6 +62,18 @@ module Cumulus
             (@ssl_protocol_changes.flat_map do |c|
               c.to_s.lines.map { |l| "\t#{l.chomp}" }
             end).join("\n"),
+          ].join("\n")
+        when READ_TIMEOUT
+          [
+            "origin read timeout:",
+            Colors.aws_changes("\tAWS -#{@aws}"),
+            Colors.local_changes("\tLocal - #{@local}"),
+          ].join("\n")
+         when KEEPALIVE_TIMEOUT
+          [
+            "origin keepalive timeout:",
+            Colors.aws_changes("\tAWS -#{@aws}"),
+            Colors.local_changes("\tLocal - #{@local}"),
           ].join("\n")
         end
       end

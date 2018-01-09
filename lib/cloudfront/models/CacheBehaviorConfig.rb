@@ -27,6 +27,7 @@ module Cumulus
       attr_reader :allowed_methods
       attr_reader :cached_methods
       attr_reader :compress
+      attr_reader :lambda_function_associations
 
       # Public: Constructor
       #
@@ -51,6 +52,7 @@ module Cumulus
           @allowed_methods = json["allowed-methods"] || []
           @cached_methods = json["cached-methods"] || []
           @compress = json["compress"] || false
+          @lambda_function_associations = json["lambda_function_associations"] || []
         end
       end
 
@@ -72,6 +74,7 @@ module Cumulus
         @allowed_methods = aws.allowed_methods.items
         @cached_methods = aws.allowed_methods.cached_methods.items
         @compress = aws.compress
+        @lambda_function_associations = if aws.lambda_function_associations.nil? then [] else aws.lambda_function_associations.items end
       end
 
       # Public: Get the config as a hash
@@ -94,7 +97,8 @@ module Cumulus
           "smooth-streaming" => @smooth_streaming,
           "allowed-methods" => @allowed_methods,
           "cached-methods" => @cached_methods,
-          "compress" => @compress
+          "compress" => @compress,
+          "lambda_function_associations" => @lambda_function_associations
         }.reject { |k, v| v.nil? }
       end
 
@@ -129,7 +133,8 @@ module Cumulus
             items: AwsUtil.array_or_nil(@allowed_methods),
             cached_methods: AwsUtil.aws_array(@cached_methods)
           },
-          compress: @compress
+          compress: @compress,
+          lambda_function_associations: AwsUtil.aws_array(@lambda_function_associations)
         }
       end
 
@@ -230,6 +235,13 @@ module Cumulus
 
         if @compress != aws.compress
           diffs << CacheBehaviorDiff.new(CacheBehaviorChange::COMPRESS, aws, self)
+        end
+
+        aws_lambda_function_assocs = if aws.lambda_function_associations.nil? then [] else aws.lambda_function_associations.items end
+        added_assocs = (@lambda_function_associations - aws_lambda_function_assocs)
+        removed_assocs = (aws_lambda_function_assocs - @lambda_function_associations)
+        unless added_allowed_methods.empty? and removed_allowed_methods.empty?
+          diffs << CacheBehaviorDiff.lambda_function_associations(added_assocs, removed_assocs, self)
         end
 
         diffs

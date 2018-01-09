@@ -38,7 +38,9 @@ module Cumulus
               json["custom-origin-config"]["protocol-policy"],
               json["custom-origin-config"]["origin-ssl-protocols"] && OriginSslProtocols.new(
                 json["custom-origin-config"]["origin-ssl-protocols"]
-              )
+              ),
+              json["custom-origin-config"]["origin-read-timeout"] || 30,
+              json["custom-origin-config"]["origin-keepalive-timeout"] || 5
             )
           end
           @custom_headers = if json["custom-headers"].nil?
@@ -104,6 +106,8 @@ module Cumulus
               http_port: @custom_origin_config.http_port,
               https_port: @custom_origin_config.https_port,
               origin_protocol_policy: @custom_origin_config.protocol_policy,
+              origin_read_timeout: @custom_origin_config.origin_read_timeout,
+              origin_keepalive_timeout: @custom_origin_config.origin_keepalive_timeout,
               origin_ssl_protocols: if @custom_origin_config.origin_ssl_protocols
                 {
                   quantity: @custom_origin_config.origin_ssl_protocols.quantity,

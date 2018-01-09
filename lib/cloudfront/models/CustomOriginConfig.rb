@@ -2,7 +2,8 @@ require "cloudfront/models/CustomOriginDiff"
 
 module Cumulus
   module CloudFront
-    CustomOriginConfig = Struct.new(:http_port, :https_port, :protocol_policy, :origin_ssl_protocols) do
+    CustomOriginConfig = Struct.new(:http_port, :https_port, :protocol_policy, :origin_ssl_protocols, 
+                                    :origin_read_timeout, :origin_keepalive_timeout) do
 
       def diff(aws)
         diffs = []
@@ -20,6 +21,16 @@ module Cumulus
         aws_protocol = aws && aws.origin_protocol_policy
         if self.protocol_policy != aws_protocol
           diffs << CustomOriginDiff.new(CustomOriginChange::POLICY, aws_protocol, self.protocol_policy)
+        end
+
+        aws_read_timeout = aws && aws.origin_read_timeout
+        if self.origin_read_timeout != aws_read_timeout
+          diffs << CustomOriginDiff.new(CustomOriginChange::READ_TIMEOUT, aws_read_timeout, self.origin_read_timeout)
+        end
+
+        aws_keepalive_timeout = aws && aws.origin_keepalive_timeout
+        if self.origin_keepalive_timeout != aws_keepalive_timeout
+          diffs << CustomOriginDiff.new(CustomOriginChange::KEEPALIVE_TIMEOUT, aws_keepalive_timeout, self.origin_keepalive_timeout)
         end
 
         if self.origin_ssl_protocols
@@ -41,6 +52,8 @@ module Cumulus
           "http-port" => self.http_port,
           "https-port" => self.https_port,
           "protocol-policy" => self.protocol_policy,
+          "origin_read_timeout" => self.origin_read_timeout,
+          "origin_keepalive_timeout" => self.origin_keepalive_timeout,
           "origin-ssl-protocols" => if self.origin_ssl_protocols
             self.origin_ssl_protocols.to_local
           end

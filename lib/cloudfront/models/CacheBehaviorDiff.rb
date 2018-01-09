@@ -25,6 +25,7 @@ module Cumulus
       METHODS_ALLOWED = Common::DiffChange::next_change_id
       METHODS_CACHED = Common::DiffChange::next_change_id
       COMPRESS = Common::DiffChange::next_change_id
+      LAMBDA_FUNCTION_ASSOCIATIONS = Common::DiffChange::next_change_id
     end
 
     # Public: Represents a single difference between local configuration and AWS
@@ -38,6 +39,7 @@ module Cumulus
       attr_accessor :signers
       attr_accessor :allowed_methods
       attr_accessor :cached_methods
+      attr_accessor :lambda_function_associations
 
       # Public: Static method that produces a diff representing changes in CacheBehavior cookies whitelist
       #
@@ -115,6 +117,19 @@ module Cumulus
       def self.cached_methods(added_cached_methods, removed_cached_methods, local)
         diff = CacheBehaviorDiff.new(METHODS_CACHED, nil, local)
         diff.cached_methods = Common::ListChange.new(added_cached_methods, removed_cached_methods)
+        diff
+      end
+
+      # Public: Static method that produces a diff representing changes in CacheBehavior lambda function associations
+      #
+      # added_assocs   - the cached methods that were added
+      # removed_assocs - the cached methods that were removed
+      # local          - the local configuration for the zone
+      #
+      # Returns the diff
+      def self.lambda_function_associations(added_assocs, removed_assocs, local)
+        diff = CachedBehaviorDiff.new(LAMBDA_FUNCTION_ASSOCIATIONS, nil, local)
+        diff.lambda_function_associations = Common::ListChange.new(added_assocs, removed_assocs)
         diff
       end
 
@@ -215,6 +230,12 @@ module Cumulus
             "compress:",
             Colors.aws_changes("\tAWS - #{@aws.compress}"),
             Colors.local_changes("\tLocal - #{@local.compress}"),
+          ].join("\n")
+        when LAMBDA_FUNCTION_ASSOCIATIONS
+          [
+            "lambda_function_associations",
+            lambda_function_associations.removed.map { |removed| Colors.removed("\t#{removed}")},
+            lambda_function_associations.added.map { |added| Colors.added("\t#{added}") }
           ].join("\n")
         end
       end
