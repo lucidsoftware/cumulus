@@ -34,7 +34,7 @@ module Cumulus
         end
 
         if self.origin_ssl_protocols
-          ssl_protocol_diffs = self.origin_ssl_protocols.diff(aws.origin_ssl_protocols)
+          ssl_protocol_diffs = self.origin_ssl_protocols.diff(aws && aws.origin_ssl_protocols)
         else
           if aws.origin_ssl_protocols && aws.origin_protocol_policy != "http-only"
             ssl_protocol_diffs = OriginSslProtocols.new([]).diff(aws.origin_ssl_protocols)
