@@ -87,6 +87,7 @@ module Cumulus
         update_lifecycle(local.region, local.name, local.lifecycle)
         update_notifications(local.region, local.name, local.notifications)
         update_replication(local.region, local.name, local.replication)
+        update_default_encryption(local.region, local.name, local.default_encryption)
         update_tags(local.region, local.name, local.tags) if !local.tags.empty?
       end
 
@@ -122,6 +123,9 @@ module Cumulus
           elsif diff.type == BucketChange::REPLICATION
             puts Colors.blue("\tupdating replication...")
             update_replication(diff.local.region, diff.local.name, diff.local.replication)
+          elsif diff.type == BucketChange::ENCRYPTION
+            puts Colors.blue("\tupdating default encryption...")
+            update_default_encryption(diff.local.region, diff.local.name, diff.local.default_encryption)
           end
         end
       end
@@ -287,6 +291,23 @@ module Cumulus
           })
         else
           S3.client(region).delete_bucket_replication({
+            bucket: bucket_name
+          })
+        end
+      end
+
+      def update_default_encryption(region, bucket_name, default_encryption)
+        if default_encryption
+          S3.client(region).put_bucket_encryption({
+            bucket: bucket_name,
+            server_side_encryption_configuration: {
+              rules: [{
+                apply_server_side_encryption_by_default: default_encryption.to_aws
+              }]
+            }
+          })
+        else
+          S3.client(region).delete_bucket_encryption({
             bucket: bucket_name
           })
         end

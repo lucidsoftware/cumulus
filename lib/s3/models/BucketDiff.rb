@@ -18,6 +18,7 @@ module Cumulus
       TAGS = Common::DiffChange.next_change_id
       VERSIONING = Common::DiffChange.next_change_id
       WEBSITE = Common::DiffChange.next_change_id
+      ENCRYPTION = Common::DiffChange.next_change_id
     end
 
     # Public: Represents a single difference between local configuration and AWS
@@ -30,6 +31,7 @@ module Cumulus
       attr_accessor :lifecycle
       attr_accessor :notifications
       attr_accessor :replication
+      attr_accessor :default_encryption
 
       # Public: Static method that will create a diff representing changes in grants
       #
@@ -79,6 +81,12 @@ module Cumulus
       def self.replication_changes(replication, local)
         diff = BucketDiff.new(REPLICATION, nil, local)
         diff.replication = replication
+        diff
+      end
+
+      def self.default_encryption_changes(default_encryption, local)
+        diff = BucketDiff.new(ENCRYPTION, nil, local)
+        diff.default_encryption = default_encryption
         diff
       end
 
@@ -132,6 +140,11 @@ module Cumulus
             Colors.aws_changes("\tAWS\t- #{if @aws.website.to_cumulus then @aws.website.to_cumulus else "Not enabled" end}"),
             Colors.local_changes("\tLocal\t- #{if @local.website then @local.website else "Not enabled" end}"),
           ].join("\n")
+        when ENCRYPTION
+          [
+            "Default Encryption:",
+            default_encryption.flat_map { |r| r.to_s.lines.map { |s| "\t#{s}" }.join },
+          ].flatten.join("\n")
         end
       end
 

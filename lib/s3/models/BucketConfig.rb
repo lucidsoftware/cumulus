@@ -10,8 +10,11 @@ require "aws_extensions/s3/BucketVersioning"
 require "aws_extensions/s3/BucketWebsite"
 require "aws_extensions/s3/CORSRule"
 require "aws_extensions/s3/ReplicationConfiguration"
+require "aws_extensions/s3/ServerSideEncryptionByDefault"
 require "s3/loader/Loader"
 require "s3/models/BucketDiff"
+require "s3/models/DefaultEncryptionConfig"
+require "s3/models/DefaultEncryptionDiff"
 require "s3/models/GrantConfig"
 require "s3/models/GrantDiff"
 require "s3/models/LifecycleConfig"
@@ -51,6 +54,8 @@ module Cumulus
     Aws::S3::BucketLifecycle.send(:include, AwsExtensions::S3::BucketLifecycle)
     # Monkey patch ReplicationConfiguration to convert to Cumulus format
     Aws::S3::Types::ReplicationConfiguration.send(:include, AwsExtensions::S3::ReplicationConfiguration)
+    # Monkey patch ServerSideEncryptionByDefault to convert to Cumulus format
+    Aws::S3::Types::ServerSideEncryptionByDefault.send(:include, AwsExtensions::S3::ServerSideEncryptionByDefault)
 
     # Public: An object representing configuration for an S3 bucket
     class BucketConfig
@@ -66,6 +71,7 @@ module Cumulus
       attr_reader :tags
       attr_reader :versioning
       attr_reader :website
+      attr_reader :default_encryption
 
       # Public: Constructor
       #
@@ -92,6 +98,9 @@ module Cumulus
             @grants = Hash[json["permissions"]["grants"].map do |g|
               [g["name"], GrantConfig.new(g)]
             end]
+          end
+          if json["default_encryption"]
+            @default_encryption = DefaultEncryptionConfig.new(json["default_encryption"])
           end
           @website = if json["website"] then WebsiteConfig.new(json["website"]) end
           @logging = if json["logging"] then LoggingConfig.new(json["logging"]) end
@@ -120,6 +129,10 @@ module Cumulus
         @versioning = aws.versioning.enabled
         @replication = aws.replication.to_cumulus rescue nil
         @tags = Hash[aws.tagging.safe_tags.map { |t| [t.key, t.value] }]
+        default_encryption = aws.default_encryption
+        if default_encryption
+          @default_encryption = default_encryption.to_cumulus
+        end
 
         policy = aws.policy.policy_string
         if policy and policy != ""
@@ -168,6 +181,7 @@ module Cumulus
           lifecycle: if !@lifecycle.empty? then @lifecycle.values.map(&:to_h) end,
           versioning: @versioning,
           replication: if @replication then @replication.to_h end,
+          default_encryption: if @default_encryption then @default_encryption end,
           tags: @tags,
         }.reject { |k, v| v.nil? })
       end
@@ -220,6 +234,13 @@ module Cumulus
         replication_diffs = diff_replication(@replication, aws_replication)
         if !replication_diffs.empty?
           diffs << BucketDiff.replication_changes(replication_diffs, self)
+        end
+
+        aws_default_encryption = aws.default_encryption
+        if aws_default_encryption then aws_default_encryption = aws_default_encryption.to_cumulus end
+        default_encryption_diffs = diff_encryption(@default_encryption, aws_default_encryption)
+        if !default_encryption_diffs.empty?
+          diffs << BucketDiff.default_encryption_changes(default_encryption_diffs, self)
         end
 
         diffs
@@ -285,6 +306,26 @@ module Cumulus
           diffs << ReplicationDiff.added(local)
         elsif aws
           diffs << ReplicationDiff.unmanaged(local)
+        end
+
+        diffs.flatten
+      end
+
+      # Internal: Determine changes in default encryption.
+      #
+      # local - the local default encryption configuration
+      # aws   - the aws default encryption configuration
+      #
+      # Returns an array of DefaultEncryptionDiffs representing the differences between
+      # local and AWS configuration.
+      def diff_encryption(local, aws)
+        diffs = []
+        if local and aws
+          diffs << local.diff(aws)
+        elsif local
+          diffs << DefaultEncryptionDiff.added(local)
+        elsif aws
+          diffs << ReplicationDiff.unmanaged(aws)
         end
 
         diffs.flatten

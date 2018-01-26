@@ -28,6 +28,16 @@ module AwsExtensions
       rescue Aws::S3::Errors::ReplicationConfigurationNotFoundError
         nil
       end
+
+      def default_encryption
+        conf = Cumulus::S3::client(location).get_bucket_encryption({bucket: name}).server_side_encryption_configuration
+        conf.rules.find do |r|
+          sse = r.apply_server_side_encryption_by_default
+          sse and break sse
+        end
+      rescue Aws::S3::Errors::ServerSideEncryptionConfigurationNotFoundError
+        nil
+      end
     end
   end
 end
