@@ -325,7 +325,7 @@ module Cumulus
         elsif local
           diffs << DefaultEncryptionDiff.added(local)
         elsif aws
-          diffs << ReplicationDiff.unmanaged(aws)
+          diffs << DefaultEncryptionDiff.unmanaged(aws)
         end
 
         diffs.flatten
