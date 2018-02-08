@@ -128,7 +128,7 @@ module Cumulus
       #
       # Returns the diff
       def self.lambda_function_associations(added_assocs, removed_assocs, local)
-        diff = CachedBehaviorDiff.new(LAMBDA_FUNCTION_ASSOCIATIONS, nil, local)
+        diff = CacheBehaviorDiff.new(LAMBDA_FUNCTION_ASSOCIATIONS, nil, local)
         diff.lambda_function_associations = Common::ListChange.new(added_assocs, removed_assocs)
         diff
       end
