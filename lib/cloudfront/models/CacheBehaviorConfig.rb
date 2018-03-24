@@ -61,7 +61,7 @@ module Cumulus
         @path_pattern = aws.path_pattern if !default
         @target_origin_id = aws.target_origin_id
         @forward_query_strings = aws.forwarded_values.query_string
-        @forward_query_string_cache_keys =  aws.forwarded_value.query_string_cache_keys.items || []
+        @forward_query_string_cache_keys =  aws.forwarded_values.query_string_cache_keys.items || []
         @forwarded_cookies = aws.forwarded_values.cookies.forward
         @forwarded_cookies_whitelist = if aws.forwarded_values.cookies.whitelisted_names.nil? then [] else aws.forwarded_values.cookies.whitelisted_names.items end
         @forward_headers = if aws.forwarded_values.headers.nil? then [] else aws.forwarded_values.headers.items end
