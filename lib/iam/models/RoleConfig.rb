@@ -1,6 +1,7 @@
 require "iam/models/IamDiff"
 require "iam/models/ResourceWithPolicy"
 
+require "deepsort"
 require "json"
 
 module Cumulus
@@ -28,7 +29,7 @@ module Cumulus
 
         aws_policy = JSON.parse(URI.unescape(aws_resource.assume_role_policy_document)).to_s
 
-        if one_line_policy_document != aws_policy
+        if eval(one_line_policy_document).deep_sort != eval(aws_policy).deep_sort
           differences << IamDiff.new(IamChange::POLICY_DOC, aws_resource, self)
         end
 
