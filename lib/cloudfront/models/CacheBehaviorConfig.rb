@@ -85,7 +85,7 @@ module Cumulus
           "path-pattern" => @path_pattern,
           "target-origin-id" => @target_origin_id,
           "forward-query-strings" => @forward_query_strings,
-          "forward-query-string-cache-keys" => @forward_query_string_cache_keys,
+          "forward-query-strings-cache-keys" => @forward_query_string_cache_keys,
           "forwarded-cookies" => @forwarded_cookies,
           "forwarded-cookies-whitelist" => @forwarded_cookies_whitelist,
           "forward-headers" => @forward_headers,
