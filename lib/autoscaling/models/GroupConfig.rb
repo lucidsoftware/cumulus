@@ -5,6 +5,7 @@ require "autoscaling/models/PolicyDiff"
 require "autoscaling/models/ScheduledActionDiff"
 require "autoscaling/models/ScheduledConfig"
 require "common/models/UTCTimeSource"
+require "deepsort"
 require "ec2/EC2"
 
 require "parse-cron"
@@ -131,7 +132,7 @@ module Cumulus
         if @cooldown != aws.default_cooldown
           diffs << AutoScalingDiff.new(AutoScalingChange::COOLDOWN, aws, self)
         end
-        if @enabled_metrics != aws.enabled_metrics
+        if @enabled_metrics.deep_sort != aws.enabled_metrics.map { |k| k.metric }.deep_sort
           diffs << AutoScalingDiff.new(AutoScalingChange::METRICS, aws, self)
         end
         if @check_type != aws.health_check_type

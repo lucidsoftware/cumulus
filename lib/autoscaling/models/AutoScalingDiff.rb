@@ -1,6 +1,7 @@
 require "common/models/Diff"
 require "common/models/TagsDiff"
 require "common/models/ListChange"
+require "deepsort"
 require "util/Colors"
 
 module Cumulus
@@ -146,7 +147,7 @@ module Cumulus
       #
       # Returns an array of metrics
       def metrics_to_disable
-        @aws.enabled_metrics - @local.enabled_metrics
+        @aws.enabled_metrics.map { |k| k.metric }.deep_sort - @local.enabled_metrics.deep_sort
       end
 
       # Public: Get the metrics to enable, ie. are in local configuration, but not
@@ -154,7 +155,7 @@ module Cumulus
       #
       # Returns an array of metrics
       def metrics_to_enable
-        @local.enabled_metrics - @aws.enabled_metrics
+        @local.enabled_metrics.deep_sort - @aws.enabled_metrics.map { |k| k.metric }.deep_sort
       end
 
       # Public: Get the load balancers to remove, ie. are in AWS and not local
