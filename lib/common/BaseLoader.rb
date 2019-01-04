@@ -37,6 +37,7 @@ module Cumulus
           )
         rescue => e
           puts "Unable to load resource #{file}: #{e}"
+          puts e.backtrace
           nil
         end
       end
