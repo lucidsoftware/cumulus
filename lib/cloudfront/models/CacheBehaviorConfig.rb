@@ -28,6 +28,7 @@ module Cumulus
       attr_reader :cached_methods
       attr_reader :compress
       attr_reader :lambda_function_associations
+      attr_reader :field_level_encryption_id
 
       # Public: Constructor
       #
@@ -53,6 +54,7 @@ module Cumulus
           @cached_methods = json["cached-methods"] || []
           @compress = json["compress"] || false
           @lambda_function_associations = json["lambda_function_associations"] || []
+          @field_level_encryption_id = json["field_level_encryption_id"]
         end
       end
 
@@ -75,6 +77,7 @@ module Cumulus
         @cached_methods = aws.allowed_methods.cached_methods.items
         @compress = aws.compress
         @lambda_function_associations = if aws.lambda_function_associations.nil? then [] else aws.lambda_function_associations.items end
+        @field_level_encryption_id = aws.field_level_encryption_id
       end
 
       # Public: Get the config as a hash
@@ -98,7 +101,8 @@ module Cumulus
           "allowed-methods" => @allowed_methods,
           "cached-methods" => @cached_methods,
           "compress" => @compress,
-          "lambda_function_associations" => @lambda_function_associations
+          "lambda_function_associations" => @lambda_function_associations,
+          "field_level_encryption_id" => @field_level_encryption_id
         }.reject { |k, v| v.nil? }
       end
 
@@ -134,7 +138,8 @@ module Cumulus
             cached_methods: AwsUtil.aws_array(@cached_methods)
           },
           compress: @compress,
-          lambda_function_associations: AwsUtil.aws_array(@lambda_function_associations)
+          lambda_function_associations: AwsUtil.aws_array(@lambda_function_associations),
+          field_level_encryption_id: @field_level_encryption_id
         }
       end
 
