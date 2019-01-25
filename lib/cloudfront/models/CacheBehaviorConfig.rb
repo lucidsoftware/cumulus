@@ -54,7 +54,7 @@ module Cumulus
           @cached_methods = json["cached-methods"] || []
           @compress = json["compress"] || false
           @lambda_function_associations = json["lambda_function_associations"] || []
-          @field_level_encryption_id = json["field_level_encryption_id"]
+          @field_level_encryption_id = json["field_level_encryption_id"] || ""
         end
       end
 
@@ -249,6 +249,9 @@ module Cumulus
           diffs << CacheBehaviorDiff.lambda_function_associations(added_assocs, removed_assocs, self)
         end
 
+        if @field_level_encryption_id != aws.field_level_encryption_id
+          diffs << CacheBehaviorDiff.new(CacheBehaviorChange::FIELD_LEVEL_ENCRYPTION_ID, aws, self)
+        end
         diffs
       end
 
