@@ -25,6 +25,7 @@ require "s3/models/ReplicationDiff"
 require "s3/models/WebsiteConfig"
 
 require "json"
+require "aws-sdk-s3"
 
 module Cumulus
   module S3

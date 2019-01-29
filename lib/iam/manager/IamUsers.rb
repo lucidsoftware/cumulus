@@ -2,7 +2,7 @@ require "iam/loader/Loader"
 require "iam/manager/IamResource"
 require "iam/models/UserConfig"
 
-require "aws-sdk"
+require "aws-sdk-iam"
 
 module Cumulus
   module IAM

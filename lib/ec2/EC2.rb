@@ -1,7 +1,7 @@
 require "conf/Configuration"
 require "ec2/models/EbsGroupConfig"
 
-require "aws-sdk"
+require "aws-sdk-ec2"
 
 module Cumulus
   module EC2

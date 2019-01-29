@@ -5,7 +5,6 @@ require "sqs/models/QueueConfig"
 require "sqs/models/QueueDiff"
 require "sqs/SQS"
 
-require "aws-sdk"
 require "json"
 
 module Cumulus

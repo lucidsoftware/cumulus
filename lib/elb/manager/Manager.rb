@@ -6,7 +6,7 @@ require "elb/models/LoadBalancerDiff"
 require "security/SecurityGroups"
 require "util/Colors"
 
-require "aws-sdk"
+require "aws-sdk-elasticloadbalancing"
 require "json"
 
 module Cumulus

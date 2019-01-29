@@ -1,4 +1,4 @@
-require "aws-sdk"
+require "aws-sdk-s3"
 
 module AwsExtensions
   module S3

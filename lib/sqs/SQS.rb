@@ -1,7 +1,7 @@
 require "conf/Configuration"
 require "util/Colors"
 
-require "aws-sdk"
+require "aws-sdk-sqs"
 
 module Cumulus
   module SQS

@@ -1,6 +1,6 @@
 require "conf/Configuration"
 
-require "aws-sdk"
+require "aws-sdk-cloudfront"
 
 module Cumulus
   module CloudFront

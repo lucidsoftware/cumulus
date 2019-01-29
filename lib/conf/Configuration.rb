@@ -1,5 +1,5 @@
 require "json"
-require "aws-sdk"
+require "aws-sdk-core"
 
 module Cumulus
   # Public: A module that contains helper methods for the configuration classes.

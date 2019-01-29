@@ -5,7 +5,7 @@ require "kinesis/loader/Loader"
 require "kinesis/models/StreamConfig"
 require "kinesis/models/StreamDiff"
 
-require "aws-sdk"
+require "aws-sdk-kinesis"
 
 module Cumulus
   module Kinesis

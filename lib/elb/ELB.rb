@@ -1,6 +1,6 @@
 require "conf/Configuration"
 
-require "aws-sdk"
+require "aws-sdk-elasticloadbalancing"
 
 module Cumulus
   module ELB

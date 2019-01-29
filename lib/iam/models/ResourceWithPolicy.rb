@@ -8,6 +8,7 @@ require "deepsort"
 require "aws_extensions/iam/Policy"
 
 require "json"
+require "aws-sdk-iam"
 
 module Cumulus
   module IAM

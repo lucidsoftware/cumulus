@@ -6,7 +6,8 @@ require "route53/models/AliasTarget"
 require "route53/models/RecordDiff"
 require "s3/S3"
 
-require "aws-sdk"
+require "aws-sdk-route53"
+require "aws-sdk-s3"
 
 module Cumulus
   module Route53

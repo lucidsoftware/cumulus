@@ -6,7 +6,7 @@ require "iam/models/RoleConfig"
 require "util/AwsUtil"
 require "util/Colors"
 
-require "aws-sdk"
+require "aws-sdk-iam"
 
 module Cumulus
   module IAM

@@ -1,5 +1,7 @@
 require "s3/models/WebsiteConfig"
 
+require "aws-sdk-s3"
+
 module AwsExtensions
   module S3
     module BucketWebsite

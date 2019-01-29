@@ -6,8 +6,6 @@ require "s3/models/BucketDiff"
 require "s3/S3"
 require "util/Colors"
 
-require "aws-sdk"
-
 module Cumulus
   module S3
     class Manager < Common::Manager

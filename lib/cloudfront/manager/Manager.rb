@@ -6,7 +6,7 @@ require "cloudfront/models/DistributionDiff"
 require "util/Colors"
 require "util/StatusCodes"
 
-require "aws-sdk"
+require "aws-sdk-cloudfront"
 
 module Cumulus
   module CloudFront

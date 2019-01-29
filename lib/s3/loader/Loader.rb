@@ -3,7 +3,7 @@ require "conf/Configuration"
 require "s3/models/BucketConfig"
 require "deepsort"
 
-require "aws-sdk"
+require "aws-sdk-s3"
 
 module Cumulus
   module S3

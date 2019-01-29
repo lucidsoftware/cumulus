@@ -2,8 +2,6 @@ require "common/BaseLoader"
 require "conf/Configuration"
 require "sqs/models/QueueConfig"
 
-require "aws-sdk"
-
 # Public: Load SQS assets
 module Cumulus
   module SQS

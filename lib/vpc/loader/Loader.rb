@@ -4,8 +4,6 @@ require "vpc/models/RouteTableConfig"
 require "vpc/models/SubnetConfig"
 require "vpc/models/VpcConfig"
 
-require "aws-sdk"
-
 # Public: Load VPC assets
 module Cumulus
   module VPC

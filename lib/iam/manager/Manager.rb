@@ -3,7 +3,7 @@ require "iam/manager/IamGroups"
 require "iam/manager/IamRoles"
 require "iam/manager/IamUsers"
 
-require "aws-sdk"
+require "aws-sdk-iam"
 
 module Cumulus
   module IAM

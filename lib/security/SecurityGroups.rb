@@ -1,7 +1,7 @@
 require "conf/Configuration"
 require "ec2/EC2"
 
-require "aws-sdk"
+require "aws-sdk-ec2"
 
 module Cumulus
   module SecurityGroups

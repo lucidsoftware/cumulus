@@ -1,6 +1,8 @@
 require "conf/Configuration"
 require "s3/S3"
 
+require "aws-sdk-s3"
+
 module AwsExtensions
   module S3
     module Types
