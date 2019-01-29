@@ -2,7 +2,7 @@ before_install:
    - gem install bundler
 language: ruby
 rvm:
-- 1.9.3
+- 2.3.0
 deploy:
   provider: rubygems
   api_key:

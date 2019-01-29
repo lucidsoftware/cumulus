@@ -26,6 +26,7 @@ module Cumulus
       METHODS_CACHED = Common::DiffChange::next_change_id
       COMPRESS = Common::DiffChange::next_change_id
       LAMBDA_FUNCTION_ASSOCIATIONS = Common::DiffChange::next_change_id
+      FIELD_LEVEL_ENCRYPTION_ID = Common::DiffChange::next_change_id
     end
 
     # Public: Represents a single difference between local configuration and AWS
@@ -236,6 +237,12 @@ module Cumulus
             "lambda_function_associations",
             lambda_function_associations.removed.map { |removed| Colors.removed("\t#{removed}")},
             lambda_function_associations.added.map { |added| Colors.added("\t#{added}") }
+          ].join("\n")
+        when FIELD_LEVEL_ENCRYPTION_ID
+          [
+            "field level encryption id",
+            Colors.aws_changes("\tAWS - #{@aws.field_level_encryption_id}"),
+            Colors.local_changes("\tLocal - #{@local.field_level_encryption_id}")
           ].join("\n")
         end
       end
