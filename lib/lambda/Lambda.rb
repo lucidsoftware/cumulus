@@ -1,6 +1,6 @@
 require "conf/Configuration"
 
-require "aws-sdk"
+require "aws-sdk-lambda"
 
 module Cumulus
   module Lambda

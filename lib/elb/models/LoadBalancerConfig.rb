@@ -9,6 +9,7 @@ require "ec2/EC2"
 require "security/SecurityGroups"
 
 require "json"
+require "aws-sdk-elasticloadbalancing"
 
 module Cumulus
   module ELB

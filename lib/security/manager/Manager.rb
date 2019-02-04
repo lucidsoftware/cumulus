@@ -6,7 +6,7 @@ require "security/models/SecurityGroupDiff"
 require "security/SecurityGroups"
 require "util/Colors"
 
-require "aws-sdk"
+require "aws-sdk-ec2"
 require "json"
 
 module Cumulus

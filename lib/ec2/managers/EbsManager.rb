@@ -6,7 +6,7 @@ require "ec2/models/EbsGroupConfig"
 require "ec2/models/EbsGroupDiff"
 require "util/StatusCodes"
 
-require "aws-sdk"
+require "aws-sdk-ec2"
 
 module Cumulus
   module EC2

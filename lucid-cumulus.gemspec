@@ -15,7 +15,20 @@ Gem::Specification.new do |s|
   s.executables               = s.files.grep(%r{^bin/}) { |f| File.basename(f) }
   s.license                   = "Apache-2.0"
 
-  s.add_runtime_dependency "aws-sdk", "~> 3.0"
+  s.add_runtime_dependency "aws-sdk-autoscaling", "~> 1"
+  s.add_runtime_dependency "aws-sdk-cloudfront", "~> 1"
+  s.add_runtime_dependency "aws-sdk-cloudwatch", "~> 1"
+  s.add_runtime_dependency "aws-sdk-core", "~> 3"
+  s.add_runtime_dependency "aws-sdk-ec2", "~> 1"
+  s.add_runtime_dependency "aws-sdk-elasticloadbalancing", "~> 1"
+  s.add_runtime_dependency "aws-sdk-iam", "~> 1"
+  s.add_runtime_dependency "aws-sdk-kinesis", "~> 1"
+  s.add_runtime_dependency "aws-sdk-lambda", "~> 1"
+  s.add_runtime_dependency "aws-sdk-route53", "~> 1"
+  s.add_runtime_dependency "aws-sdk-s3", "~> 1"
+  s.add_runtime_dependency "aws-sdk-sns", "~> 1"
+  s.add_runtime_dependency "aws-sdk-sqs", "~> 1"
+
   s.add_runtime_dependency "parse-cron", "~> 0.1.4"
   s.add_runtime_dependency "deepsort", "~> 0.1"
 end

@@ -6,7 +6,8 @@ require "autoscaling/models/ScheduledActionDiff"
 require "common/manager/Manager"
 require "util/Colors"
 
-require "aws-sdk"
+require "aws-sdk-autoscaling"
+require "aws-sdk-cloudwatch"
 
 module Cumulus
   module AutoScaling

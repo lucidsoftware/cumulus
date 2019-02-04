@@ -2,6 +2,7 @@ require "conf/Configuration"
 require "vpc/models/DhcpDiff"
 
 require "json"
+require "aws-sdk-ec2"
 
 module Cumulus
   module VPC

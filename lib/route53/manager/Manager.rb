@@ -6,7 +6,7 @@ require "route53/models/Vpc"
 require "route53/models/ZoneDiff"
 require "util/Colors"
 
-require "aws-sdk"
+require "aws-sdk-route53"
 
 module Cumulus
   module Route53

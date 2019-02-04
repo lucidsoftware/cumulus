@@ -1,4 +1,4 @@
-require "aws-sdk"
+require "aws-sdk-kinesis"
 
 module Cumulus
   module Kinesis

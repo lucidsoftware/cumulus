@@ -3,7 +3,7 @@ require "autoscaling/models/AlarmDiff"
 require "autoscaling/models/PolicyDiff"
 require "conf/Configuration"
 
-require "aws-sdk"
+require "aws-sdk-cloudwatch"
 
 module Cumulus
   module AutoScaling

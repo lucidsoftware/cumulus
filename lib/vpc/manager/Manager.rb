@@ -13,7 +13,7 @@ require "vpc/models/SubnetConfig"
 require "ec2/EC2"
 require "ec2/IPProtocolMapping"
 
-require "aws-sdk"
+require "aws-sdk-ec2"
 require "json"
 
 module Cumulus

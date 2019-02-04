@@ -1,6 +1,6 @@
 require "conf/Configuration"
 
-require "aws-sdk"
+require "aws-sdk-autoscaling"
 
 module Cumulus
   module AutoScaling

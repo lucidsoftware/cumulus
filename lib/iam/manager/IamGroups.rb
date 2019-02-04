@@ -5,7 +5,7 @@ require "iam/manager/IamResource"
 require "iam/models/GroupConfig"
 require "util/Colors"
 
-require "aws-sdk"
+require "aws-sdk-iam"
 
 module Cumulus
   module IAM

@@ -8,7 +8,7 @@ require "ec2/models/InstanceDiff"
 require "iam/IAM"
 require "util/StatusCodes"
 
-require "aws-sdk"
+require "aws-sdk-ec2"
 require "base64"
 
 module Cumulus

@@ -14,7 +14,6 @@ require "util/StatusCodes"
 require "mocks/MockedStatusCodes"
 Cumulus::StatusCodes.send :include, Cumulus::Test::MockedStatusCodes
 
-require "aws-sdk"
 require "json"
 require "sqs/manager/Manager"
 require "sqs/SQS"

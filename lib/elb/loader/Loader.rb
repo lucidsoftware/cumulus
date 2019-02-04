@@ -3,7 +3,7 @@ require "conf/Configuration"
 require "elb/models/LoadBalancerConfig"
 require "elb/models/ListenerConfig"
 
-require "aws-sdk"
+require "aws-sdk-elasticloadbalancing"
 
 # Public: Load ELB assets
 module Cumulus
