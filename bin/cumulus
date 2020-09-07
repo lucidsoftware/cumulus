@@ -19,6 +19,7 @@ def help_message
     "\telb\t\t- Manages configuration for elastic load balancers",
     "\tiam\t\t- Compiles IAM roles and policies that are defined with configuration files and syncs the resulting IAM roles and policies with AWS",
     "\tkinesis\t\t- Manages configuration for Kinesis streams",
+    "\trds\t\t- Manages configuration for the Relational Database Service",
     "\troute53\t\t- Manages configuration for Route53",
     "\ts3\t\t- Manages configuration of S3 buckets",
     "\tsecurity-groups\t- Manages configuration for EC2 Security Groups",
@@ -64,10 +65,7 @@ OptionParser.new do |opts|
   end
 end.parse!
 
-if ARGV.size == 0 or (ARGV[0] != "iam" and ARGV[0] != "help" and ARGV[0] != "--help" and ARGV[0] != "autoscaling" and
-  ARGV[0] != "route53" and ARGV[0] != "s3" and ARGV[0] != "security-groups" and
-  ARGV[0] != "cloudfront" and ARGV[0] != "elb" and ARGV[0] != "vpc" and ARGV[0] != "kinesis" and
-  ARGV[0] != "sqs" and ARGV[0] != "ec2")
+unless ARGV.size > 0 and ["iam", "help", "--help", "autoscaling", "route53", "s3", "security-groups", "cloudfront", "elb", "vpc", "kinesis", "sqs", "ec3", "rds"].include?(ARGV[0])
 
   puts usage_message
   exit
@@ -116,6 +114,9 @@ elsif ARGV[0] == "elb"
 elsif ARGV[0] == "kinesis"
   require "kinesis/Commands"
   Cumulus::Kinesis::Commands.parse(ARGV[1..-1])
+elsif ARGV[0] == "rds"
+  require "rds/Commands"
+  Cumulus::RDS::Commands.parse(ARGV[1..-1])
 elsif ARGV[0] == "route53"
   require "route53/Commands"
   Cumulus::Route53::Commands.parse(ARGV[1..-1])

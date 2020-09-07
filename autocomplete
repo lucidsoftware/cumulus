@@ -88,6 +88,12 @@ function _cumulus {
             COMPREPLY=( $(compgen -W "$configs" -- $cur) )
           fi
         ;;
+        rds)
+          if [ "$prev" == "diff" ] || [ "$prev" == "sync" ]; then
+            configs=$(${cumulus_command} rds list)
+            COMPREPLY=( $(compgen -W "$configs" -- $cur) )
+          fi
+        ;;
         ec2)
           COMPREPLY=( $(compgen -W "diff list migrate sync" -- $cur) )
         ;;
@@ -125,6 +131,9 @@ function _cumulus {
             ;;
             sqs)
               COMPREPLY=( $(compgen -W "diff list migrate sync urls" -- $cur) )
+            ;;
+            rds)
+              COMPREPLY=( $(compgen -W "diff list migrate sync" -- $cur) )
             ;;
             ec2)
               COMPREPLY=( $(compgen -W "ebs instances" -- $cur) )
